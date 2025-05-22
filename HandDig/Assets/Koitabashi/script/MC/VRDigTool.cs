@@ -30,6 +30,16 @@ public class VRDigTool : MonoBehaviour
 
     void Update()
     {
+        if (currentHitCollider != null)
+        {
+            Debug.Log("地形に触れてるよ！");
+        }
+
+        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger))
+        {
+            Debug.Log("トリガー押してるよ！");
+        }
+
         if (currentHitCollider != null && OVRInput.Get(OVRInput.RawButton.RIndexTrigger))
         {
             digTimer += Time.deltaTime;
@@ -38,6 +48,7 @@ public class VRDigTool : MonoBehaviour
                 digTimer = 0f;
                 Vector3 digPoint = transform.position;
                 digManager.DigAt(digPoint);
+                Debug.Log("掘ってるよ！ at " + digPoint);
             }
         }
         else
