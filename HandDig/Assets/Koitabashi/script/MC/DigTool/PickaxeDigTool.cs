@@ -19,7 +19,10 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Terrain"))
+        {
             currentCollider = other;
+            Debug.Log("地形に触れた: " + other.name);
+        }
     }
 
     public void OnTriggerExit(Collider other)
@@ -30,10 +33,18 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     public void UpdateDig(Vector3 toolPosition)
     {
-        if (currentCollider == null) return;
+        Debug.Log("UpdateDig() 呼ばれたよ");
+        if (currentCollider == null)
+        {
+            //Debug.Log("地形に触れていない");
+            return;
+        }
 
         if (OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger))
         {
+
+            Debug.Log("トリガー押された");
+
             float currentTime = Time.time;
             float timeSinceLast = currentTime - lastDigTime;
 
@@ -54,6 +65,7 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
                 2 => stage3Radius,
                 _ => baseRadius
             };
+            Debug.Log($"掘ってるよ！ comboStage={comboStage}, radius={radius}");
 
             digManager.DigAt(toolPosition, radius);
         }

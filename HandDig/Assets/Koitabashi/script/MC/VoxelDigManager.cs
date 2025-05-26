@@ -13,5 +13,14 @@ public class VoxelDigManager : MonoBehaviour
     public void DigAt(Vector3 position, float radius)
     {
         Debug.Log($"範囲{radius}で掘削！");
+
+        if (world != null)
+        {
+            world.Dig(position, radius); // ← 実際にワールドから掘削する処理
+        }
+        else
+        {
+            Debug.LogError("MC_World がアタッチされていません！");
+        }
     }
 }
