@@ -33,24 +33,24 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     public void UpdateDig(Vector3 toolPosition)
     {
-        Debug.Log("UpdateDig() 呼ばれたよ");
+        //Debug.Log("UpdateDig() 呼ばれたよ");
         if (currentCollider == null)
         {
             //Debug.Log("地形に触れていない");
             return;
         }
-
-        if (OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger))
+        bool triggerPressed = OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger) || Input.GetKeyDown(KeyCode.Space);
+        if (triggerPressed)
         {
 
-            Debug.Log("トリガー押された");
+            //Debug.Log("トリガー押された");
 
             float currentTime = Time.time;
             float timeSinceLast = currentTime - lastDigTime;
 
             if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
             {
-                comboStage = Mathf.Min(comboStage + 1, 2);
+                comboStage = (comboStage + 1) % 3; // 0 → 1 → 2 → 0…
             }
             else
             {
@@ -65,7 +65,7 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
                 2 => stage3Radius,
                 _ => baseRadius
             };
-            Debug.Log($"掘ってるよ！ comboStage={comboStage}, radius={radius}");
+            Debug.Log($"つるはし段階 {comboStage + 1}（半径{radius}）で掘削！");
 
             digManager.DigAt(toolPosition, radius);
         }
