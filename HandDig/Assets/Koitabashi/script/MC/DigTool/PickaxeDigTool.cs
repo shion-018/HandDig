@@ -5,9 +5,9 @@ using UnityEngine;
 public class PickaxeDigTool : MonoBehaviour, IDigTool
 {
     public VoxelDigManager digManager;
-    public float baseRadius = 1.5f;
-    public float stage2Radius = 2.0f;
-    public float stage3Radius = 2.5f;
+    public float baseRadius = 3.0f;
+    public float stage2Radius = 4.0f;
+    public float stage3Radius = 5.0f;
 
     public float minComboTime = 0.5f;
     public float maxComboTime = 1.5f;
