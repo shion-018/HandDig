@@ -1,47 +1,71 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class DigToolEntry
+{
+    public GameObject toolObject;         // モデルやColliderを持つオブジェクト
+    public MonoBehaviour toolScript;      // IDigTool を実装するスクリプト
+    public Transform toolTransform;       // 掘る位置（通常右手のTransform）
+}
+
 public class VRDigToolManager : MonoBehaviour
 {
-    public IDigTool currentTool;
-    public Transform toolTransform; // 右手の位置を参照（＝ツールの位置）
+    public List<DigToolEntry> tools = new List<DigToolEntry>();
+    private int currentIndex = 0;
 
-
-    public MonoBehaviour defaultToolObject; // PickaxeDigTool をアタッチした GameObject
-    public Transform defaultToolTransform;  // 右手の位置
+    private IDigTool currentTool;
+    private Transform currentToolTransform;
 
     void Start()
     {
-        if (defaultToolObject is IDigTool digTool)
+        if (tools.Count > 0)
         {
-            SetTool(digTool, defaultToolTransform);
-            //Debug.Log("初期ツールをセットしたよ！");
-        }
-        else
-        {
-            //Debug.LogError("defaultToolObject に IDigTool を実装したオブジェクトを設定してください！");
+            ActivateTool(currentIndex);
         }
     }
+
     void Update()
     {
-        if (currentTool != null && toolTransform != null)
+        // 掘削処理呼び出し
+        if (currentTool != null && currentToolTransform != null)
         {
-            //Debug.Log("VRDigToolManager が UpdateDig 呼んでるよ");
-            currentTool.UpdateDig(toolTransform.position);
+            currentTool.UpdateDig(currentToolTransform.position);
+        }
+
+        // ツール切り替え（Quest3：Bボタン）
+        if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.T))
+        {
+            CycleTool();
+        }
+    }
+
+    void CycleTool()
+    {
+        currentIndex = (currentIndex + 1) % tools.Count;
+        ActivateTool(currentIndex);
+    }
+
+    void ActivateTool(int index)
+    {
+        for (int i = 0; i < tools.Count; i++)
+        {
+            if (tools[i].toolObject != null)
+            {
+                tools[i].toolObject.SetActive(i == index);
+            }
+        }
+
+        var entry = tools[index];
+        if (entry.toolScript is IDigTool digTool)
+        {
+            currentTool = digTool;
+            currentToolTransform = entry.toolTransform;
+            Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
         }
         else
         {
-            //Debug.LogWarning("currentTool か toolTransform が null だよ！");
+            Debug.LogError("指定された toolScript が IDigTool を実装していません。");
         }
-        if(currentTool == null)
-        {
-            //Debug.LogWarning("現在の掘削ツールが設定されていません。SetToolメソッドで設定してください。");
-        }
-    }
-    public void SetTool(IDigTool tool, Transform toolTransform)
-    {
-        currentTool = tool;
-        this.toolTransform = toolTransform;
     }
 }

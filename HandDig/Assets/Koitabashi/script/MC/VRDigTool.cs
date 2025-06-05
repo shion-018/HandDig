@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class VRDigTool : MonoBehaviour
+public class VRDigTool : MonoBehaviour,IDigTool
 {
     public VoxelDigManager digManager;
-    public float digInterval = 0.1f; // å@ÇÈä‘äu
     public float digRadius = 2f;
 
-    private float digTimer = 0f;
     private Collider currentHitCollider = null;
+    private bool canDig = true;
 
-    void OnTriggerEnter(Collider other)
+    public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Terrain"))
         {
@@ -20,7 +19,7 @@ public class VRDigTool : MonoBehaviour
         }
     }
 
-    void OnTriggerExit(Collider other)
+    public void OnTriggerExit(Collider other)
     {
         if (other == currentHitCollider)
         {
@@ -28,32 +27,15 @@ public class VRDigTool : MonoBehaviour
         }
     }
 
-    void Update()
+    public void UpdateDig(Vector3 toolPosition)
     {
-        if (currentHitCollider != null)
-        {
-            Debug.Log("ínå`Ç…êGÇÍÇƒÇÈÇÊÅI");
-        }
+        bool isTriggerPressed = OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger);
+        bool isSpacePressed = Input.GetKeyDown(KeyCode.Space);
 
-        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger))
+        if (currentHitCollider != null && (isTriggerPressed || isSpacePressed))
         {
-            Debug.Log("ÉgÉäÉKÅ[âüÇµÇƒÇÈÇÊÅI");
-        }
-
-        if (currentHitCollider != null && OVRInput.Get(OVRInput.RawButton.RIndexTrigger))
-        {
-            digTimer += Time.deltaTime;
-            if (digTimer >= digInterval)
-            {
-                digTimer = 0f;
-                Vector3 digPoint = transform.position;
-                digManager.DigAt(digPoint);
-                Debug.Log("å@Ç¡ÇƒÇÈÇÊÅI at " + digPoint);
-            }
-        }
-        else
-        {
-            digTimer = 0f;
+            digManager.DigAt(toolPosition, digRadius);
+            Debug.Log($"HandDigTool: å@Ç¡ÇΩÇÊÅIà íu: {toolPosition}");
         }
     }
 }
