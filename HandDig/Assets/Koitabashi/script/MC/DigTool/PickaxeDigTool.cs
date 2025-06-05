@@ -11,7 +11,8 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     public float minComboTime = 0.5f;
     public float maxComboTime = 1.5f;
-    public float swingThreshold = 1.5f; // 振り下ろしの速度しきい値
+    public float swingThreshold = 1.5f;
+    public float resetThreshold = 0.5f; // スイング終了とみなす速度
 
     private Collider currentCollider;
     private float lastDigTime = -10f;
@@ -19,6 +20,8 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     private Vector3 previousPosition;
     private float velocity;
+
+    private bool hasSwung = false; // 1スイング1ヒット制御用
 
     void Start()
     {
@@ -41,27 +44,36 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
     {
         if (currentCollider == null) return;
 
-        // 入力確認：VRトリガー or スペースキー
         bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
         bool isSpaceHeld = Input.GetKey(KeyCode.Space);
         if (!isTriggerHeld && !isSpaceHeld) return;
 
-        // 移動速度を計算（フレーム間位置差分）
         velocity = (toolPosition - previousPosition).magnitude / Time.deltaTime;
         previousPosition = toolPosition;
+        Debug.Log($"[Pickaxe] Current Velocity: {velocity:F2}");
+        // 既にスイング中 → 一度速度が落ちるまで何もしない
+        if (hasSwung)
+        {
+            if (velocity < resetThreshold)
+            {
+                hasSwung = false; // 次のスイング受付開始
+            }
+            return;
+        }
 
+        // スイングがしきい値を超えた → 掘れる！
         if (velocity >= swingThreshold)
         {
             float currentTime = Time.time;
             float timeSinceLast = currentTime - lastDigTime;
 
-            // コンボ段階更新
             if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
                 comboStage = Mathf.Min(comboStage + 1, 2);
             else
                 comboStage = 0;
 
             lastDigTime = currentTime;
+            hasSwung = true; // 掘った直後は次のスイングを封じる
 
             float radius = comboStage switch
             {
