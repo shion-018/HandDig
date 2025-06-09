@@ -11,24 +11,53 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     public float minComboTime = 0.5f;
     public float maxComboTime = 1.5f;
-    public float swingThreshold = 1.5f; // 振り下ろしの速度しきい値
 
     private Collider currentCollider;
     private float lastDigTime = -10f;
     private int comboStage = 0;
 
-    private Vector3 previousPosition;
-    private float velocity;
+    private bool isSwingReady = false;
 
-    void Start()
+    public void SetSwingReady(bool ready)
     {
-        previousPosition = transform.position;
+        isSwingReady = ready;
+        Debug.Log($"[Pickaxe] SwingReady = {ready}");
     }
 
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Terrain"))
+        {
             currentCollider = other;
+
+            // スイング準備ができている + 入力中 なら掘る
+            bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
+            bool isSpaceHeld = Input.GetKey(KeyCode.Space);
+
+            if (isSwingReady && (isTriggerHeld || isSpaceHeld))
+            {
+                float currentTime = Time.time;
+                float timeSinceLast = currentTime - lastDigTime;
+
+                if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
+                    comboStage = Mathf.Min(comboStage + 1, 2);
+                else
+                    comboStage = 0;
+
+                lastDigTime = currentTime;
+                isSwingReady = false; // 掘ったらリセット
+
+                float radius = comboStage switch
+                {
+                    1 => stage2Radius,
+                    2 => stage3Radius,
+                    _ => baseRadius
+                };
+
+                digManager.DigAt(transform.position, radius);
+                Debug.Log($"[Pickaxe] Combo {comboStage + 1} / radius: {radius}");
+            }
+        }
     }
 
     public void OnTriggerExit(Collider other)
@@ -39,39 +68,6 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     public void UpdateDig(Vector3 toolPosition)
     {
-        if (currentCollider == null) return;
-
-        // 入力確認：VRトリガー or スペースキー
-        bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
-        bool isSpaceHeld = Input.GetKey(KeyCode.Space);
-        if (!isTriggerHeld && !isSpaceHeld) return;
-
-        // 移動速度を計算（フレーム間位置差分）
-        velocity = (toolPosition - previousPosition).magnitude / Time.deltaTime;
-        previousPosition = toolPosition;
-
-        if (velocity >= swingThreshold)
-        {
-            float currentTime = Time.time;
-            float timeSinceLast = currentTime - lastDigTime;
-
-            // コンボ段階更新
-            if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
-                comboStage = Mathf.Min(comboStage + 1, 2);
-            else
-                comboStage = 0;
-
-            lastDigTime = currentTime;
-
-            float radius = comboStage switch
-            {
-                1 => stage2Radius,
-                2 => stage3Radius,
-                _ => baseRadius
-            };
-
-            digManager.DigAt(toolPosition, radius);
-            Debug.Log($"Pickaxe: Combo {comboStage + 1} / velocity: {velocity:F2} / radius: {radius}");
-        }
+        // 速度・相対移動などは使わないのでここは空のままでOK
     }
 }
