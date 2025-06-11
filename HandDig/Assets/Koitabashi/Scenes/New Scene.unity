@@ -1350,7 +1350,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  digRadius: 2
+  stats: {fileID: 0}
 --- !u!1 &673140566
 GameObject:
   m_ObjectHideFlags: 0
@@ -1649,9 +1649,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  baseRadius: 2
-  stage2Radius: 4
-  stage3Radius: 6
+  stats: {fileID: 11400000, guid: 07c7e0ce8058b584a800b1ce047813ac, type: 2}
   minComboTime: 0.5
   maxComboTime: 1.5
 --- !u!54 &885579530
@@ -2756,7 +2754,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  digRadius: 2
+  stats: {fileID: 11400000, guid: 26466883be9e3754ca50784a84c1ce28, type: 2}
 --- !u!135 &1391021138
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -8208,9 +8206,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  baseRadius: 3
-  stage2Radius: 2
-  stage3Radius: 2.5
+  stats: {fileID: 0}
   minComboTime: 0.5
   maxComboTime: 1.5
 --- !u!54 &1815504908
@@ -8604,7 +8600,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  drillRadius: 2
+  stats: {fileID: 11400000, guid: d02d812cd60be59499860f4e86aa727d, type: 2}
   digInterval: 0.1
 --- !u!1 &2003327784
 GameObject:
@@ -8771,7 +8767,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  drillRadius: 2
+  stats: {fileID: 0}
   digInterval: 0.1
 --- !u!54 &2048346477
 Rigidbody:

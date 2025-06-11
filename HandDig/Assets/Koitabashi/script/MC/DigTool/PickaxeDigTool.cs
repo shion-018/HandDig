@@ -5,9 +5,7 @@ using UnityEngine;
 public class PickaxeDigTool : MonoBehaviour, IDigTool
 {
     public VoxelDigManager digManager;
-    public float baseRadius = 1.5f;
-    public float stage2Radius = 2.0f;
-    public float stage3Radius = 2.5f;
+    public DigToolStats stats;
 
     public float minComboTime = 0.5f;
     public float maxComboTime = 1.5f;
@@ -30,7 +28,6 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
         {
             currentCollider = other;
 
-            // スイング準備ができている + 入力中 なら掘る
             bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
             bool isSpaceHeld = Input.GetKey(KeyCode.Space);
 
@@ -45,17 +42,15 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
                     comboStage = 0;
 
                 lastDigTime = currentTime;
-                isSwingReady = false; // 掘ったらリセット
+                isSwingReady = false;
 
-                float radius = comboStage switch
-                {
-                    1 => stage2Radius,
-                    2 => stage3Radius,
-                    _ => baseRadius
-                };
+                float radius = stats.GetRadius(comboStage);
 
-                digManager.DigAt(transform.position, radius);
-                Debug.Log($"[Pickaxe] Combo {comboStage + 1} / radius: {radius}");
+                Vector3 upwardOffset = transform.up * (radius * 0.3f);
+                Vector3 digPosition = transform.position + upwardOffset;
+
+                digManager.DigAt(digPosition, radius);
+                Debug.Log($"[Pickaxe] Combo {comboStage + 1} / radius: {radius} / offset Y: {upwardOffset.y:F2}");
             }
         }
     }
@@ -68,6 +63,6 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     public void UpdateDig(Vector3 toolPosition)
     {
-        // 速度・相対移動などは使わないのでここは空のままでOK
+        // 空実装でOK
     }
 }
