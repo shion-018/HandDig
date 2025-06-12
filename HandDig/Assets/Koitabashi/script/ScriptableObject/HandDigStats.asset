@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ba754c1ef334844ba64439bcfee8180, type: 3}
   m_Name: HandDigStats
   m_EditorClassIdentifier: 
-  baseRadius: 2
+  baseRadius: 3
   stage2Radius: 1.5
   stage3Radius: 2
   upgradeBonus: 0
