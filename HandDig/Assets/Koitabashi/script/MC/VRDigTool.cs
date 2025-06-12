@@ -3,28 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class VRDigTool : MonoBehaviour,IDigTool
+public class VRDigTool : MonoBehaviour, IDigTool
 {
     public VoxelDigManager digManager;
-    public float digRadius = 2f;
+    public DigToolStats stats; // ← アセットをインスペクタから指定
 
     private Collider currentHitCollider = null;
-    private bool canDig = true;
 
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Terrain"))
-        {
             currentHitCollider = other;
-        }
     }
 
     public void OnTriggerExit(Collider other)
     {
         if (other == currentHitCollider)
-        {
             currentHitCollider = null;
-        }
     }
 
     public void UpdateDig(Vector3 toolPosition)
@@ -34,8 +29,9 @@ public class VRDigTool : MonoBehaviour,IDigTool
 
         if (currentHitCollider != null && (isTriggerPressed || isSpacePressed))
         {
-            digManager.DigAt(toolPosition, digRadius);
-            Debug.Log($"HandDigTool: 掘ったよ！位置: {toolPosition}");
+            float radius = stats.GetRadius(); // comboStageなし
+            digManager.DigAt(toolPosition, radius);
+            Debug.Log($"[HandDig] 掘ったよ！ Radius: {radius}");
         }
     }
 }
