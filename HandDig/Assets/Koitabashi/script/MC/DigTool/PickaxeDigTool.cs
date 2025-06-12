@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class PickaxeDigTool : MonoBehaviour, IDigTool
+public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
-    public DigToolStats stats;
+
+    private DigToolStats stats;
+    private int upgradeLevel;
 
     public float minComboTime = 0.5f;
     public float maxComboTime = 1.5f;
@@ -15,6 +16,12 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
     private int comboStage = 0;
 
     private bool isSwingReady = false;
+
+    public void SetStats(DigToolStats newStats, int level)
+    {
+        stats = newStats;
+        upgradeLevel = level;
+    }
 
     public void SetSwingReady(bool ready)
     {
@@ -31,20 +38,20 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
             bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
             bool isSpaceHeld = Input.GetKey(KeyCode.Space);
 
-            if (isSwingReady && (isTriggerHeld || isSpaceHeld))
+            if (isSwingReady && (isTriggerHeld || isSpaceHeld) && stats != null)
             {
                 float currentTime = Time.time;
                 float timeSinceLast = currentTime - lastDigTime;
 
                 if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
-                    comboStage = Mathf.Min(comboStage + 1, 2);
+                    comboStage = Mathf.Min(comboStage + 1, 2); // Å‘å3’iŠK
                 else
                     comboStage = 0;
 
                 lastDigTime = currentTime;
                 isSwingReady = false;
 
-                float radius = stats.GetRadius(comboStage);
+                float radius = stats.GetRadius(comboStage, upgradeLevel);
 
                 Vector3 upwardOffset = transform.up * (radius * 0.3f);
                 Vector3 digPosition = transform.position + upwardOffset;
@@ -63,6 +70,6 @@ public class PickaxeDigTool : MonoBehaviour, IDigTool
 
     public void UpdateDig(Vector3 toolPosition)
     {
-        // ‹óŽÀ‘•‚ÅOK
+        // ‚±‚±‚ÍŽg‚Á‚Ä‚È‚¢‚Ì‚Å‹óŽÀ‘•‚Ì‚Ü‚Ü‚ÅOK
     }
 }

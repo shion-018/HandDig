@@ -12,8 +12,9 @@ public class DigToolEntry
 public class VRDigToolManager : MonoBehaviour
 {
     public List<DigToolEntry> tools = new List<DigToolEntry>();
-    private int currentIndex = 0;
+    public List<DigToolData> toolDataList = new List<DigToolData>();
 
+    private int currentIndex = 0;
     private IDigTool currentTool;
     private Transform currentToolTransform;
 
@@ -27,13 +28,11 @@ public class VRDigToolManager : MonoBehaviour
 
     void Update()
     {
-        // 掘削処理呼び出し
         if (currentTool != null && currentToolTransform != null)
         {
             currentTool.UpdateDig(currentToolTransform.position);
         }
 
-        // ツール切り替え（Quest3：Bボタン）
         if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.T))
         {
             CycleTool();
@@ -51,9 +50,7 @@ public class VRDigToolManager : MonoBehaviour
         for (int i = 0; i < tools.Count; i++)
         {
             if (tools[i].toolObject != null)
-            {
                 tools[i].toolObject.SetActive(i == index);
-            }
         }
 
         var entry = tools[index];
@@ -61,11 +58,15 @@ public class VRDigToolManager : MonoBehaviour
         {
             currentTool = digTool;
             currentToolTransform = entry.toolTransform;
+
+            // 各ツールにマネージャーを渡すようにする（←これ重要）
+            if (digTool is IDigToolWithStats toolWithStats)
+            {
+                var data = toolDataList[index];
+                toolWithStats.SetStats(data.stats, data.currentUpgradeLevel);
+            }
+
             Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
-        }
-        else
-        {
-            Debug.LogError("指定された toolScript が IDigTool を実装していません。");
         }
     }
 }
