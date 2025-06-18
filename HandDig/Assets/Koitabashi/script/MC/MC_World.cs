@@ -10,12 +10,26 @@ public class MC_World : MonoBehaviour
     public int chunkCountY = 5;
     public int chunkCountZ = 1;
 
+    public TreasureSpawner treasureSpawner;
+    public List<DigVolume> digVolumesToApply;
+
     Dictionary<Vector3Int, MC_Chunk> chunkMap = new Dictionary<Vector3Int, MC_Chunk>();
 
     void Start()
     {
+        treasureSpawner.chunkSize = chunkSize;
+        Vector3Int center = new Vector3Int(chunkCountX / 2, -2, chunkCountZ / 2);
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                Vector3Int excluded = new Vector3Int(center.x + dx, center.y, center.z + dz);
+                treasureSpawner.AddExcludedChunk(excluded);
+            }
         GenerateChunks();
-
+        foreach (var vol in digVolumesToApply)
+        {
+            vol.ApplyDig(this);
+        }
         // スタート地点（ワールド中心）を広めに掘って空間に
         Vector3 startDigPos = new Vector3(
             chunkSize * chunkCountX / 2f,
@@ -45,6 +59,9 @@ public class MC_World : MonoBehaviour
                     MC_Chunk chunk = obj.GetComponent<MC_Chunk>();
                     chunk.Initialize(worldPos);
                     chunkMap[pos] = chunk;
+
+                    treasureSpawner.TrySpawnTreasureAtChunk(pos, worldPos);
+
                 }
     }
 
