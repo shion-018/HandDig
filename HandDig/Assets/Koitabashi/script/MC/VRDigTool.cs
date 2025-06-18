@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class VRDigTool : MonoBehaviour, IDigTool
+public class VRDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
-    public DigToolStats stats; // ← アセットをインスペクタから指定
+
+    private DigToolStats stats;
+    private int upgradeLevel;
 
     private Collider currentHitCollider = null;
+
+    public void SetStats(DigToolStats newStats, int level)
+    {
+        stats = newStats;
+        upgradeLevel = level;
+    }
 
     public void OnTriggerEnter(Collider other)
     {
@@ -27,9 +35,9 @@ public class VRDigTool : MonoBehaviour, IDigTool
         bool isTriggerPressed = OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger);
         bool isSpacePressed = Input.GetKeyDown(KeyCode.Space);
 
-        if (currentHitCollider != null && (isTriggerPressed || isSpacePressed))
+        if (currentHitCollider != null && (isTriggerPressed || isSpacePressed) && stats != null)
         {
-            float radius = stats.GetRadius(); // comboStageなし
+            float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0（手は段階なし）
             digManager.DigAt(toolPosition, radius);
             Debug.Log($"[HandDig] 掘ったよ！ Radius: {radius}");
         }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static Unity.VisualScripting.Dependencies.Sqlite.SQLite3;
 
 [System.Serializable]
 public class DigToolEntry
@@ -69,4 +70,35 @@ public class VRDigToolManager : MonoBehaviour
             Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
         }
     }
+
+
+    public void UpgradeTool(int index, int amount = 1)
+    {
+        if (index < 0 || index >= toolDataList.Count)
+        {
+            Debug.LogWarning($"不正なツールインデックス: {index}");
+            return;
+        }
+
+        var data = toolDataList[index];
+        int max = data.stats.GetMaxUpgradeLevel();
+
+        if (data.currentUpgradeLevel < max - 1)
+        {
+            int before = data.currentUpgradeLevel;
+            data.currentUpgradeLevel = Mathf.Min(data.currentUpgradeLevel + amount, max - 1);
+
+            Debug.Log($"[強化] ツール{index}が Lv.{before} → Lv.{data.currentUpgradeLevel} にアップ！");
+
+            if (index == currentIndex && currentTool is IDigToolWithStats toolWithStats)
+            {
+                toolWithStats.SetStats(data.stats, data.currentUpgradeLevel);
+            }
+        }
+        else
+        {
+            Debug.Log($"[強化] ツール{index} はすでに最大強化されています。");
+        }
+    }
+
 }

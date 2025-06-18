@@ -37,4 +37,8 @@ public class DigToolStats : ScriptableObject
 
         return Mathf.Lerp(min, max, t);
     }
+    public int GetMaxUpgradeLevel()
+    {
+        return upgradeSteps;
+    }
 }
