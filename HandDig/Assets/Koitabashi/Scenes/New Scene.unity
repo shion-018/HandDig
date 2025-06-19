@@ -421,6 +421,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 748401583}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &206718483
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 206718485}
+  - component: {fileID: 206718484}
+  m_Layer: 0
+  m_Name: TreasureSpawner (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &206718484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 206718483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1446bb47ef6a344c81a22a250164f79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  treasurePrefabs:
+  - {fileID: 6718049075907697980, guid: 2a167d557b5e7dc4782503cf728bad65, type: 3}
+  spawnChance: 0.05
+  maxAttemptsPerChunk: 1
+  chunkSize: 32
+--- !u!4 &206718485
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 206718483}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -40.454994, y: -39.94899, z: 63.08953}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &234923320
 GameObject:
   m_ObjectHideFlags: 0
@@ -816,7 +865,7 @@ MonoBehaviour:
   - {fileID: 6718049075907697980, guid: 253c48a4837f84540b04b5e423afeeee, type: 3}
   - {fileID: 6718049075907697980, guid: 931526f0789b81f43831d34d14080651, type: 3}
   - {fileID: 6718049075907697980, guid: dca683df8fadbd14cbe1c03d5944229c, type: 3}
-  spawnChance: 0.25
+  spawnChance: 0.1
   maxAttemptsPerChunk: 3
   chunkSize: 32
 --- !u!4 &333065111
@@ -2953,7 +3002,7 @@ Transform:
   m_GameObject: {fileID: 1291946206}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 80, y: -65, z: 82}
+  m_LocalPosition: {x: 161.9, y: -60.7, z: 153.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4085,7 +4134,7 @@ Transform:
   m_GameObject: {fileID: 1657898832}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 77.81396, y: 4.1, z: 68.979034}
+  m_LocalPosition: {x: 77.81396, y: 2.7, z: 68.979034}
   m_LocalScale: {x: 5.34, y: 5.34, z: 5.34}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -9046,10 +9095,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chunkPrefab: {fileID: 9100339038365024726, guid: 51bee803afc6cdd48b8685eefa52f0ea, type: 3}
   chunkSize: 32
-  chunkCountX: 5
+  chunkCountX: 10
   chunkCountY: 10
-  chunkCountZ: 5
-  treasureSpawner: {fileID: 333065110}
+  chunkCountZ: 10
+  treasureSpawners:
+  - {fileID: 333065110}
+  - {fileID: 206718484}
   digVolumesToApply:
   - {fileID: 1657898833}
   - {fileID: 1566035158}
@@ -9082,7 +9133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b884915bf19093948ab148d55d72ea6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawChunkGizmos: 1
+  drawChunkGizmos: 0
   gizmoColor: {r: 0, g: 0.19128418, b: 1, a: 0.5}
   chunkSize: {x: 32, y: 32, z: 32}
 --- !u!4 &1757650895 stripped
@@ -9401,7 +9452,7 @@ Transform:
   m_GameObject: {fileID: 1813527835}
   serializedVersion: 2
   m_LocalRotation: {x: 0.3036073, y: -0.0345284, z: -0.1075942, w: 0.94607294}
-  m_LocalPosition: {x: 66.22, y: -26.51, z: 62.14}
+  m_LocalPosition: {x: 66.7, y: -24.2, z: 66.4}
   m_LocalScale: {x: 5.34, y: 5.34, z: 5.34}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -10331,6 +10382,7 @@ SceneRoots:
   - {fileID: 1755998392}
   - {fileID: 1324455029}
   - {fileID: 333065111}
+  - {fileID: 206718485}
   - {fileID: 1657898837}
   - {fileID: 1566035162}
   - {fileID: 1011501496}
