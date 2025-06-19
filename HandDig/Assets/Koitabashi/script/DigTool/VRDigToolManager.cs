@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static Unity.VisualScripting.Dependencies.Sqlite.SQLite3;
 
 [System.Serializable]
 public class DigToolEntry
@@ -12,8 +13,9 @@ public class DigToolEntry
 public class VRDigToolManager : MonoBehaviour
 {
     public List<DigToolEntry> tools = new List<DigToolEntry>();
-    private int currentIndex = 0;
+    public List<DigToolData> toolDataList = new List<DigToolData>();
 
+    private int currentIndex = 0;
     private IDigTool currentTool;
     private Transform currentToolTransform;
 
@@ -27,13 +29,11 @@ public class VRDigToolManager : MonoBehaviour
 
     void Update()
     {
-        // 掘削処理呼び出し
         if (currentTool != null && currentToolTransform != null)
         {
             currentTool.UpdateDig(currentToolTransform.position);
         }
 
-        // ツール切り替え（Quest3：Bボタン）
         if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.T))
         {
             CycleTool();
@@ -51,9 +51,7 @@ public class VRDigToolManager : MonoBehaviour
         for (int i = 0; i < tools.Count; i++)
         {
             if (tools[i].toolObject != null)
-            {
                 tools[i].toolObject.SetActive(i == index);
-            }
         }
 
         var entry = tools[index];
@@ -61,11 +59,46 @@ public class VRDigToolManager : MonoBehaviour
         {
             currentTool = digTool;
             currentToolTransform = entry.toolTransform;
+
+            // 各ツールにマネージャーを渡すようにする（←これ重要）
+            if (digTool is IDigToolWithStats toolWithStats)
+            {
+                var data = toolDataList[index];
+                toolWithStats.SetStats(data.stats, data.currentUpgradeLevel);
+            }
+
             Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
+        }
+    }
+
+
+    public void UpgradeTool(int index, int amount = 1)
+    {
+        if (index < 0 || index >= toolDataList.Count)
+        {
+            Debug.LogWarning($"不正なツールインデックス: {index}");
+            return;
+        }
+
+        var data = toolDataList[index];
+        int max = data.stats.GetMaxUpgradeLevel();
+
+        if (data.currentUpgradeLevel < max - 1)
+        {
+            int before = data.currentUpgradeLevel;
+            data.currentUpgradeLevel = Mathf.Min(data.currentUpgradeLevel + amount, max - 1);
+
+            Debug.Log($"[強化] ツール{index}が Lv.{before} → Lv.{data.currentUpgradeLevel} にアップ！");
+
+            if (index == currentIndex && currentTool is IDigToolWithStats toolWithStats)
+            {
+                toolWithStats.SetStats(data.stats, data.currentUpgradeLevel);
+            }
         }
         else
         {
-            Debug.LogError("指定された toolScript が IDigTool を実装していません。");
+            Debug.Log($"[強化] ツール{index} はすでに最大強化されています。");
         }
     }
+
 }

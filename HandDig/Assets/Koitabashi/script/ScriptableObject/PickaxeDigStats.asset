@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ba754c1ef334844ba64439bcfee8180, type: 3}
   m_Name: PickaxeDigStats
   m_EditorClassIdentifier: 
-  baseRadius: 2
-  stage2Radius: 4
-  stage3Radius: 6
-  upgradeBonus: 0
+  baseRadius: 1.5
+  stage2Radius: 2.5
+  stage3Radius: 4.5
+  baseRadiusMax: 3
+  stage2RadiusMax: 4
+  stage3RadiusMax: 6
+  upgradeSteps: 5

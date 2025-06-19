@@ -2,14 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DrillDigTool : MonoBehaviour, IDigTool
+public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
-    public DigToolStats stats;
+
+    private DigToolStats stats;
+    private int upgradeLevel;
 
     public float digInterval = 0.1f;
     private Collider currentCollider;
     private float digTimer = 0f;
+
+    public void SetStats(DigToolStats newStats, int level)
+    {
+        stats = newStats;
+        upgradeLevel = level;
+    }
 
     public void OnTriggerEnter(Collider other)
     {
@@ -30,11 +38,13 @@ public class DrillDigTool : MonoBehaviour, IDigTool
         if (currentCollider != null && triggerHeld)
         {
             digTimer += Time.deltaTime;
-            if (digTimer >= digInterval)
+            if (digTimer >= digInterval && stats != null)
             {
                 digTimer = 0f;
-                float radius = stats.GetRadius();
+
+                float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0（ドリルは段階なし）
                 digManager.DigAt(toolPosition, radius);
+                Debug.Log($"[Drill] Dig at radius {radius}");
             }
         }
         else

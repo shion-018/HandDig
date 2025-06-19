@@ -10,16 +10,42 @@ public class MC_World : MonoBehaviour
     public int chunkCountY = 5;
     public int chunkCountZ = 1;
 
+    [Tooltip("複数のTreasureSpawnerをシーンに配置可能")]
+    public List<TreasureSpawner> treasureSpawners = new List<TreasureSpawner>();
+
+    public List<DigVolume> digVolumesToApply;
+
     Dictionary<Vector3Int, MC_Chunk> chunkMap = new Dictionary<Vector3Int, MC_Chunk>();
 
     void Start()
     {
+        // 各スポナーにchunkSizeと除外リストを適用
+        Vector3Int center = new Vector3Int(chunkCountX / 2, -2, chunkCountZ / 2);
+        foreach (var spawner in treasureSpawners)
+        {
+            if (spawner == null) continue;
+
+            spawner.chunkSize = chunkSize;
+
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dz = -1; dz <= 1; dz++)
+                {
+                    Vector3Int excluded = new Vector3Int(center.x + dx, center.y, center.z + dz);
+                    spawner.AddExcludedChunk(excluded);
+                }
+        }
+
         GenerateChunks();
 
-        // スタート地点（ワールド中心）を広めに掘って空間に
+        foreach (var vol in digVolumesToApply)
+        {
+            vol.ApplyDig(this);
+        }
+
+        // プレイヤー初期空間を確保
         Vector3 startDigPos = new Vector3(
             chunkSize * chunkCountX / 2f,
-            -chunkSize * 2, // 地下2チャンク分下
+            -chunkSize * 2,
             chunkSize * chunkCountZ / 2f
         );
         Dig(startDigPos, 10f);
@@ -31,7 +57,6 @@ public class MC_World : MonoBehaviour
             for (int y = 0; y < chunkCountY; y++)
                 for (int z = 0; z < chunkCountZ; z++)
                 {
-                    // Y方向だけ反転させて、Y=0 から下に掘る構成にする
                     int shiftedY = -y;
 
                     Vector3Int pos = new Vector3Int(x, shiftedY, z);
@@ -45,6 +70,13 @@ public class MC_World : MonoBehaviour
                     MC_Chunk chunk = obj.GetComponent<MC_Chunk>();
                     chunk.Initialize(worldPos);
                     chunkMap[pos] = chunk;
+
+                    // 各スポナーに渡す
+                    foreach (var spawner in treasureSpawners)
+                    {
+                        if (spawner != null)
+                            spawner.TrySpawnTreasureAtChunk(pos, worldPos);
+                    }
                 }
     }
 
@@ -64,7 +96,7 @@ public class MC_World : MonoBehaviour
                     if (chunkMap.TryGetValue(chunkCoord, out var chunk))
                     {
                         chunk.ModifyDensity(worldPos, radius, value);
-                        chunk.GenerateMesh(); // 掘った後に更新
+                        chunk.GenerateMesh();
                     }
                 }
     }
