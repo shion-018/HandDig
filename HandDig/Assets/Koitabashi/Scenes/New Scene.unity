@@ -9139,7 +9139,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b884915bf19093948ab148d55d72ea6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawChunkGizmos: 0
+  drawChunkGizmos: 1
   gizmoColor: {r: 0, g: 0.19128418, b: 1, a: 0.5}
   chunkSize: {x: 32, y: 32, z: 32}
 --- !u!4 &1757650895 stripped
