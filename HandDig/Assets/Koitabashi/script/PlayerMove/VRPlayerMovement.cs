@@ -34,7 +34,44 @@ public class VRPlayerMovement : MonoBehaviour
         HandleMovement();
         HandleTurning();
     }
+    void HandleMovement()//陽書き換え
+    {
+        isGrounded = characterController.isGrounded;
 
+        // 上昇処理
+        bool isAButtonHeld = OVRInput.Get(OVRInput.Button.One, OVRInput.Controller.RTouch);
+
+        float maxAscendSpeed = 5f;
+        float ascendAcceleration = 10f;
+        float descendAcceleration = 15f;
+
+        if (isAButtonHeld)
+        {
+            // 加速上昇
+            verticalVelocity += ascendAcceleration * Time.deltaTime;
+            verticalVelocity = Mathf.Clamp(verticalVelocity, 0f, maxAscendSpeed);
+        }
+        else
+        {
+            // 重力加算（降下）
+            verticalVelocity += gravity * descendAcceleration * Time.deltaTime;
+        }
+
+        // 地面にいる状態で落下速度をリセット
+        if (isGrounded && verticalVelocity < 0f)
+            verticalVelocity = -1f;
+
+        // 移動入力
+        Vector2 input = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
+        Vector3 move = cameraTransform.forward * input.y + cameraTransform.right * input.x;
+        move.y = 0f;
+        move.Normalize();
+
+        // 合成移動
+        Vector3 finalMove = move * moveSpeed + Vector3.up * verticalVelocity;
+        characterController.Move(finalMove * Time.deltaTime);
+    }
+    /*
     void HandleMovement()
     {
         isGrounded = characterController.isGrounded;
@@ -55,7 +92,7 @@ public class VRPlayerMovement : MonoBehaviour
         Vector3 finalMove = move * moveSpeed + Vector3.up * verticalVelocity;
         characterController.Move(finalMove * Time.deltaTime);
     }
-
+    */
     void HandleTurning()
     {
         float rightX = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick).x;
