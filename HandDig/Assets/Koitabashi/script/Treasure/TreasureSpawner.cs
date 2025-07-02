@@ -47,4 +47,8 @@ public class TreasureSpawner : MonoBehaviour
             }
         }
     }
+    public bool IsExcludedChunk(Vector3Int coord)
+    {
+        return excludedChunks.Contains(coord);
+    }
 }

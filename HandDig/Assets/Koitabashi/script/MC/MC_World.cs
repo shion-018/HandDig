@@ -72,6 +72,17 @@ public class MC_World : MonoBehaviour
                     chunkMap[pos] = chunk;
 
                     // 各スポナーに渡す
+                    bool isExcluded = false;
+                    foreach (var spawner in treasureSpawners)
+                    {
+                        if (spawner != null && spawner.IsExcludedChunk(pos))
+                        {
+                            isExcluded = true;
+                            break;
+                        }
+                    }
+                    chunk.isExcluded = isExcluded;
+                    chunkMap[pos] = chunk;
                     foreach (var spawner in treasureSpawners)
                     {
                         if (spawner != null)
@@ -109,4 +120,5 @@ public class MC_World : MonoBehaviour
             Mathf.FloorToInt(worldPos.z / chunkSize)
         );
     }
+
 }

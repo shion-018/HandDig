@@ -5,6 +5,9 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
 
+    [Tooltip("有効な判定オブジェクト（Transform）を格納")]
+    public List<Transform> hitZones = new List<Transform>();
+
     private DigToolStats stats;
     private int upgradeLevel;
 
