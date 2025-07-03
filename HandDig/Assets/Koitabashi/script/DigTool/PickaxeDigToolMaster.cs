@@ -97,4 +97,11 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     public void OnTriggerEnter(Collider other) { /* 何もせず */ }
     public void OnTriggerExit(Collider other) { /* 何もせず */ }
     public void UpdateDig(Vector3 pos) { /* 何もせず */ }
+    
+    // SwingReadyZoneから出た時に呼ばれる
+    public void OnSwingZoneExit()
+    {
+        isSwingReady = false;
+        Debug.Log("[PickaxeMaster] SwingReady = false (ゾーンから出ました)");
+    }
 }
