@@ -6,6 +6,6 @@ using UnityEngine;
 public class DigToolData
 {
     public string toolName;
-    public DigToolStats stats;  // ƒXƒNƒŠƒvƒ^ƒuƒ‹ƒIƒuƒWƒFƒNƒg
-    [Min(0)] public int currentUpgradeLevel = 0;  // Œ»İ‚Ì‹­‰»’iŠK
+    public DigToolStats stats;  // ï¿½Xï¿½Nï¿½ï¿½ï¿½vï¿½^ï¿½uï¿½ï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½g
+    [Min(0)] public int currentUpgradeLevel = 0;  // ï¿½ï¿½ï¿½İ‚Ì‹ï¿½ï¿½ï¿½ï¿½iï¿½K
 }

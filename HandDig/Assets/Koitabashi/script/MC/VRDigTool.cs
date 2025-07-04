@@ -37,9 +37,9 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
 
         if (currentHitCollider != null && (isTriggerPressed || isSpacePressed) && stats != null)
         {
-            float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0iè‚Í’iŠK‚È‚µj
+            float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0ï¿½iï¿½ï¿½Í’iï¿½Kï¿½È‚ï¿½ï¿½j
             digManager.DigAt(toolPosition, radius);
-            Debug.Log($"[HandDig] Œ@‚Á‚½‚æI Radius: {radius}");
+            Debug.Log($"[HandDig] ï¿½@ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½I Radius: {radius}");
         }
     }
 }

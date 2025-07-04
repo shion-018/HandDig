@@ -5,7 +5,7 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
 
-    [Tooltip("—LŒø‚È”»’èƒIƒuƒWƒFƒNƒgiTransformj‚ğŠi”[")]
+    [Tooltip("ï¿½Lï¿½ï¿½ï¿½È”ï¿½ï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½iTransformï¿½jï¿½ï¿½ï¿½iï¿½[")]
     public List<Transform> hitZones = new List<Transform>();
 
     private DigToolStats stats;
@@ -47,7 +47,7 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
                 float timeSinceLast = currentTime - lastDigTime;
 
                 if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
-                    comboStage = Mathf.Min(comboStage + 1, 2); // Å‘å3’iŠK
+                    comboStage = Mathf.Min(comboStage + 1, 2); // ï¿½Å‘ï¿½3ï¿½iï¿½K
                 else
                     comboStage = 0;
 
@@ -73,6 +73,6 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
 
     public void UpdateDig(Vector3 toolPosition)
     {
-        // ‚±‚±‚Íg‚Á‚Ä‚È‚¢‚Ì‚Å‹óÀ‘•‚Ì‚Ü‚Ü‚ÅOK
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ígï¿½ï¿½ï¿½Ä‚È‚ï¿½ï¿½Ì‚Å‹ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚Ü‚Ü‚ï¿½OK
     }
 }

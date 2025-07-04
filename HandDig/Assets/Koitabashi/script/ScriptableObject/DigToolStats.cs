@@ -2,26 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Dig/PickaxeDigStats", fileName = "NewPickaxeDigStats")]
+[CreateAssetMenu(menuName = "Dig/DigToolStatsAdvanced", fileName = "NewDigToolStatsAdvanced")]
 public class DigToolStats : ScriptableObject
 {
-    [Header("ツルハシ 通常の掘削サイズ（最小値）")]
-    [Tooltip("コンボ1段階目の掘削サイズ")]
+    [Header("�� �ʏ�̌@��T�C�Y�i�����l�j")]
     public float baseRadius = 1.5f;
-    [Tooltip("コンボ2段階目の掘削サイズ")]
     public float stage2Radius = 2.0f;
-    [Tooltip("コンボ3段階目の掘削サイズ")]
     public float stage3Radius = 2.5f;
 
-    [Header("ツルハシ 強化最大の掘削サイズ")]
-    [Tooltip("コンボ1段階目の最大掘削サイズ")]
+    [Header("�� �����ő厞�̌@��T�C�Y")]
     public float baseRadiusMax = 2.5f;
-    [Tooltip("コンボ2段階目の最大掘削サイズ")]
     public float stage2RadiusMax = 3.0f;
-    [Tooltip("コンボ3段階目の最大掘削サイズ")]
     public float stage3RadiusMax = 3.5f;
 
-    [Header("ツルハシ 強化段階（1以上）")]
+    [Header("�� �����i�K�i1�ȏ�j")]
     [Min(1)] public int upgradeSteps = 3;
 
     [Header("採掘間隔設定")]
