@@ -6,10 +6,10 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
 
-    private DigToolStats stats;
+    private DrillDigStats stats;
     private int upgradeLevel;
+    private int speedUpgradeLevel = 0; // お宝取得で加速するレベル
 
-    public float digInterval = 0.1f;
     private Collider currentCollider;
     private float digTimer = 0f;
 
@@ -19,8 +19,27 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
     public void SetStats(DigToolStats newStats, int level)
     {
+        // 後方互換性のため残す
+        Debug.LogWarning("[DrillDigTool] SetStats(DigToolStats) is deprecated. Use SetDrillStats instead.");
+    }
+
+    public void SetDrillStats(DrillDigStats newStats, int level)
+    {
         stats = newStats;
         upgradeLevel = level;
+    }
+
+    public void SetHandStats(HandDigStats newStats, int level) { /* Drill用なので未実装 */ }
+    public void SetPickaxeStats(PickaxeDigStats newStats, int level) { /* Drill用なので未実装 */ }
+
+    // お宝取得で採掘速度を加速
+    public void IncreaseSpeed()
+    {
+        if (stats != null && speedUpgradeLevel < stats.GetMaxSpeedUpgradeLevel() - 1)
+        {
+            speedUpgradeLevel++;
+            Debug.Log($"[Drill] 採掘速度アップ！ Level {speedUpgradeLevel} / Max {stats.GetMaxSpeedUpgradeLevel()}");
+        }
     }
 
     public void OnTriggerEnter(Collider other)
@@ -67,14 +86,16 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     {
         bool triggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger) || Input.GetKey(KeyCode.Space);
 
-        if (currentCollider != null && triggerHeld)
+        if (currentCollider != null && triggerHeld && stats != null)
         {
+            float currentDigInterval = stats.GetDigInterval(speedUpgradeLevel);
             digTimer += Time.deltaTime;
-            if (digTimer >= digInterval && stats != null)
+            
+            if (digTimer >= currentDigInterval)
             {
                 digTimer = 0f;
 
-                float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0（ドリルは段階なし）
+                float radius = stats.GetRadius(upgradeLevel);
                 // 複数の判定エリアで掘削
                 for (int i = 0; i < activeHitZones; i++)
                 {
@@ -82,7 +103,7 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     {
                         Vector3 digPosition = hitZones[i].position;
                         digManager.DigAt(digPosition, radius);
-                        Debug.Log($"[Drill] 判定{i + 1} Dig at radius {radius}");
+                        Debug.Log($"[Drill] 判定{i + 1} Dig at radius {radius} / interval {currentDigInterval:F3}s");
                     }
                 }
             }

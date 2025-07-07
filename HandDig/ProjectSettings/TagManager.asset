@@ -8,6 +8,7 @@ TagManager:
   - Treasure
   - Target
   - Pickaxe
+  - SwingZone
   layers:
   - Default
   - TransparentFX

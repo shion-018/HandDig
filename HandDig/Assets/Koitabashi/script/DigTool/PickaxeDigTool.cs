@@ -5,10 +5,10 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
 
-    [Tooltip("�L���Ȕ���I�u�W�F�N�g�iTransform�j���i�[")]
+    [Tooltip("複数の判定エリア（Transform）を追加")]
     public List<Transform> hitZones = new List<Transform>();
 
-    private DigToolStats stats;
+    private PickaxeDigStats stats;
     private int upgradeLevel;
 
     public float minComboTime = 0.5f;
@@ -22,9 +22,18 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
 
     public void SetStats(DigToolStats newStats, int level)
     {
+        // 後方互換性のため残す
+        Debug.LogWarning("[PickaxeDigTool] SetStats(DigToolStats) is deprecated. Use SetPickaxeStats instead.");
+    }
+
+    public void SetPickaxeStats(PickaxeDigStats newStats, int level)
+    {
         stats = newStats;
         upgradeLevel = level;
     }
+
+    public void SetHandStats(HandDigStats newStats, int level) { /* Pickaxe用なので未実装 */ }
+    public void SetDrillStats(DrillDigStats newStats, int level) { /* Pickaxe用なので未実装 */ }
 
     public void SetSwingReady(bool ready)
     {
@@ -47,7 +56,7 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
                 float timeSinceLast = currentTime - lastDigTime;
 
                 if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
-                    comboStage = Mathf.Min(comboStage + 1, 2); // �ő�3�i�K
+                    comboStage = Mathf.Min(comboStage + 1, 2); // 最大3段階
                 else
                     comboStage = 0;
 
@@ -73,6 +82,6 @@ public class PickaxeDigTool : MonoBehaviour, IDigToolWithStats
 
     public void UpdateDig(Vector3 toolPosition)
     {
-        // �����͎g���ĂȂ��̂ŋ�����̂܂܂�OK
+        // ピッケルは使っていないので空のままでOK
     }
 }

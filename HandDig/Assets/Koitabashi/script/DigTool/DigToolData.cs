@@ -6,6 +6,15 @@ using UnityEngine;
 public class DigToolData
 {
     public string toolName;
-    public DigToolStats stats;  // �X�N���v�^�u���I�u�W�F�N�g
-    [Min(0)] public int currentUpgradeLevel = 0;  // ���݂̋����i�K
+    
+    // 後方互換性のため残す
+    public DigToolStats stats;
+    
+    // 各ツール専用ScriptableObject
+    public HandDigStats handStats;
+    public PickaxeDigStats pickaxeStats;
+    public DrillDigStats drillStats;
+    
+    [Min(0)] public int currentUpgradeLevel = 0;  // 現在の強化段階
+    [Min(0)] public int currentSpeedUpgradeLevel = 0;  // 現在の速度強化段階（ドリル用）
 }

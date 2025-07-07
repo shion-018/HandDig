@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9864573fdf6770a499e51137c8e4993e, type: 3}
-  m_Name: NewDrillDigStats
+  m_Script: {fileID: 11500000, guid: d43e1aa791f236d4bad30d2f3c37c04a, type: 3}
+  m_Name: NewHandDigStats
   m_EditorClassIdentifier: 
-  baseRadius: 1.5
-  maxRadius: 3
-  upgradeSteps: 5
-  baseDigInterval: 0.25
-  maxDigInterval: 0.05
-  speedUpgradeSteps: 5
+  baseRadius: 1
+  maxRadius: 2
+  upgradeSteps: 3
+  baseDigInterval: 0.2
+  maxDigInterval: 0.1
+  speedUpgradeSteps: 3

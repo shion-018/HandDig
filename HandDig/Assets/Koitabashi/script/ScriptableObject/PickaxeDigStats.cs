@@ -17,14 +17,6 @@ public class PickaxeDigStats : ScriptableObject
     [Tooltip("強化段階数")]
     [Min(1)] public int upgradeSteps = 5;
 
-    [Header("採掘速度設定")]
-    [Tooltip("初期採掘間隔（秒）")]
-    public float baseDigInterval = 0.15f;
-    [Tooltip("最大採掘間隔（秒）- 強化で加速した時の最小間隔")]
-    public float maxDigInterval = 0.07f;
-    [Tooltip("速度強化段階数")]
-    [Min(1)] public int speedUpgradeSteps = 4;
-
     public float GetRadius(int comboStage = 0, int upgradeLevel = 0)
     {
         float t = Mathf.Clamp01(upgradeSteps == 1 ? 1f : (float)upgradeLevel / (upgradeSteps - 1));
@@ -43,12 +35,5 @@ public class PickaxeDigStats : ScriptableObject
         return Mathf.Lerp(min, max, t);
     }
 
-    public float GetDigInterval(int speedUpgradeLevel = 0)
-    {
-        float t = Mathf.Clamp01(speedUpgradeSteps == 1 ? 1f : (float)speedUpgradeLevel / (speedUpgradeSteps - 1));
-        return Mathf.Lerp(baseDigInterval, maxDigInterval, t);
-    }
-
     public int GetMaxUpgradeLevel() => upgradeSteps;
-    public int GetMaxSpeedUpgradeLevel() => speedUpgradeSteps;
 } 

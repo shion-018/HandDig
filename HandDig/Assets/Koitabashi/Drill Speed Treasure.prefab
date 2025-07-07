@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 8192709851517952121}
   - component: {fileID: 1469011151478420392}
   - component: {fileID: -5138730588656380606}
+  - component: {fileID: -5443641688706681216}
   m_Layer: 0
-  m_Name: Test_Item
+  m_Name: Drill Speed Treasure
   m_TagString: Target
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -120,3 +121,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetToolIndices: 000000000100000002000000
   upgradeAmount: 1
+--- !u!114 &-5443641688706681216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6718049075907697980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6484423dc1d7d4b4f948e48aa854b4bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speedIncreaseAmount: 1
+  treasureName: Drill Speed Treasure

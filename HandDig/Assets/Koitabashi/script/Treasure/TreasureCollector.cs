@@ -39,6 +39,13 @@ public class TreasureCollector : MonoBehaviour
             ProcessDrillHitZoneTreasure(drillHitZoneItem);
         }
 
+        // DrillSpeedTreasureItem（ドリル速度増加お宝）を処理
+        DrillSpeedTreasureItem drillSpeedItem = other.GetComponent<DrillSpeedTreasureItem>();
+        if (drillSpeedItem != null)
+        {
+            ProcessDrillSpeedTreasure(drillSpeedItem);
+        }
+
         // お宝を非表示に
         other.gameObject.SetActive(false);
     }
@@ -74,6 +81,23 @@ public class TreasureCollector : MonoBehaviour
         else
         {
             Debug.LogWarning($"[{drillHitZoneItem.treasureName}] ツールマネージャーが見つかりません。");
+        }
+    }
+
+    // DrillSpeedTreasureItemの処理
+    private void ProcessDrillSpeedTreasure(DrillSpeedTreasureItem drillSpeedItem)
+    {
+        Debug.Log($"[{drillSpeedItem.treasureName}] ドリル速度増加お宝を処理中...");
+        
+        if (toolManager != null)
+        {
+            // VRDigToolManagerに速度増加を依頼（現在のツールに関係なく保存される）
+            toolManager.IncreaseDrillSpeed(drillSpeedItem.speedIncreaseAmount);
+            Debug.Log($"[{drillSpeedItem.treasureName}] ドリルの採掘速度を {drillSpeedItem.speedIncreaseAmount} 段階アップさせました！");
+        }
+        else
+        {
+            Debug.LogWarning($"[{drillSpeedItem.treasureName}] ツールマネージャーが見つかりません。");
         }
     }
 }
