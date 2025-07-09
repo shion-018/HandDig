@@ -7,25 +7,31 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
 
-    private HandDigStats stats;
+    private DigToolStats stats;
     private int upgradeLevel;
 
     private Collider currentHitCollider = null;
 
     public void SetStats(DigToolStats newStats, int level)
     {
-        // 後方互換性のため残す
-        Debug.LogWarning("[VRDigTool] SetStats(DigToolStats) is deprecated. Use SetHandStats instead.");
-    }
-
-    public void SetHandStats(HandDigStats newStats, int level)
-    {
         stats = newStats;
         upgradeLevel = level;
     }
 
-    public void SetPickaxeStats(PickaxeDigStats newStats, int level) { /* Hand用なので未実装 */ }
-    public void SetDrillStats(DrillDigStats newStats, int level) { /* Hand用なので未実装 */ }
+    public void SetHandStats(HandDigStats newStats, int level)
+    {
+        // Hand用なので未実装
+    }
+
+    public void SetPickaxeStats(PickaxeDigStats newStats, int level)
+    {
+        // Pickaxe用なので未実装
+    }
+
+    public void SetDrillStats(DrillDigStats newStats, int level)
+    {
+        // Drill用なので未実装
+    }
 
     public void OnTriggerEnter(Collider other)
     {
@@ -46,9 +52,9 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
 
         if (currentHitCollider != null && (isTriggerPressed || isSpacePressed) && stats != null)
         {
-            float radius = stats.GetRadius(upgradeLevel);
+            float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0（コンボ段階なし）
             digManager.DigAt(toolPosition, radius);
-            Debug.Log($"[HandDig] 掘削完了！ Radius: {radius}");
+            Debug.Log($"[HandDig] 掘削実行！ Radius: {radius}");
         }
     }
 }

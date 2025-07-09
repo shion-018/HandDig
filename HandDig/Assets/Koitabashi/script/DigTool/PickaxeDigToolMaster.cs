@@ -6,8 +6,11 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
 {
     public VoxelDigManager digManager;
 
-    [Tooltip("複数の判定エリアを追加（最大3個）")]
-    public List<Transform> hitZones = new List<Transform>();
+    [Header("判定エリア設定")]
+    [Tooltip("メインの判定エリア（初期状態で使用）")]
+    public Transform mainHitZone;
+    [Tooltip("強化後の2つの判定エリア")]
+    public List<Transform> dualHitZones = new List<Transform>();
 
     private PickaxeDigStats stats;
     private int upgradeLevel;
@@ -19,7 +22,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     private int comboStage = 0;
 
     private bool isSwingReady = false;
-    private int activeHitZones = 1; // 1個からスタート
+    private bool isUpgraded = false; // 強化済みフラグ
 
     // SwingReadyZoneの機能を統合
     [Header("振りかぶりゾーン設定")]
@@ -64,21 +67,42 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
 
     public void IncreaseHitZone()
     {
-        activeHitZones = Mathf.Min(activeHitZones + 1, hitZones.Count);
-        Debug.Log($"[PickaxeMaster] 判定数が {activeHitZones} になりました");
-        
-        // 判定エリアの表示/非表示を更新
-        UpdateHitZoneVisibility();
+        if (!isUpgraded)
+        {
+            isUpgraded = true;
+            UpdateHitZoneVisibility();
+            Debug.Log("[PickaxeMaster] 判定エリアが強化されました！1つから2つに増加");
+        }
+        else
+        {
+            Debug.Log("[PickaxeMaster] 既に強化済みです");
+        }
     }
     
     private void UpdateHitZoneVisibility()
     {
-        for (int i = 0; i < hitZones.Count; i++)
+        if (isUpgraded)
         {
-            if (hitZones[i] != null)
+            // 強化後：メインを非アクティブ、デュアルをアクティブ
+            if (mainHitZone != null)
+                mainHitZone.gameObject.SetActive(false);
+            
+            foreach (var hitZone in dualHitZones)
             {
-                // i < activeHitZones なら表示、そうでなければ非表示
-                hitZones[i].gameObject.SetActive(i < activeHitZones);
+                if (hitZone != null)
+                    hitZone.gameObject.SetActive(true);
+            }
+        }
+        else
+        {
+            // 初期状態：メインをアクティブ、デュアルを非アクティブ
+            if (mainHitZone != null)
+                mainHitZone.gameObject.SetActive(true);
+            
+            foreach (var hitZone in dualHitZones)
+            {
+                if (hitZone != null)
+                    hitZone.gameObject.SetActive(false);
             }
         }
     }
@@ -137,16 +161,31 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
 
             float radius = stats.GetRadius(comboStage, upgradeLevel);
 
-            for (int i = 0; i < activeHitZones; i++)
+            if (isUpgraded)
             {
-                Transform t = hitZones[i];
-
-                Vector3 upwardOffset = t.up * (radius * 0.3f);
-                Vector3 digPosition = t.position + upwardOffset;
-
-                digManager.DigAt(digPosition, radius);
-
-                Debug.Log($"[PickaxeMaster] 判定{i + 1} Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                // 強化後：2つの判定エリアで掘削
+                for (int i = 0; i < dualHitZones.Count; i++)
+                {
+                    Transform t = dualHitZones[i];
+                    if (t != null)
+                    {
+                        Vector3 upwardOffset = t.up * (radius * 0.3f);
+                        Vector3 digPosition = t.position + upwardOffset;
+                        digManager.DigAt(digPosition, radius);
+                        Debug.Log($"[PickaxeMaster] 強化判定{i + 1} Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                    }
+                }
+            }
+            else
+            {
+                // 初期状態：メインの判定エリアで掘削
+                if (mainHitZone != null)
+                {
+                    Vector3 upwardOffset = mainHitZone.up * (radius * 0.3f);
+                    Vector3 digPosition = mainHitZone.position + upwardOffset;
+                    digManager.DigAt(digPosition, radius);
+                    Debug.Log($"[PickaxeMaster] メイン判定 Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                }
             }
             
             Debug.Log("[PickaxeMaster] 掘り完了！次の振りかぶりを待機中...");

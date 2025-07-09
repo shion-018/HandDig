@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 6248662628747785498}
   - component: {fileID: 8192709851517952121}
   - component: {fileID: 1469011151478420392}
-  - component: {fileID: -5138730588656380606}
   - component: {fileID: -5443641688706681216}
   m_Layer: 0
   m_Name: Drill Speed Treasure
@@ -107,20 +106,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &-5138730588656380606
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6718049075907697980}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fdb1d0bcc740d5048beb11ed3d076253, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetToolIndices: 000000000100000002000000
-  upgradeAmount: 1
 --- !u!114 &-5443641688706681216
 MonoBehaviour:
   m_ObjectHideFlags: 0
