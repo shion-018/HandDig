@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class PerformanceOptimizer : MonoBehaviour
 {
@@ -25,7 +26,7 @@ public class PerformanceOptimizer : MonoBehaviour
         // VR初期化を遅延
         if (delayVRInitialization)
         {
-            StartCoroutine(DelayVRInitialization());
+            DelayVRInitialization().Forget();
         }
     }
 
@@ -36,12 +37,12 @@ public class PerformanceOptimizer : MonoBehaviour
         Debug.Log("[PerformanceOptimizer] lilToonの重い処理を無効化しました");
     }
 
-    IEnumerator DelayVRInitialization()
+    async UniTask DelayVRInitialization()
     {
         // VR初期化を数フレーム遅延
         for (int i = 0; i < 5; i++)
         {
-            yield return null;
+            await UniTask.Yield();
         }
         
         Debug.Log("[PerformanceOptimizer] VR初期化の遅延完了");

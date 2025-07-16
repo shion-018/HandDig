@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class MC_World : MonoBehaviour
 {
@@ -21,10 +22,10 @@ public class MC_World : MonoBehaviour
     {
         Debug.Log("[MC_World] ワールド初期化開始");
         // 非同期初期化のみ実行
-        StartCoroutine(InitializeWorldAsync());
+        InitializeWorldAsync().Forget();
     }
 
-    IEnumerator InitializeWorldAsync()
+    async UniTask InitializeWorldAsync()
     {
         // 各TreasureSpawnerにchunkSizeを適用
         foreach (var spawner in treasureSpawners)
@@ -34,10 +35,10 @@ public class MC_World : MonoBehaviour
         }
 
         // チャンク生成を非同期で実行
-        yield return StartCoroutine(GenerateChunksAsync());
+        await GenerateChunksAsync();
 
         // DigVolumeの処理を非同期で実行
-        yield return StartCoroutine(ApplyDigVolumesAsync());
+        await ApplyDigVolumesAsync();
 
         // スポーンシステムの処理
         SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
@@ -64,7 +65,7 @@ public class MC_World : MonoBehaviour
         Debug.Log("[MC_World] ワールド初期化完了");
     }
 
-    IEnumerator GenerateChunksAsync()
+    async UniTask GenerateChunksAsync()
     {
         Debug.Log("[MC_World] チャンク生成開始");
         
@@ -108,10 +109,10 @@ public class MC_World : MonoBehaviour
                             spawner.TrySpawnTreasureAtChunk(pos, worldPos);
                     }
                     
-                    // 数フレームごとにyield returnして重い処理を分散
+                    // 数フレームごとにawaitで重い処理を分散
                     if ((x + y + z) % 2 == 0)
                     {
-                        yield return null;
+                        await UniTask.Yield();
                     }
                 }
             }
@@ -120,7 +121,7 @@ public class MC_World : MonoBehaviour
         Debug.Log("[MC_World] チャンク生成完了");
     }
 
-    IEnumerator ApplyDigVolumesAsync()
+    async UniTask ApplyDigVolumesAsync()
     {
         Debug.Log("[MC_World] DigVolume処理開始");
 
@@ -135,7 +136,7 @@ public class MC_World : MonoBehaviour
 
         if (spawnDigVolume != null)
         {
-            yield return StartCoroutine(spawnDigVolume.ApplyDigAsync(this));
+            await spawnDigVolume.ApplyDigAsync(this);
         }
 
         // 残りのDigVolumeを順番に処理（スポーンポイントのものは除外）
@@ -143,7 +144,7 @@ public class MC_World : MonoBehaviour
         {
             if (vol != null && vol != spawnDigVolume)
             {
-                yield return StartCoroutine(vol.ApplyDigAsync(this));
+                await vol.ApplyDigAsync(this);
             }
         }
 

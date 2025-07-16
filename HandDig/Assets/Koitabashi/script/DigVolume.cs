@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class DigVolume : MonoBehaviour
 {
@@ -10,10 +11,10 @@ public class DigVolume : MonoBehaviour
     public int voxelsPerFrame = 50; // 適度な値に
 
     // ApplyDigAsyncをpublicに
-    public IEnumerator ApplyDigAsync(MC_World world)
+    public async UniTask ApplyDigAsync(MC_World world)
     {
         Collider col = GetComponent<Collider>();
-        if (col == null) yield break;
+        if (col == null) return;
 
         Bounds bounds = col.bounds;
         
@@ -38,7 +39,7 @@ public class DigVolume : MonoBehaviour
                         if (processedVoxels >= voxelsPerFrame)
                         {
                             processedVoxels = 0;
-                            yield return null;
+                            await UniTask.Yield();
                         }
                     }
                 }

@@ -4753,10 +4753,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  mainHitZone: {fileID: 885579528}
-  dualHitZones:
-  - {fileID: 1130965805}
-  - {fileID: 1322552849}
+  hitZones: []
   minComboTime: 0.5
   maxComboTime: 1.5
   swingZoneCollider: {fileID: 234923323}
