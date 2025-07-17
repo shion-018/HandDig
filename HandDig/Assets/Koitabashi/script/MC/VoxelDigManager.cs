@@ -4,23 +4,23 @@ using UnityEngine;
 
 public class VoxelDigManager : MonoBehaviour
 {
-    public MC_World world;         // ƒ[ƒ‹ƒh‘S‘Ì‚ğQÆ
-    public float digRadius = 2f;   // Œ@‚é”¼Œa
+    public MC_World world;         // ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½Sï¿½Ì‚ï¿½ï¿½Qï¿½ï¿½
+    public float digRadius = 2f;   // ï¿½@ï¿½é”¼ï¿½a
     public void DigAt(Vector3 position)
     {
-        DigAt(position, 1.0f); // ƒfƒtƒHƒ‹ƒg‚Ì”¼Œa‚ÅŒ@‚éi1.0f‚Í‚¨D‚İ‚Åj
+        DigAt(position, 1.0f); // ï¿½fï¿½tï¿½Hï¿½ï¿½ï¿½gï¿½Ì”ï¿½ï¿½aï¿½ÅŒ@ï¿½ï¿½i1.0fï¿½Í‚ï¿½ï¿½Dï¿½İ‚Åj
     }
     public void DigAt(Vector3 position, float radius)
     {
-        Debug.Log($"”ÍˆÍ{radius}‚ÅŒ@íI");
+        Debug.Log($"ï¿½Íˆï¿½{radius}ï¿½ÅŒ@ï¿½ï¿½I");
 
         if (world != null)
         {
-            world.Dig(position, radius); // © ÀÛ‚Éƒ[ƒ‹ƒh‚©‚çŒ@í‚·‚éˆ—
+            world.Dig(position, radius); // ï¿½ï¿½ ï¿½ï¿½ï¿½Û‚Éƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½ï¿½@ï¿½í‚·ï¿½éˆï¿½ï¿½
         }
         else
         {
-            Debug.LogError("MC_World ‚ªƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚Ü‚¹‚ñI");
+            Debug.LogError("MC_World ï¿½ï¿½ï¿½Aï¿½^ï¿½bï¿½`ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½I");
         }
     }
 }

@@ -9,13 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ba754c1ef334844ba64439bcfee8180, type: 3}
-  m_Name: PickaxeDigStats
+  m_Script: {fileID: 11500000, guid: 6e6e77f5634f8634bb6e39f826b92c00, type: 3}
+  m_Name: NewPickaxeDigStats
   m_EditorClassIdentifier: 
-  baseRadius: 1.5
-  stage2Radius: 2.5
-  stage3Radius: 4.5
-  baseRadiusMax: 3
-  stage2RadiusMax: 4
-  stage3RadiusMax: 6
+  baseRadius: 1.2
+  stage2Radius: 1.7
+  stage3Radius: 2.2
+  baseRadiusMax: 2.2
+  stage2RadiusMax: 2.7
+  stage3RadiusMax: 3.2
   upgradeSteps: 5
+  baseDigInterval: 0.15
+  maxDigInterval: 0.07
+  speedUpgradeSteps: 4

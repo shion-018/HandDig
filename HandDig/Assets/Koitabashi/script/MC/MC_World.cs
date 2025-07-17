@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class MC_World : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class MC_World : MonoBehaviour
     public int chunkCountY = 5;
     public int chunkCountZ = 1;
 
-    [Tooltip("������TreasureSpawner���V�[���ɔz�u�\")]
+    [Tooltip("お宝を生成するTreasureSpawnerのリスト")]
     public List<TreasureSpawner> treasureSpawners = new List<TreasureSpawner>();
 
     public List<DigVolume> digVolumesToApply;
@@ -19,42 +20,59 @@ public class MC_World : MonoBehaviour
 
     void Start()
     {
-        // �e�X�|�i�[��chunkSize�Ə��O���X�g��K�p
-        Vector3Int center = new Vector3Int(chunkCountX / 2, -2, chunkCountZ / 2);
+        Debug.Log("[MC_World] ワールド初期化開始");
+        // 非同期初期化のみ実行
+        InitializeWorldAsync().Forget();
+    }
+
+    async UniTask InitializeWorldAsync()
+    {
+        // 各TreasureSpawnerにchunkSizeを適用
         foreach (var spawner in treasureSpawners)
         {
             if (spawner == null) continue;
-
             spawner.chunkSize = chunkSize;
-
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dz = -1; dz <= 1; dz++)
-                {
-                    Vector3Int excluded = new Vector3Int(center.x + dx, center.y, center.z + dz);
-                    spawner.AddExcludedChunk(excluded);
-                }
         }
 
-        GenerateChunks();
+        // チャンク生成を非同期で実行
+        await GenerateChunksAsync();
 
-        foreach (var vol in digVolumesToApply)
+        // DigVolumeの処理を非同期で実行
+        await ApplyDigVolumesAsync();
+
+        // スポーンシステムの処理
+        SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
+        if (spawnManager == null)
         {
-            vol.ApplyDig(this);
+            // 従来の固定スポーン処理（後方互換性のため残す）
+            Vector3 startDigPos = new Vector3(
+                chunkSize * chunkCountX / 2f,
+                -chunkSize * 2,
+                chunkSize * chunkCountZ / 2f
+            );
+            Dig(startDigPos, 10f);
+            
+            Debug.Log("[MC_World] SpawnManagerが見つかりません。固定スポーンを使用します。");
         }
-
-        // �v���C���[������Ԃ��m��
-        Vector3 startDigPos = new Vector3(
-            chunkSize * chunkCountX / 2f,
-            -chunkSize * 2,
-            chunkSize * chunkCountZ / 2f
-        );
-        Dig(startDigPos, 10f);
+        else
+        {
+            Debug.Log("[MC_World] SpawnManagerが設定されています。ランダムスポーンシステムを使用します。");
+        }
+        
+        // プレイヤーを実際のスポーン位置に移動
+        SpawnPlayerAtFinalPosition();
+        
+        Debug.Log("[MC_World] ワールド初期化完了");
     }
 
-    void GenerateChunks()
+    async UniTask GenerateChunksAsync()
     {
+        Debug.Log("[MC_World] チャンク生成開始");
+        
         for (int x = 0; x < chunkCountX; x++)
+        {
             for (int y = 0; y < chunkCountY; y++)
+            {
                 for (int z = 0; z < chunkCountZ; z++)
                 {
                     int shiftedY = -y;
@@ -71,13 +89,91 @@ public class MC_World : MonoBehaviour
                     chunk.Initialize(worldPos);
                     chunkMap[pos] = chunk;
 
-                    // �e�X�|�i�[�ɓn��
+                    // 除外チャンクの判定
+                    bool isExcluded = false;
+                    foreach (var spawner in treasureSpawners)
+                    {
+                        if (spawner != null && spawner.IsExcludedChunk(pos))
+                        {
+                            isExcluded = true;
+                            break;
+                        }
+                    }
+                    chunk.isExcluded = isExcluded;
+                    chunkMap[pos] = chunk;
+                    
+                    // お宝の生成
                     foreach (var spawner in treasureSpawners)
                     {
                         if (spawner != null)
                             spawner.TrySpawnTreasureAtChunk(pos, worldPos);
                     }
+                    
+                    // 数フレームごとにawaitで重い処理を分散
+                    if ((x + y + z) % 2 == 0)
+                    {
+                        await UniTask.Yield();
+                    }
                 }
+            }
+        }
+        
+        Debug.Log("[MC_World] チャンク生成完了");
+    }
+
+    async UniTask ApplyDigVolumesAsync()
+    {
+        Debug.Log("[MC_World] DigVolume処理開始");
+
+        // スポーンポイントのDigVolumeを最初に処理
+        DigVolume spawnDigVolume = null;
+        SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
+        if (spawnManager != null && spawnManager.GetSelectedSpawnPoint() != null)
+        {
+            var spawnMarker = spawnManager.GetSelectedSpawnPoint();
+            spawnDigVolume = spawnMarker.GetComponent<DigVolume>();
+        }
+
+        if (spawnDigVolume != null)
+        {
+            await spawnDigVolume.ApplyDigAsync(this);
+        }
+
+        // 残りのDigVolumeを順番に処理（スポーンポイントのものは除外）
+        foreach (var vol in digVolumesToApply)
+        {
+            if (vol != null && vol != spawnDigVolume)
+            {
+                await vol.ApplyDigAsync(this);
+            }
+        }
+
+        Debug.Log("[MC_World] DigVolume処理完了");
+    }
+
+    void SpawnPlayerAtFinalPosition()
+    {
+        // SpawnManagerがある場合はそちらでスポーン
+        SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
+        if (spawnManager != null)
+        {
+            spawnManager.SpawnPlayerAtFinalPosition();
+        }
+        else
+        {
+            // 固定スポーン位置に移動
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                Vector3 spawnPos = new Vector3(
+                    chunkSize * chunkCountX / 2f,
+                    10f, // 少し上に配置
+                    chunkSize * chunkCountZ / 2f
+                );
+                player.transform.position = spawnPos;
+                Debug.Log($"[MC_World] プレイヤーを固定位置にスポーン: {spawnPos}");
+            }
+        }
     }
 
     public void Dig(Vector3 worldPos, float radius, float value = 0f)

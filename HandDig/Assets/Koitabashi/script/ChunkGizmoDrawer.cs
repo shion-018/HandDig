@@ -12,12 +12,19 @@ public class ChunkGizmoDrawer : MonoBehaviour
     {
         if (!drawChunkGizmos) return;
 
-        Gizmos.color = gizmoColor;
-
         foreach (Transform child in transform)
         {
+            var chunk = child.GetComponent<MC_Chunk>();
+            if (chunk == null) continue;
+
+            // 色を分ける
+            if (chunk.isExcluded)
+                Gizmos.color = new Color(1f, 0f, 0f, 0.5f); // 赤
+            else
+                Gizmos.color = gizmoColor;
+
             Gizmos.DrawWireCube(
-                child.position + chunkSize / 2f,  // 中心をチャンクの中心に補正
+                child.position + chunkSize / 2f,
                 chunkSize
             );
         }

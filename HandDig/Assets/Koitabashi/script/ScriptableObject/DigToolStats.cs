@@ -5,20 +5,28 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Dig/DigToolStatsAdvanced", fileName = "NewDigToolStatsAdvanced")]
 public class DigToolStats : ScriptableObject
 {
-    [Header("¥ ’Êí‚ÌŒ@íƒTƒCƒYi‰Šú’lj")]
+    [Header("ï¿½ï¿½ ï¿½Êï¿½ÌŒ@ï¿½ï¿½Tï¿½Cï¿½Yï¿½iï¿½ï¿½ï¿½ï¿½ï¿½lï¿½j")]
     public float baseRadius = 1.5f;
     public float stage2Radius = 2.0f;
     public float stage3Radius = 2.5f;
 
-    [Header("¥ ‹­‰»Å‘å‚ÌŒ@íƒTƒCƒY")]
+    [Header("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å‘åï¿½ÌŒ@ï¿½ï¿½Tï¿½Cï¿½Y")]
     public float baseRadiusMax = 2.5f;
     public float stage2RadiusMax = 3.0f;
     public float stage3RadiusMax = 3.5f;
 
-    [Header("¥ ‹­‰»’iŠKi1ˆÈãj")]
+    [Header("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½iï¿½Kï¿½i1ï¿½Èï¿½j")]
     [Min(1)] public int upgradeSteps = 3;
 
-    // Œ@íƒTƒCƒY‚ğæ“¾i‹­‰»ƒŒƒxƒ‹‚ğw’èj
+    [Header("æ¡æ˜é–“éš”è¨­å®š")]
+    [Tooltip("åˆæœŸæ¡æ˜é–“éš”ï¼ˆç§’ï¼‰")]
+    public float baseDigInterval = 0.1f;
+    [Tooltip("æœ€å¤§æ¡æ˜é–“éš”ï¼ˆç§’ï¼‰- ãŠå®å–å¾—ã§åŠ é€Ÿã—ãŸæ™‚ã®æœ€å°é–“éš”")]
+    public float maxDigInterval = 0.05f;
+    [Tooltip("ãŠå®å–å¾—æ™‚ã®åŠ é€Ÿæ®µéšæ•°")]
+    [Min(1)] public int speedUpgradeSteps = 5;
+
+    //@TCYæ“¾ï¿½iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½wï¿½ï¿½j
     public float GetRadius(int comboStage = 0, int upgradeLevel = 0)
     {
         float t = Mathf.Clamp01(upgradeSteps == 1 ? 1f : (float)upgradeLevel / (upgradeSteps - 1));

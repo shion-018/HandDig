@@ -6,6 +6,15 @@ using UnityEngine;
 public class DigToolData
 {
     public string toolName;
-    public DigToolStats stats;  // ƒXƒNƒŠƒvƒ^ƒuƒ‹ƒIƒuƒWƒFƒNƒg
-    [Min(0)] public int currentUpgradeLevel = 0;  // Œ»İ‚Ì‹­‰»’iŠK
+    
+    // å¾Œæ–¹äº’æ›æ€§ã®ãŸã‚æ®‹ã™
+    public DigToolStats stats;
+    
+    // å„ãƒ„ãƒ¼ãƒ«å°‚ç”¨ScriptableObject
+    public HandDigStats handStats;
+    public PickaxeDigStats pickaxeStats;
+    public DrillDigStats drillStats;
+    
+    [Min(0)] public int currentUpgradeLevel = 0;  // ç¾åœ¨ã®å¼·åŒ–æ®µéš
+    [Min(0)] public int currentSpeedUpgradeLevel = 0;  // ç¾åœ¨ã®é€Ÿåº¦å¼·åŒ–æ®µéšï¼ˆãƒ‰ãƒªãƒ«ç”¨ï¼‰
 }

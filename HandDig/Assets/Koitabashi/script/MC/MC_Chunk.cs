@@ -7,14 +7,16 @@ public class MC_Chunk : MonoBehaviour
 {
     public MC_ChunkData chunkData;
     public int chunkSize = 32;
-    float baseHeight = 0f; // ‘S‘Ì‚Ìƒx[ƒX‚‚³i’n•\j
-    float variation = 5f;   // ‰š“Ê‚Ì’ö“xi‚±‚ê‚ğ0‚É‚·‚é‚ÆŠ®‘S‚É•½‚çj
+    float baseHeight = 0f; // ï¿½Sï¿½Ì‚Ìƒxï¿½[ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½iï¿½nï¿½\ï¿½j
+    float variation = 5f;   // ï¿½ï¿½ï¿½Ê‚Ì’ï¿½ï¿½xï¿½iï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½É‚ï¿½ï¿½ï¿½ÆŠï¿½ï¿½Sï¿½É•ï¿½ï¿½ï¿½j
+
+    public bool isExcluded=false;
 
     public void Initialize(Vector3 position)
     {
         chunkData = new MC_ChunkData(chunkSize, chunkSize, chunkSize, chunkSize, 1f);
         transform.position = position;
-        GenerateDensity();  // ƒeƒXƒg“I‚É’nŒ`ƒf[ƒ^‚ğ“ü‚ê‚é
+        GenerateDensity();  // ï¿½eï¿½Xï¿½gï¿½Iï¿½É’nï¿½`ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         GenerateMesh();
     }
 
@@ -45,7 +47,7 @@ public class MC_Chunk : MonoBehaviour
         if (!collider)
             collider = gameObject.AddComponent<MeshCollider>();
 
-        collider.sharedMesh = mesh; // XV‚³‚ê‚½ƒƒbƒVƒ…‚É‡‚í‚¹‚ÄƒRƒ‰ƒCƒ_[‚ğXV
+        collider.sharedMesh = mesh; // ï¿½Xï¿½Vï¿½ï¿½ï¿½ê‚½ï¿½ï¿½ï¿½bï¿½Vï¿½ï¿½ï¿½Éï¿½ï¿½í‚¹ï¿½ÄƒRï¿½ï¿½ï¿½Cï¿½_ï¿½[ï¿½ï¿½ï¿½Xï¿½V
     }
 
 

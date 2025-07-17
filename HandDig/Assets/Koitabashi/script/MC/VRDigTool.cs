@@ -18,6 +18,21 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
         upgradeLevel = level;
     }
 
+    public void SetHandStats(HandDigStats newStats, int level)
+    {
+        // Hand用なので未実装
+    }
+
+    public void SetPickaxeStats(PickaxeDigStats newStats, int level)
+    {
+        // Pickaxe用なので未実装
+    }
+
+    public void SetDrillStats(DrillDigStats newStats, int level)
+    {
+        // Drill用なので未実装
+    }
+
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Terrain"))
@@ -37,9 +52,9 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
 
         if (currentHitCollider != null && (isTriggerPressed || isSpacePressed) && stats != null)
         {
-            float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0�i��͒i�K�Ȃ��j
+            float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0（コンボ段階なし）
             digManager.DigAt(toolPosition, radius);
-            Debug.Log($"[HandDig] �@������I Radius: {radius}");
+            Debug.Log($"[HandDig] 掘削実行！ Radius: {radius}");
         }
     }
 }

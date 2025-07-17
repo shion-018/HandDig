@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class TreasureItem : MonoBehaviour
 {
-    [Tooltip("‚±‚Ì‚¨•ó‚Å‹­‰»‚³‚ê‚éƒc[ƒ‹‚ÌƒCƒ“ƒfƒbƒNƒXi•¡”‰Âj")]
-    public List<int> targetToolIndices = new List<int>(); // •¡”‘I‘ğ
+    [Tooltip("ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½ï¿½Å‹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½cï¿½[ï¿½ï¿½ï¿½ÌƒCï¿½ï¿½ï¿½fï¿½bï¿½Nï¿½Xï¿½iï¿½ï¿½ï¿½ï¿½ï¿½Âj")]
+    public List<int> targetToolIndices = new List<int>(); // ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½
 
-    [Tooltip("1‰ñ‚Å‹­‰»‚·‚é’iŠK”")]
+    [Tooltip("1ï¿½ï¿½Å‹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½iï¿½Kï¿½ï¿½")]
     public int upgradeAmount = 1;
 }
