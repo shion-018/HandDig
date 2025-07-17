@@ -11,6 +11,10 @@ public class MC_World : MonoBehaviour
     public int chunkCountY = 5;
     public int chunkCountZ = 1;
 
+    [Header("初期化方式切り替え")]
+    [Tooltip("true: 分散処理 (非同期)、false: 一気に同期処理")]
+    public bool useAsyncInitialization = true;
+
     [Tooltip("お宝を生成するTreasureSpawnerのリスト")]
     public List<TreasureSpawner> treasureSpawners = new List<TreasureSpawner>();
 
@@ -109,10 +113,10 @@ public class MC_World : MonoBehaviour
                             spawner.TrySpawnTreasureAtChunk(pos, worldPos);
                     }
                     
-                    // 数フレームごとにawaitで重い処理を分散
-                    if ((x + y + z) % 2 == 0)
+                    // 分散処理する場合のみawait
+                    if (useAsyncInitialization && (x + y + z) % 2 == 0)
                     {
-                        await UniTask.Yield();
+                        await Cysharp.Threading.Tasks.UniTask.Yield();
                     }
                 }
             }
@@ -136,7 +140,10 @@ public class MC_World : MonoBehaviour
 
         if (spawnDigVolume != null)
         {
-            await spawnDigVolume.ApplyDigAsync(this);
+            if (useAsyncInitialization)
+                await spawnDigVolume.ApplyDigAsync(this);
+            else
+                spawnDigVolume.ApplyDigSync(this);
         }
 
         // 残りのDigVolumeを順番に処理（スポーンポイントのものは除外）
@@ -144,7 +151,10 @@ public class MC_World : MonoBehaviour
         {
             if (vol != null && vol != spawnDigVolume)
             {
-                await vol.ApplyDigAsync(this);
+                if (useAsyncInitialization)
+                    await vol.ApplyDigAsync(this);
+                else
+                    vol.ApplyDigSync(this);
             }
         }
 
