@@ -1758,7 +1758,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &544222540
 MonoBehaviour:
@@ -1788,8 +1788,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPointName: SpawnPoint
   markerColor: {r: 0, g: 1, b: 0, a: 1}
-  markerSize: 2
-  digRangeSize: 10
+  markerSize: 5
+  digRangeSize: 5
 --- !u!1 &553484485
 GameObject:
   m_ObjectHideFlags: 0
@@ -3521,11 +3521,11 @@ GameObject:
   - component: {fileID: 1130965809}
   m_Layer: 0
   m_Name: SubDigCollider1
-  m_TagString: Untagged
+  m_TagString: EditorOnly
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1130965805
 Transform:
   m_ObjectHideFlags: 0
@@ -4088,11 +4088,11 @@ GameObject:
   - component: {fileID: 1322552853}
   m_Layer: 0
   m_Name: SubDigCollider2
-  m_TagString: Untagged
+  m_TagString: EditorOnly
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1322552849
 Transform:
   m_ObjectHideFlags: 0
@@ -4748,7 +4748,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
-  hitZones: []
+  hitZones:
+  - {fileID: 885579528}
+  - {fileID: 1957242624}
   minComboTime: 0.5
   maxComboTime: 1.5
   swingZoneCollider: {fileID: 234923323}
@@ -10115,7 +10117,9 @@ MonoBehaviour:
   chunkCountY: 5
   chunkCountZ: 5
   useAsyncInitialization: 0
-  treasureSpawners: []
+  treasureSpawners:
+  - {fileID: 206718484}
+  - {fileID: 333065110}
   digVolumesToApply:
   - {fileID: 544222540}
 --- !u!4 &1755998392

@@ -51,7 +51,7 @@ public class PerformanceOptimizer : MonoBehaviour
     void Start()
     {
         // メモリ使用量の最適化
-        Application.targetFrameRate = 60;
+        Application.targetFrameRate = 0; // 無制限に変更
         QualitySettings.vSyncCount = 0;
         
         Debug.Log("[PerformanceOptimizer] パフォーマンス最適化完了");
