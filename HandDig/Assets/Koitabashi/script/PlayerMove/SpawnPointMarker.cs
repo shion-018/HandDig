@@ -42,11 +42,32 @@ public class SpawnPointMarker : MonoBehaviour
     {
         // スポーンポイントの位置を取得
         Vector3 spawnPosition = transform.position;
+        Vector3 oldPosition = playerRoot.transform.position;
         
-        // プレイヤーをスポーン位置に移動
-        playerRoot.transform.position = spawnPosition + Vector3.up * 2f; // 少し上に配置
+        // CharacterControllerがある場合は特別な処理
+        CharacterController controller = playerRoot.GetComponent<CharacterController>();
+        if (controller != null)
+        {
+            // CharacterControllerを一時的に無効化
+            controller.enabled = false;
+            
+            // 位置を設定
+            playerRoot.transform.position = spawnPosition + Vector3.up * 2f;
+            
+            // CharacterControllerを再度有効化
+            controller.enabled = true;
+            
+            Debug.Log($"[SpawnPointMarker] CharacterController付きプレイヤーをスポーン: {spawnPointName} at {spawnPosition}");
+        }
+        else
+        {
+            // 通常の位置設定
+            playerRoot.transform.position = spawnPosition + Vector3.up * 2f;
+            Debug.Log($"[SpawnPointMarker] プレイヤーをスポーン: {spawnPointName} at {spawnPosition}");
+        }
         
-        Debug.Log($"[SpawnPointMarker] プレイヤーをスポーン: {spawnPointName} at {spawnPosition}");
+        Vector3 newPosition = playerRoot.transform.position;
+        Debug.Log($"[SpawnPointMarker] 位置変更: {oldPosition} → {newPosition}");
     }
 
     /// <summary>
