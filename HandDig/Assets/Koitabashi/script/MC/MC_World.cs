@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System.Threading;
+
 
 public class MC_World : MonoBehaviour
 {
@@ -10,6 +12,9 @@ public class MC_World : MonoBehaviour
     public int chunkCountX = 1;
     public int chunkCountY = 5;
     public int chunkCountZ = 1;
+    public LayerMask buriedObjectLayer; // 埋蔵物の判定に使う
+    public LayerMask terrainLayer; // 地形の露出判定に使う
+    private CancellationTokenSource cancellationTokenSource;
 
     [Header("初期化方式切り替え")]
     [Tooltip("true: 分散処理 (非同期)、false: 一気に同期処理")]
@@ -26,10 +31,12 @@ public class MC_World : MonoBehaviour
     {
         Debug.Log("[MC_World] ワールド初期化開始");
         // 非同期初期化のみ実行
-        InitializeWorldAsync().Forget();
+        //InitializeWorldAsync().Forget();
+        cancellationTokenSource = new CancellationTokenSource();
+        InitializeWorldAsync(cancellationTokenSource.Token).Forget();
     }
 
-    async UniTask InitializeWorldAsync()
+    async UniTask InitializeWorldAsync(CancellationToken token)
     {
         // 各TreasureSpawnerにchunkSizeを適用
         foreach (var spawner in treasureSpawners)
@@ -39,7 +46,7 @@ public class MC_World : MonoBehaviour
         }
 
         // チャンク生成を非同期で実行
-        await GenerateChunksAsync();
+        await GenerateChunksAsync(token);
 
         // DigVolumeの処理を非同期で実行
         await ApplyDigVolumesAsync();
@@ -69,7 +76,7 @@ public class MC_World : MonoBehaviour
         Debug.Log("[MC_World] ワールド初期化完了");
     }
 
-    async UniTask GenerateChunksAsync()
+    async UniTask GenerateChunksAsync(CancellationToken token)
     {
         Debug.Log("[MC_World] チャンク生成開始");
         
@@ -121,7 +128,7 @@ public class MC_World : MonoBehaviour
                 }
             }
         }
-        
+        await UniTask.Yield(PlayerLoopTiming.Update, token);
         Debug.Log("[MC_World] チャンク生成完了");
     }
 
@@ -185,7 +192,15 @@ public class MC_World : MonoBehaviour
             }
         }
     }
+    Vector3Int WorldToChunkCoord(Vector3 worldPos)
+    {
+        return new Vector3Int(
+            Mathf.FloorToInt(worldPos.x / chunkSize),
+            Mathf.FloorToInt(worldPos.y / chunkSize),
+            Mathf.FloorToInt(worldPos.z / chunkSize)
+        );
 
+    }
     public void Dig(Vector3 worldPos, float radius, float value = 0f)
     {
         Vector3 min = worldPos - Vector3.one * radius;
@@ -205,14 +220,54 @@ public class MC_World : MonoBehaviour
                         chunk.GenerateMesh();
                     }
                 }
+        
+        // ★掘削後の埋蔵物チェック
+        CheckForExposedBuriedObjects(worldPos, radius);
     }
 
-    Vector3Int WorldToChunkCoord(Vector3 worldPos)
+    
+    void CheckForExposedBuriedObjects(Vector3 position, float radius)
     {
-        return new Vector3Int(
-            Mathf.FloorToInt(worldPos.x / chunkSize),
-            Mathf.FloorToInt(worldPos.y / chunkSize),
-            Mathf.FloorToInt(worldPos.z / chunkSize)
-        );
+        Collider[] hits = Physics.OverlapSphere(position, radius, buriedObjectLayer);
+        foreach (var hit in hits)
+        {
+            Rigidbody rb = hit.attachedRigidbody;
+            if (rb != null && rb.isKinematic)
+            {
+                if (IsExposed(hit.transform.position))
+                {
+                    rb.isKinematic = false;
+                }
+            }
+        }
+    }
+
+    bool IsExposed(Vector3 pos)
+    {
+        float checkDistance = 0.4f;
+        int exposedSides = 0;
+
+        Vector3[] directions = new Vector3[]
+        {
+        Vector3.up, Vector3.down,
+        Vector3.left, Vector3.right,
+        Vector3.forward, Vector3.back
+        };
+
+        foreach (var dir in directions)
+        {
+            Vector3 checkPos = pos + dir * checkDistance;
+            if (!Physics.CheckSphere(checkPos, 0.2f, terrainLayer))
+            {
+                exposedSides++;
+            }
+        }
+
+        return exposedSides >= 3; // 3面以上空いていたら「露出」と判断
+    }
+    void OnDestroy()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }
