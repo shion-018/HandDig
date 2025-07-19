@@ -725,7 +725,7 @@ Transform:
   m_GameObject: {fileID: 234923320}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.57}
+  m_LocalPosition: {x: 0, y: 0, z: -0.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1689,7 +1689,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   disableLilToonMigration: 0
   delayVRInitialization: 1
-  heavyProcessInterval: 60
+  heavyProcessInterval: 5
 --- !u!4 &534763986
 Transform:
   m_ObjectHideFlags: 0
@@ -10113,9 +10113,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chunkPrefab: {fileID: 9100339038365024726, guid: 51bee803afc6cdd48b8685eefa52f0ea, type: 3}
   chunkSize: 32
-  chunkCountX: 5
-  chunkCountY: 5
-  chunkCountZ: 5
+  chunkCountX: 10
+  chunkCountY: 10
+  chunkCountZ: 10
   useAsyncInitialization: 0
   treasureSpawners:
   - {fileID: 206718484}
