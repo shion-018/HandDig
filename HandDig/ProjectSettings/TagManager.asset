@@ -9,6 +9,7 @@ TagManager:
   - Target
   - Pickaxe
   - SwingZone
+  - ResetZone
   layers:
   - Default
   - TransparentFX

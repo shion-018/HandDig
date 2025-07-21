@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0069280835, g: 0.005384504, b: 0.0011342899, a: 1}
+  m_IndirectSpecularColor: {r: 0.006892491, g: 0.00535683, b: 0.0011284471, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -201,11 +201,11 @@ GameObject:
   - component: {fileID: 33062728}
   m_Layer: 0
   m_Name: SpawnPoint3
-  m_TagString: EditorOnly
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &33062727
 Transform:
   m_ObjectHideFlags: 0
@@ -240,7 +240,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &33062729
 MonoBehaviour:
@@ -270,8 +270,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPointName: SpawnPoint
   markerColor: {r: 0, g: 1, b: 0, a: 1}
-  markerSize: 2
-  digRangeSize: 10
+  markerSize: 5
+  digRangeSize: 5
 --- !u!1 &72815449
 GameObject:
   m_ObjectHideFlags: 0
@@ -1129,10 +1129,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   world: {fileID: 1755998391}
   digRadius: 2
-  enableDigEffects: 1
-  drillEffectColor: {r: 0, g: 0, b: 1, a: 1}
-  pickaxeEffectColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  handEffectColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!4 &357044878
 Transform:
   m_ObjectHideFlags: 0
@@ -1289,11 +1285,11 @@ GameObject:
   - component: {fileID: 446522148}
   m_Layer: 0
   m_Name: SpawnPoint2
-  m_TagString: EditorOnly
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &446522147
 Transform:
   m_ObjectHideFlags: 0
@@ -1328,7 +1324,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &446522149
 MonoBehaviour:
@@ -1358,8 +1354,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPointName: SpawnPoint
   markerColor: {r: 0, g: 1, b: 0, a: 1}
-  markerSize: 2
-  digRangeSize: 10
+  markerSize: 5
+  digRangeSize: 5
 --- !u!1 &471018269
 GameObject:
   m_ObjectHideFlags: 0
@@ -1591,11 +1587,11 @@ GameObject:
   - component: {fileID: 525060315}
   m_Layer: 0
   m_Name: SpawnPoint4
-  m_TagString: EditorOnly
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &525060314
 Transform:
   m_ObjectHideFlags: 0
@@ -1630,7 +1626,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &525060316
 MonoBehaviour:
@@ -1660,8 +1656,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPointName: SpawnPoint
   markerColor: {r: 0, g: 1, b: 0, a: 1}
-  markerSize: 2
-  digRangeSize: 10
+  markerSize: 5
+  digRangeSize: 5
 --- !u!1 &534763984
 GameObject:
   m_ObjectHideFlags: 0
@@ -2063,6 +2059,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPoints:
   - {fileID: 544222541}
+  - {fileID: 446522150}
+  - {fileID: 33062730}
+  - {fileID: 525060317}
+  - {fileID: 780307110}
+  - {fileID: 1714399805}
   playerRoot: {fileID: 1291946206}
   worldManager: {fileID: 1755998391}
   showDebugInfo: 1
@@ -2416,11 +2417,11 @@ GameObject:
   - component: {fileID: 780307108}
   m_Layer: 0
   m_Name: SpawnPoint5
-  m_TagString: EditorOnly
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &780307107
 Transform:
   m_ObjectHideFlags: 0
@@ -2430,7 +2431,7 @@ Transform:
   m_GameObject: {fileID: 780307106}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 40.4, y: -25.8, z: 176.6}
+  m_LocalPosition: {x: 122.8, y: -25.8, z: 167.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2455,7 +2456,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &780307109
 MonoBehaviour:
@@ -2485,8 +2486,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPointName: SpawnPoint
   markerColor: {r: 0, g: 1, b: 0, a: 1}
-  markerSize: 2
-  digRangeSize: 10
+  markerSize: 5
+  digRangeSize: 5
 --- !u!1 &800700425 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 248963921664683836, guid: 5e6347d32f1684d49a46dcbaa9529bfb, type: 3}
@@ -3717,7 +3718,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &1205420111
 Light:
   m_ObjectHideFlags: 0
@@ -3807,6 +3808,7 @@ GameObject:
   - component: {fileID: 1291946208}
   - component: {fileID: 1291946207}
   - component: {fileID: 1291946210}
+  - component: {fileID: 1291946211}
   m_Layer: 0
   m_Name: VRPlayerRoot
   m_TagString: Player
@@ -3890,6 +3892,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   treasureTag: Target
   toolManager: {fileID: 1324455028}
+--- !u!114 &1291946211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1291946206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb75f4ac3e1e06e47b163ada78c70309, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnManager: {fileID: 626118458}
 --- !u!1 &1319718569
 GameObject:
   m_ObjectHideFlags: 0
@@ -5088,11 +5103,11 @@ GameObject:
   - component: {fileID: 1714399803}
   m_Layer: 0
   m_Name: SpawnPoint6
-  m_TagString: EditorOnly
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1714399802
 Transform:
   m_ObjectHideFlags: 0
@@ -5102,7 +5117,7 @@ Transform:
   m_GameObject: {fileID: 1714399801}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 44.5, y: -218.6, z: 85.3}
+  m_LocalPosition: {x: 126.90001, y: -179, z: 76.399994}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5127,7 +5142,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1714399804
 MonoBehaviour:
@@ -5157,8 +5172,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPointName: SpawnPoint
   markerColor: {r: 0, g: 1, b: 0, a: 1}
-  markerSize: 2
-  digRangeSize: 10
+  markerSize: 5
+  digRangeSize: 5
 --- !u!1 &1721127561
 GameObject:
   m_ObjectHideFlags: 0
@@ -5349,6 +5364,11 @@ MonoBehaviour:
   - {fileID: 333065110}
   digVolumesToApply:
   - {fileID: 544222540}
+  - {fileID: 446522149}
+  - {fileID: 33062729}
+  - {fileID: 525060316}
+  - {fileID: 780307109}
+  - {fileID: 1714399804}
 --- !u!4 &1755998392
 Transform:
   m_ObjectHideFlags: 0
@@ -6155,6 +6175,59 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.05
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1991508116
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1991508118}
+  - component: {fileID: 1991508117}
+  m_Layer: 0
+  m_Name: RespawnCollider
+  m_TagString: ResetZone
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &1991508117
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1991508116}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 10, y: 1, z: 10}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &1991508118
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1991508116}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 150, y: -300, z: 150}
+  m_LocalScale: {x: 100, y: 1, z: 100}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2003327784
 GameObject:
   m_ObjectHideFlags: 0
@@ -6542,3 +6615,4 @@ SceneRoots:
   - {fileID: 228749824}
   - {fileID: 534763986}
   - {fileID: 1597683973}
+  - {fileID: 1991508118}

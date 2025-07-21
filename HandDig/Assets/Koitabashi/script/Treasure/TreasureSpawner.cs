@@ -4,20 +4,20 @@ using UnityEngine;
 
 public class TreasureSpawner : MonoBehaviour
 {
-    [Tooltip("”z’u‚·‚é‚¨•óƒvƒŒƒnƒu‚Ìˆê——ií—Ş•Êj")]
+    [Tooltip("ï¿½zï¿½uï¿½ï¿½ï¿½é‚¨ï¿½ï¿½vï¿½ï¿½ï¿½nï¿½uï¿½Ìˆê——ï¿½iï¿½ï¿½Ş•Êj")]
     public List<GameObject> treasurePrefabs;
 
-    [Tooltip("‚¨•ó‚ğ”z’u‚·‚éŠm—¦i0`1j")]
+    [Tooltip("ï¿½ï¿½ï¿½ï¿½ï¿½zï¿½uï¿½ï¿½ï¿½ï¿½mï¿½ï¿½ï¿½i0ï¿½`1ï¿½j")]
     [Range(0f, 1f)]
     public float spawnChance = 0.1f;
 
-    [Tooltip("1ƒ`ƒƒƒ“ƒN‚ ‚½‚è‚ÌÅ‘åƒXƒ|[ƒ“s‰ñ”")]
+    [Tooltip("1ï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÌÅ‘ï¿½Xï¿½|ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½")]
     public int maxAttemptsPerChunk = 3;
 
-    [Tooltip("1ƒ`ƒƒƒ“ƒN‚ÌƒTƒCƒYiŠO•”ƒXƒNƒŠƒvƒg‚©‚ç“n‚µ‚Ä‚àOKj")]
+    [Tooltip("1ï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½ÌƒTï¿½Cï¿½Yï¿½iï¿½Oï¿½ï¿½ï¿½Xï¿½Nï¿½ï¿½ï¿½vï¿½gï¿½ï¿½ï¿½ï¿½nï¿½ï¿½ï¿½Ä‚ï¿½OKï¿½j")]
     public int chunkSize = 32;
 
-    // œŠOƒ`ƒƒƒ“ƒN
+    // ï¿½ï¿½ï¿½Oï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½N
     private HashSet<Vector3Int> excludedChunks = new HashSet<Vector3Int>();
 
     public void AddExcludedChunk(Vector3Int chunkCoord)
@@ -42,8 +42,8 @@ public class TreasureSpawner : MonoBehaviour
                 Vector3 spawnPos = worldPos + localOffset;
 
                 GameObject prefab = treasurePrefabs[Random.Range(0, treasurePrefabs.Count)];
-                Instantiate(prefab, spawnPos, Quaternion.identity);
-                Debug.Log($"‚¨•ói{prefab.name}j‚ğ¶¬: ƒ`ƒƒƒ“ƒN {chunkCoord} is {i + 1}j");
+                Instantiate(prefab, spawnPos, Quaternion.identity, this.transform);
+                Debug.Log($"i{prefab.name}jğ¶:`N {chunkCoord}is {i + 1}j");
             }
         }
     }
