@@ -217,11 +217,6 @@ public class VRDigToolManager : MonoBehaviour
         }
     }
 
-    public int GetCurrentToolIndex()
-    {
-        return currentIndex;
-    }
-
     // つるはしの判定数を増やす（お宝で呼び出される）
     public void IncreasePickaxeHitZone(int amount = 1)
     {
@@ -289,5 +284,21 @@ public class VRDigToolManager : MonoBehaviour
     public int GetDrillHitZoneBonus()
     {
         return drillHitZoneBonus;
+    }
+    
+    /// <summary>
+    /// 現在アクティブなツールを取得
+    /// </summary>
+    public IDigTool GetCurrentTool()
+    {
+        return currentTool;
+    }
+    
+    /// <summary>
+    /// 現在アクティブなツールのインデックスを取得
+    /// </summary>
+    public int GetCurrentToolIndex()
+    {
+        return currentIndex;
     }
 }
