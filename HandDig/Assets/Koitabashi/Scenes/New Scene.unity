@@ -5773,7 +5773,7 @@ MonoBehaviour:
   chunkPrefab: {fileID: 9100339038365024726, guid: 51bee803afc6cdd48b8685eefa52f0ea, type: 3}
   chunkSize: 32
   chunkCountX: 10
-  chunkCountY: 10
+  chunkCountY: 20
   chunkCountZ: 10
   buriedObjectLayer:
     serializedVersion: 2
