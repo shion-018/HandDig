@@ -9,7 +9,7 @@ public class SwingReadyZone : MonoBehaviour
         if (other.CompareTag("Pickaxe"))
         {
             pickaxeTool.SetSwingReady(true);
-            Debug.Log("[SwingZone] �U�肩�Ԃ茟�o�I");
+            Debug.Log("[SwingZone] スイング準備完了");
         }
     }
 }

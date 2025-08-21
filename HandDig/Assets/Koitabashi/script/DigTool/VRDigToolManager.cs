@@ -25,6 +25,10 @@ public class VRDigToolManager : MonoBehaviour
     // ドリルの判定数増加量を保存
     private int drillHitZoneBonus = 0;
 
+    // つるはしの爆発モード（お宝でアンロック）
+    private int pickaxeExplosionCharges = 0;
+    private bool pickaxeExplosionUnlocked = false;
+
     void Start()
     {
         if (tools.Count > 0)
@@ -300,5 +304,35 @@ public class VRDigToolManager : MonoBehaviour
     public int GetCurrentToolIndex()
     {
         return currentIndex;
+    }
+
+    // ---- Pickaxe Explosion (Treasure) APIs ----
+    public void UnlockPickaxeExplosion()
+    {
+        pickaxeExplosionUnlocked = true;
+    }
+
+    public bool IsPickaxeExplosionUnlocked()
+    {
+        return pickaxeExplosionUnlocked;
+    }
+
+    public int GetPickaxeExplosionCharges()
+    {
+        return pickaxeExplosionCharges;
+    }
+
+    public void AddPickaxeExplosionCharges(int add)
+    {
+        pickaxeExplosionUnlocked = true;
+        pickaxeExplosionCharges = Mathf.Max(0, pickaxeExplosionCharges + add);
+        Debug.Log($"[VRDigToolManager] つるはし爆発チャージ +{add} => 残り {pickaxeExplosionCharges}");
+    }
+
+    public bool TryConsumePickaxeExplosionCharge()
+    {
+        if (!pickaxeExplosionUnlocked || pickaxeExplosionCharges <= 0) return false;
+        pickaxeExplosionCharges--;
+        return true;
     }
 }

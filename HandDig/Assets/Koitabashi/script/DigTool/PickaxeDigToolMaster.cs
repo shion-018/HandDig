@@ -28,10 +28,21 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     [Tooltip("振りかぶりゾーンに入った時のタグ")]
     public string swingZoneTag = "SwingZone";
 
+    // 爆発モード関連
+    private VRDigToolManager toolManager;
+    private bool isExplosionMode = false;
+    [Tooltip("地形レイヤー（必要ならRaycastで使用）")]
+    public LayerMask terrainLayer;
+
     void Start()
     {
         // 初期化時に判定エリアの表示/非表示を設定
         UpdateHitZoneVisibility();
+    }
+
+    void Awake()
+    {
+        toolManager = FindObjectOfType<VRDigToolManager>();
     }
 
     public void SetStats(DigToolStats newStats, int level)
@@ -122,6 +133,26 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         // 振りかぶり準備ができていて、トリガーを押している場合のみ掘る
         if (isSwingReady && (isTriggerHeld || isSpaceHeld) && stats != null)
         {
+            // 爆発モード：チャージがあればマーク生成のみ行い、即時掘削は行わない
+            if (isExplosionMode && toolManager != null && toolManager.TryConsumePickaxeExplosionCharge())
+            {
+                float explosionRadius = stats.GetExplosionRadius(upgradeLevel);
+                // スイング1回につき1箇所のみマーク（先頭の判定を使用）
+                Transform t = hitZones != null && hitZones.Count > 0 ? hitZones[0] : transform;
+                Vector3 pos = GetExplosionPosition(t);
+                SpawnExplosionMarker(pos, explosionRadius, stats.explosionDelaySeconds);
+
+                isSwingReady = false;
+                Debug.Log($"[PickaxeMaster] 爆発マーカー設置（残りチャージ: {toolManager.GetPickaxeExplosionCharges()}）");
+
+                // チャージが尽きたら通常モードに戻す
+                if (toolManager.GetPickaxeExplosionCharges() <= 0)
+                {
+                    isExplosionMode = false;
+                }
+                return;
+            }
+
             float currentTime = Time.time;
             float timeSinceLast = currentTime - lastDigTime;
 
@@ -170,5 +201,47 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     {
         isSwingReady = false;
         Debug.Log("[PickaxeMaster] SwingReady = false (ゾーンから出ました)");
+    }
+
+    void Update()
+    {
+        // 爆発モード切り替え（左コントローラX / キーボードX）
+        if (OVRInput.GetDown(OVRInput.Button.Three) || Input.GetKeyDown(KeyCode.X))
+        {
+            if (toolManager != null && stats != null && stats.enableExplosionMode && toolManager.IsPickaxeExplosionUnlocked() && toolManager.GetPickaxeExplosionCharges() > 0)
+            {
+                isExplosionMode = !isExplosionMode;
+                Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} (残り {toolManager.GetPickaxeExplosionCharges()} 回)");
+            }
+        }
+    }
+
+    private Vector3 GetExplosionPosition(Transform t)
+    {
+        // 既存のdigPositionロジックと同等の位置を利用
+        float baseRadius = stats.GetRadius(comboStage, upgradeLevel);
+        Vector3 upwardOffset = t.up * (baseRadius * 0.3f);
+        Vector3 pos = t.position + upwardOffset;
+        return pos;
+    }
+
+    private void SpawnExplosionMarker(Vector3 position, float radius, float delaySeconds)
+    {
+        if (stats.explosionMarkerPrefab == null)
+        {
+            Debug.LogWarning("[PickaxeMaster] explosionMarkerPrefab が未設定です");
+            return;
+        }
+
+        GameObject go = Instantiate(stats.explosionMarkerPrefab, position, Quaternion.identity);
+        var marker = go.GetComponent<ExplosiveMarker>();
+        if (marker != null)
+        {
+            marker.Initialize(digManager, radius, delaySeconds);
+        }
+        else
+        {
+            Debug.LogWarning("[PickaxeMaster] ExplosiveMarker コンポーネントが見つかりません");
+        }
     }
 }

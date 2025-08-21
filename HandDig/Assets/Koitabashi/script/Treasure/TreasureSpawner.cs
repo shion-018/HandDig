@@ -4,20 +4,20 @@ using UnityEngine;
 
 public class TreasureSpawner : MonoBehaviour
 {
-    [Tooltip("�z�u���邨��v���n�u�̈ꗗ�i��ޕʁj")]
+    [Tooltip("お宝のプレハブのリスト")]
     public List<GameObject> treasurePrefabs;
 
-    [Tooltip("�����z�u����m���i0�`1�j")]
+    [Tooltip("お宝の出現確率（0~1）")]
     [Range(0f, 1f)]
     public float spawnChance = 0.1f;
 
-    [Tooltip("1�`�����N������̍ő�X�|�[�����s��")]
+    [Tooltip("1チャンクあたりの最大試行回数")]
     public int maxAttemptsPerChunk = 3;
 
-    [Tooltip("1�`�����N�̃T�C�Y�i�O���X�N���v�g����n���Ă�OK�j")]
+    [Tooltip("1チャンクのサイズ")]
     public int chunkSize = 32;
 
-    // ���O�`�����N
+    // 除外チャンク
     private HashSet<Vector3Int> excludedChunks = new HashSet<Vector3Int>();
 
     public void AddExcludedChunk(Vector3Int chunkCoord)
@@ -43,7 +43,7 @@ public class TreasureSpawner : MonoBehaviour
 
                 GameObject prefab = treasurePrefabs[Random.Range(0, treasurePrefabs.Count)];
                 Instantiate(prefab, spawnPos, Quaternion.identity, this.transform);
-                Debug.Log($"i{prefab.name}j𐶐:`N {chunkCoord}is {i + 1}j");
+                Debug.Log($"{prefab.name} が {chunkCoord} に {i + 1} 回目の試行で生成されました");
             }
         }
     }

@@ -5,8 +5,8 @@ using UnityEngine;
 public class ChunkGizmoDrawer : MonoBehaviour
 {
     public bool drawChunkGizmos = true;
-    public Color gizmoColor = new Color(1f, 1f, 0f, 0.5f); // ”¼“§–¾‰©F
-    public Vector3 chunkSize = new Vector3(32f, 32f, 32f);  // ƒ`ƒƒƒ“ƒN‚ÌƒTƒCƒY‚É‡‚í‚¹‚Äİ’è
+    public Color gizmoColor = new Color(1f, 1f, 0f, 0.5f); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½F
+    public Vector3 chunkSize = new Vector3(32f, 32f, 32f);  // ï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½ÌƒTï¿½Cï¿½Yï¿½Éï¿½ï¿½í‚¹ï¿½Äİ’ï¿½
 
     void OnDrawGizmos()
     {
@@ -17,9 +17,9 @@ public class ChunkGizmoDrawer : MonoBehaviour
             var chunk = child.GetComponent<MC_Chunk>();
             if (chunk == null) continue;
 
-            // F‚ğ•ª‚¯‚é
+            // ï¿½Fï¿½ğ•ª‚ï¿½ï¿½ï¿½
             if (chunk.isExcluded)
-                Gizmos.color = new Color(1f, 0f, 0f, 0.5f); // Ô
+                Gizmos.color = new Color(1f, 0f, 0f, 0.5f); // ï¿½ï¿½
             else
                 Gizmos.color = gizmoColor;
 

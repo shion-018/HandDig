@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class TreasureItem : MonoBehaviour
 {
-    [Tooltip("���̂���ŋ��������c�[���̃C���f�b�N�X�i�����j")]
-    public List<int> targetToolIndices = new List<int>(); // �����I��
+    [Tooltip("強化対象のツールのインデックス")]
+    public List<int> targetToolIndices = new List<int>();
 
-    [Tooltip("1��ŋ�������i�K��")]
+    [Tooltip("強化量")]
     public int upgradeAmount = 1;
 }
