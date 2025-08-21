@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TreasureCollector : MonoBehaviour
 {
-    [Tooltip("����Ƃ��ĔF�������^�O��")]
+    [Tooltip("お宝のタグ")]
     public string treasureTag = "Treasure";
 
     public VRDigToolManager toolManager;
@@ -12,8 +12,6 @@ public class TreasureCollector : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(treasureTag)) return;
-
-        Debug.Log($"���� [{other.name}] �𔭌��I");
 
         // TreasureItem コンポーネントがあれば通常の強化
         TreasureItem item = other.GetComponent<TreasureItem>();
@@ -46,8 +44,32 @@ public class TreasureCollector : MonoBehaviour
             ProcessDrillSpeedTreasure(drillSpeedItem);
         }
 
+        // ExplosivePickaxeTreasureItem（つるはし爆発お宝）を処理
+        ExplosivePickaxeTreasureItem explosiveItem = other.GetComponent<ExplosivePickaxeTreasureItem>();
+        if (explosiveItem != null)
+        {
+            ProcessExplosivePickaxeTreasure(explosiveItem);
+        }
+
         // お宝を非表示に
         other.gameObject.SetActive(false);
+    }
+
+    // ExplosivePickaxeTreasureItem の処理
+    private void ProcessExplosivePickaxeTreasure(ExplosivePickaxeTreasureItem item)
+    {
+        Debug.Log($"[{item.treasureName}] つるはし爆発お宝を処理中...");
+
+        if (toolManager != null)
+        {
+            toolManager.AddPickaxeExplosionCharges(item.chargesPerPickup);
+            toolManager.UnlockPickaxeExplosion();
+            Debug.Log($"[{item.treasureName}] 爆発モードをアンロックし、チャージを {item.chargesPerPickup} 追加しました。");
+        }
+        else
+        {
+            Debug.LogWarning($"[{item.treasureName}] ツールマネージャーが見つかりません。");
+        }
     }
 
     // 判定数増加お宝の処理

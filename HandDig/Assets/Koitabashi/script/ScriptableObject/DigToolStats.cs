@@ -5,17 +5,17 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Dig/DigToolStatsAdvanced", fileName = "NewDigToolStatsAdvanced")]
 public class DigToolStats : ScriptableObject
 {
-    [Header("�� �ʏ�̌@��T�C�Y�i�����l�j")]
+    [Header("基本の採掘半径（デフォルト）")]
     public float baseRadius = 1.5f;
     public float stage2Radius = 2.0f;
     public float stage3Radius = 2.5f;
 
-    [Header("�� �����ő厞�̌@��T�C�Y")]
+    [Header("最大の採掘半径")]
     public float baseRadiusMax = 2.5f;
     public float stage2RadiusMax = 3.0f;
     public float stage3RadiusMax = 3.5f;
 
-    [Header("�� �����i�K�i1�ȏ�j")]
+    [Header("強化段階数（1以上）")]
     [Min(1)] public int upgradeSteps = 3;
 
     [Header("採掘間隔設定")]
@@ -26,7 +26,7 @@ public class DigToolStats : ScriptableObject
     [Tooltip("お宝取得時の加速段階数")]
     [Min(1)] public int speedUpgradeSteps = 5;
 
-    //@TCY擾�i�������x�����w��j
+    //強化段階数による採掘半径の計算
     public float GetRadius(int comboStage = 0, int upgradeLevel = 0)
     {
         float t = Mathf.Clamp01(upgradeSteps == 1 ? 1f : (float)upgradeLevel / (upgradeSteps - 1));

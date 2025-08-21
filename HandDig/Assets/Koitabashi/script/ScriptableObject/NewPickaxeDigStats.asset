@@ -19,6 +19,8 @@ MonoBehaviour:
   stage2RadiusMax: 2.7
   stage3RadiusMax: 3.2
   upgradeSteps: 5
-  baseDigInterval: 0.15
-  maxDigInterval: 0.07
-  speedUpgradeSteps: 4
+  enableExplosionMode: 1
+  explosionDelaySeconds: 1
+  explosionRadiusBase: 5
+  explosionRadiusMax: 5
+  explosionMarkerPrefab: {fileID: 4625564672555278055, guid: d3122e2f3782e8c4db13e11c0e15e416, type: 3}
