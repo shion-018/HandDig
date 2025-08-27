@@ -29,11 +29,25 @@ public class VRDigToolManager : MonoBehaviour
     private int pickaxeExplosionCharges = 0;
     private bool pickaxeExplosionUnlocked = false;
 
+    [Header("音声管理")]
+    [Tooltip("掘削音を管理するDigSoundManager")]
+    public DigSoundManager digSoundManager;
+
     void Start()
     {
         if (tools.Count > 0)
         {
             ActivateTool(currentIndex);
+        }
+
+        // DigSoundManagerが見つからない場合は自動で探す
+        if (digSoundManager == null)
+        {
+            digSoundManager = FindObjectOfType<DigSoundManager>();
+            if (digSoundManager == null)
+            {
+                Debug.LogWarning("[VRDigToolManager] DigSoundManagerが見つかりません。音声機能が無効になります。");
+            }
         }
     }
 
