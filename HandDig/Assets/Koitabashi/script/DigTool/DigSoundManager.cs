@@ -2,176 +2,281 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 掘削音声を管理するマネージャークラス
+/// </summary>
 public class DigSoundManager : MonoBehaviour
 {
-    [Header("つるはしの音")]
-    [Tooltip("つるはしの通常掘削音")]
-    public AudioClip pickaxeDigSound;
-    [Tooltip("つるはしのコンボ掘削音（段階1）")]
-    public AudioClip pickaxeCombo1Sound;
-    [Tooltip("つるはしのコンボ掘削音（段階2）")]
-    public AudioClip pickaxeCombo2Sound;
-    [Tooltip("つるはしのコンボ掘削音（段階3）")]
-    public AudioClip pickaxeCombo3Sound;
-    [Tooltip("つるはしの爆発マーカー設置音")]
-    public AudioClip pickaxeExplosionMarkerSound;
-    [Tooltip("つるはしの爆発音")]
-    public AudioClip pickaxeExplosionSound;
-
-    [Header("ドリルの音")]
-    [Tooltip("ドリルの掘削音")]
-    public AudioClip drillDigSound;
-
-    [Header("手掘りの音")]
-    [Tooltip("手掘りの音")]
-    public AudioClip handDigSound;
-
     [Header("音声設定")]
-    [Tooltip("音の音量（0-1）")]
-    [Range(0f, 1f)]
-    public float volume = 0.7f;
-    [Tooltip("音のピッチ変動範囲")]
-    [Range(0f, 0.5f)]
-    public float pitchVariation = 0.1f;
+    [Tooltip("音声設定ファイル")]
+    public DigSoundSettings soundSettings;
+    
+    [Tooltip("音声ソースのプールサイズ")]
+    public int audioSourcePoolSize = 5;
+    
+    [Header("デバッグ設定")]
+    [Tooltip("デバッグログを出力するか")]
+    public bool enableDebugLog = true;
 
-    private AudioSource audioSource;
-
-    void Start()
+    private static DigSoundManager instance;
+    private Queue<AudioSource> audioSourcePool;
+    private List<AudioSource> activeAudioSources;
+    
+    /// <summary>
+    /// シングルトンインスタンス
+    /// </summary>
+    public static DigSoundManager Instance
     {
-        // AudioSourceコンポーネントを取得または追加
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
+        get
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
+            if (instance == null)
+            {
+                instance = FindObjectOfType<DigSoundManager>();
+                if (instance == null)
+                {
+                    GameObject go = new GameObject("DigSoundManager");
+                    instance = go.AddComponent<DigSoundManager>();
+                }
+            }
+            return instance;
         }
+    }
 
-        // AudioSourceの初期設定
-        audioSource.playOnAwake = false;
-        audioSource.volume = volume;
-        audioSource.spatialBlend = 1f; // 3D音声
-        audioSource.rolloffMode = AudioRolloffMode.Linear;
-        audioSource.maxDistance = 20f;
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+            InitializeAudioSourcePool();
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+        // 設定ファイルが未設定の場合は自動で探す
+        if (soundSettings == null)
+        {
+            soundSettings = Resources.Load<DigSoundSettings>("DigSoundSettings");
+            if (soundSettings == null)
+            {
+                Debug.LogWarning("[DigSoundManager] DigSoundSettingsが見つかりません。音声機能が制限されます。");
+            }
+        }
     }
 
     /// <summary>
-    /// つるはしの掘削音を再生
+    /// 音声ソースプールを初期化
+    /// </summary>
+    private void InitializeAudioSourcePool()
+    {
+        audioSourcePool = new Queue<AudioSource>();
+        activeAudioSources = new List<AudioSource>();
+
+        for (int i = 0; i < audioSourcePoolSize; i++)
+        {
+            CreateAudioSource();
+        }
+    }
+
+    /// <summary>
+    /// 新しい音声ソースを作成
+    /// </summary>
+    private void CreateAudioSource()
+    {
+        GameObject audioObj = new GameObject("AudioSource");
+        audioObj.transform.SetParent(transform);
+        
+        AudioSource audioSource = audioObj.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = soundSettings != null && soundSettings.useSpatialBlending ? 1f : 0f;
+        audioSource.maxDistance = soundSettings != null ? soundSettings.maxDistance : 50f;
+        audioSource.volume = soundSettings != null ? soundSettings.baseVolume : 0.7f;
+        audioSource.pitch = soundSettings != null ? soundSettings.basePitch : 1f;
+        
+        audioSourcePool.Enqueue(audioSource);
+    }
+
+    /// <summary>
+    /// 音声ソースを取得（プールから）
+    /// </summary>
+    private AudioSource GetAudioSource()
+    {
+        if (audioSourcePool.Count > 0)
+        {
+            AudioSource audioSource = audioSourcePool.Dequeue();
+            activeAudioSources.Add(audioSource);
+            return audioSource;
+        }
+        else
+        {
+            // プールが空の場合は新しいものを作成
+            CreateAudioSource();
+            AudioSource audioSource = audioSourcePool.Dequeue();
+            activeAudioSources.Add(audioSource);
+            return audioSource;
+        }
+    }
+
+    /// <summary>
+    /// 音声ソースをプールに戻す
+    /// </summary>
+    private void ReturnAudioSource(AudioSource audioSource)
+    {
+        if (activeAudioSources.Contains(audioSource))
+        {
+            activeAudioSources.Remove(audioSource);
+            audioSourcePool.Enqueue(audioSource);
+        }
+    }
+
+    /// <summary>
+    /// つるはし掘削音を再生
     /// </summary>
     /// <param name="comboStage">コンボ段階（0-2）</param>
-    /// <param name="position">音を再生する位置</param>
+    /// <param name="position">再生位置</param>
     public void PlayPickaxeDigSound(int comboStage, Vector3 position)
     {
-        AudioClip clipToPlay = pickaxeDigSound; // デフォルト
-
-        // コンボ段階に応じて音を選択
-        switch (comboStage)
+        if (soundSettings == null || soundSettings.pickaxeDigSounds == null) return;
+        
+        int index = Mathf.Clamp(comboStage, 0, soundSettings.pickaxeDigSounds.Length - 1);
+        AudioClip clip = soundSettings.pickaxeDigSounds[index];
+        
+        if (clip != null)
         {
-            case 0:
-                clipToPlay = pickaxeDigSound;
-                break;
-            case 1:
-                clipToPlay = pickaxeCombo1Sound != null ? pickaxeCombo1Sound : pickaxeDigSound;
-                break;
-            case 2:
-                clipToPlay = pickaxeCombo2Sound != null ? pickaxeCombo2Sound : pickaxeDigSound;
-                break;
-            case 3:
-                clipToPlay = pickaxeCombo3Sound != null ? pickaxeCombo3Sound : pickaxeDigSound;
-                break;
+            PlaySoundAtPosition(clip, position, "PickaxeDig");
         }
-
-        PlaySoundAtPosition(clipToPlay, position);
+        else if (enableDebugLog)
+        {
+            Debug.LogWarning($"[DigSoundManager] つるはし掘削音（コンボ{comboStage + 1}）が設定されていません。");
+        }
     }
 
     /// <summary>
-    /// つるはしの爆発マーカー設置音を再生
+    /// つるはし爆発マーカー設置音を再生
     /// </summary>
-    /// <param name="position">音を再生する位置</param>
+    /// <param name="position">再生位置</param>
     public void PlayPickaxeExplosionMarkerSound(Vector3 position)
     {
-        PlaySoundAtPosition(pickaxeExplosionMarkerSound, position);
+        if (soundSettings == null || soundSettings.pickaxeExplosionMarkerSound == null) return;
+        
+        PlaySoundAtPosition(soundSettings.pickaxeExplosionMarkerSound, position, "PickaxeExplosionMarker");
     }
 
     /// <summary>
-    /// つるはしの爆発音を再生
+    /// つるはし爆発音を再生
     /// </summary>
-    /// <param name="position">音を再生する位置</param>
+    /// <param name="position">再生位置</param>
     public void PlayPickaxeExplosionSound(Vector3 position)
     {
-        PlaySoundAtPosition(pickaxeExplosionSound, position);
+        if (soundSettings == null || soundSettings.pickaxeExplosionSound == null) return;
+        
+        PlaySoundAtPosition(soundSettings.pickaxeExplosionSound, position, "PickaxeExplosion");
     }
 
     /// <summary>
-    /// ドリルの掘削音を再生
+    /// ドリル掘削音を再生
     /// </summary>
-    /// <param name="position">音を再生する位置</param>
+    /// <param name="position">再生位置</param>
     public void PlayDrillDigSound(Vector3 position)
     {
-        PlaySoundAtPosition(drillDigSound, position);
+        if (soundSettings == null || soundSettings.drillDigSound == null) return;
+        
+        PlaySoundAtPosition(soundSettings.drillDigSound, position, "DrillDig");
     }
 
     /// <summary>
-    /// 手掘りの音を再生
+    /// 手掘り音を再生
     /// </summary>
-    /// <param name="position">音を再生する位置</param>
+    /// <param name="position">再生位置</param>
     public void PlayHandDigSound(Vector3 position)
     {
-        PlaySoundAtPosition(handDigSound, position);
+        if (soundSettings == null || soundSettings.handDigSound == null) return;
+        
+        PlaySoundAtPosition(soundSettings.handDigSound, position, "HandDig");
     }
 
     /// <summary>
-    /// 指定位置で音を再生
+    /// 指定位置で音声を再生
     /// </summary>
     /// <param name="clip">再生する音声クリップ</param>
     /// <param name="position">再生位置</param>
-    private void PlaySoundAtPosition(AudioClip clip, Vector3 position)
+    /// <param name="soundType">音声タイプ（デバッグ用）</param>
+    private void PlaySoundAtPosition(AudioClip clip, Vector3 position, string soundType)
     {
-        if (clip == null)
+        AudioSource audioSource = GetAudioSource();
+        if (audioSource == null) return;
+
+        audioSource.clip = clip;
+        audioSource.transform.position = position;
+        
+        // 設定を適用
+        if (soundSettings != null)
         {
-            Debug.LogWarning("[DigSoundManager] 音声クリップが設定されていません");
-            return;
+            audioSource.volume = soundSettings.baseVolume;
+            audioSource.pitch = soundSettings.basePitch;
+            audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
+            audioSource.maxDistance = soundSettings.maxDistance;
         }
 
-        // 一時的なAudioSourceを作成して3D音声を再生
-        GameObject tempAudio = new GameObject("TempAudio");
-        tempAudio.transform.position = position;
+        audioSource.Play();
         
-        AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
-        tempSource.clip = clip;
-        tempSource.volume = volume;
-        tempSource.spatialBlend = 1f; // 3D音声
-        tempSource.rolloffMode = AudioRolloffMode.Linear;
-        tempSource.maxDistance = 20f;
-        
-        // ピッチ変動を追加
-        tempSource.pitch = 1f + Random.Range(-pitchVariation, pitchVariation);
-        
-        tempSource.Play();
-        
-        // 音声再生後にオブジェクトを削除
-        Destroy(tempAudio, clip.length + 0.1f);
-        
-        Debug.Log($"[DigSoundManager] 音声再生: {clip.name} at {position}");
+        if (enableDebugLog)
+        {
+            Debug.Log($"[DigSoundManager] {soundType}音声再生: {clip.name} at {position}");
+        }
+
+        // 再生完了後にプールに戻す
+        StartCoroutine(ReturnAudioSourceWhenFinished(audioSource));
     }
 
     /// <summary>
-    /// 音量を設定
+    /// 音声再生完了後にプールに戻す
     /// </summary>
-    /// <param name="newVolume">新しい音量（0-1）</param>
-    public void SetVolume(float newVolume)
+    private IEnumerator ReturnAudioSourceWhenFinished(AudioSource audioSource)
     {
-        volume = Mathf.Clamp01(newVolume);
-        if (audioSource != null)
+        yield return new WaitForSeconds(audioSource.clip.length);
+        ReturnAudioSource(audioSource);
+    }
+
+    /// <summary>
+    /// 全音声を停止
+    /// </summary>
+    public void StopAllSounds()
+    {
+        foreach (var audioSource in activeAudioSources)
         {
-            audioSource.volume = volume;
+            if (audioSource != null)
+            {
+                audioSource.Stop();
+                ReturnAudioSource(audioSource);
+            }
         }
     }
 
     /// <summary>
-    /// 現在の音量を取得
+    /// 音声設定を更新
     /// </summary>
-    /// <returns>現在の音量</returns>
-    public float GetVolume()
+    public void UpdateSoundSettings(DigSoundSettings newSettings)
     {
-        return volume;
+        soundSettings = newSettings;
+        
+        // 既存の音声ソースに設定を適用
+        foreach (var audioSource in activeAudioSources)
+        {
+            if (audioSource != null && soundSettings != null)
+            {
+                audioSource.volume = soundSettings.baseVolume;
+                audioSource.pitch = soundSettings.basePitch;
+                audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
+                audioSource.maxDistance = soundSettings.maxDistance;
+            }
+        }
+        
+        Debug.Log("[DigSoundManager] 音声設定を更新しました。");
     }
 }

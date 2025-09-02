@@ -20,7 +20,7 @@ public class ExplosiveMarker : MonoBehaviour
         yield return new WaitForSeconds(delaySeconds);
 
         // 爆発音を再生
-        DigSoundManager soundManager = FindObjectOfType<DigSoundManager>();
+        var soundManager = DigSoundManager.Instance;
         if (soundManager != null)
         {
             soundManager.PlayPickaxeExplosionSound(transform.position);

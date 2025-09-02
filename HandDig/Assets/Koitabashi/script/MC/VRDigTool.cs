@@ -12,8 +12,7 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
 
     private Collider currentHitCollider = null;
     
-    // 音声管理
-    private DigSoundManager soundManager;
+
 
     public void SetStats(DigToolStats newStats, int level)
     {
@@ -48,11 +47,7 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
             currentHitCollider = null;
     }
 
-    void Start()
-    {
-        // 音声マネージャーを取得
-        soundManager = FindObjectOfType<DigSoundManager>();
-    }
+
 
     public void UpdateDig(Vector3 toolPosition)
     {
@@ -65,6 +60,7 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
             digManager.DigAt(toolPosition, radius);
             
             // 掘削音を再生
+            var soundManager = DigSoundManager.Instance;
             if (soundManager != null)
             {
                 soundManager.PlayHandDigSound(toolPosition);
