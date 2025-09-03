@@ -17,6 +17,8 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     public List<Transform> hitZones = new List<Transform>();
     private int activeHitZones = 1; // 1個からスタート
 
+
+
     public void SetStats(DigToolStats newStats, int level)
     {
         // 後方互換性のため残す
@@ -80,6 +82,8 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     {
         // 初期化時に判定エリアの表示/非表示を設定
         UpdateHitZoneVisibility();
+        
+
     }
 
     public void UpdateDig(Vector3 toolPosition)
@@ -103,6 +107,14 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     {
                         Vector3 digPosition = hitZones[i].position;
                         digManager.DigAt(digPosition, radius);
+                        
+                        // 掘削音を再生
+                        var soundManager = DigSoundManager.Instance;
+                        if (soundManager != null)
+                        {
+                            soundManager.PlayDrillDigSound(digPosition);
+                        }
+                        
                         Debug.Log($"[Drill] 判定{i + 1} Dig at radius {radius} / interval {currentDigInterval:F3}s");
                     }
                 }

@@ -5,6 +5,8 @@ using UnityEngine;
 public class VoxelDigManager : MonoBehaviour
 {
     public MC_World world;
+    [Tooltip("現在の掘削先ワールドを管理するルーター（設定されていれば優先）")]
+    public CurrentWorldRouter worldRouter;
     public float digRadius = 2f;
     public void DigAt(Vector3 position)
     {
@@ -13,9 +15,10 @@ public class VoxelDigManager : MonoBehaviour
     public void DigAt(Vector3 position, float radius)
     {
 
-        if (world != null)
+        MC_World target = worldRouter != null && worldRouter.CurrentWorld != null ? worldRouter.CurrentWorld : world;
+        if (target != null)
         {
-            world.Dig(position, radius);
+            target.Dig(position, radius);
         }
         else
         {

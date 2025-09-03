@@ -34,6 +34,8 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     [Tooltip("地形レイヤー（必要ならRaycastで使用）")]
     public LayerMask terrainLayer;
 
+
+
     void Start()
     {
         // 初期化時に判定エリアの表示/非表示を設定
@@ -133,26 +135,6 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         // 振りかぶり準備ができていて、トリガーを押している場合のみ掘る
         if (isSwingReady && (isTriggerHeld || isSpaceHeld) && stats != null)
         {
-            // 爆発モード：チャージがあればマーク生成のみ行い、即時掘削は行わない
-            if (isExplosionMode && toolManager != null && toolManager.TryConsumePickaxeExplosionCharge())
-            {
-                float explosionRadius = stats.GetExplosionRadius(upgradeLevel);
-                // スイング1回につき1箇所のみマーク（先頭の判定を使用）
-                Transform t = hitZones != null && hitZones.Count > 0 ? hitZones[0] : transform;
-                Vector3 pos = GetExplosionPosition(t);
-                SpawnExplosionMarker(pos, explosionRadius, stats.explosionDelaySeconds);
-
-                isSwingReady = false;
-                Debug.Log($"[PickaxeMaster] 爆発マーカー設置（残りチャージ: {toolManager.GetPickaxeExplosionCharges()}）");
-
-                // チャージが尽きたら通常モードに戻す
-                if (toolManager.GetPickaxeExplosionCharges() <= 0)
-                {
-                    isExplosionMode = false;
-                }
-                return;
-            }
-
             float currentTime = Time.time;
             float timeSinceLast = currentTime - lastDigTime;
 
@@ -177,9 +159,48 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
 
                 digManager.DigAt(digPosition, radius);
 
+                // 掘削音を再生
+                if (toolManager != null)
+                {
+                    var soundManager = toolManager.GetSoundManager();
+                    if (soundManager != null)
+                    {
+                        soundManager.PlayPickaxeDigSound(comboStage, digPosition);
+                    }
+                }
+
                 Debug.Log($"[PickaxeMaster] 判定{i + 1} Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
             }
             
+            // 爆発モード: 通常掘削に加えてマーカーを1つ設置（チャージ消費）
+            if (isExplosionMode && toolManager != null && toolManager.GetPickaxeExplosionCharges() > 0)
+            {
+                // チャージ消費に成功したらマーカー設置
+                if (toolManager.TryConsumePickaxeExplosionCharge())
+                {
+                    float explosionRadius = stats.GetExplosionRadius(upgradeLevel);
+                    Vector3 pos = GetFarthestExplosionPosition(radius);
+                    SpawnExplosionMarker(pos, explosionRadius, stats.explosionDelaySeconds);
+                    
+                    // 爆発マーカー設置音を再生
+                    if (toolManager != null)
+                    {
+                        var soundManager = toolManager.GetSoundManager();
+                        if (soundManager != null)
+                        {
+                            soundManager.PlayPickaxeExplosionMarkerSound(pos);
+                        }
+                    }
+                    
+                    Debug.Log($"[PickaxeMaster] 爆発マーカー設置（残りチャージ: {toolManager.GetPickaxeExplosionCharges()}）");
+
+                    if (toolManager.GetPickaxeExplosionCharges() <= 0)
+                    {
+                        isExplosionMode = false;
+                    }
+                }
+            }
+
             Debug.Log("[PickaxeMaster] 掘り完了！次の振りかぶりを待機中...");
         }
         else if (!isSwingReady)
@@ -221,8 +242,55 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         // 既存のdigPositionロジックと同等の位置を利用
         float baseRadius = stats.GetRadius(comboStage, upgradeLevel);
         Vector3 upwardOffset = t.up * (baseRadius * 0.3f);
-        Vector3 pos = t.position + upwardOffset;
-        return pos;
+        Vector3 center = t.position + upwardOffset;
+        Vector3 dir = t.forward.normalized;
+
+        float epsilon = 0.05f;
+        Ray ray = new Ray(center, dir);
+        if (Physics.Raycast(ray, out RaycastHit hit, baseRadius, terrainLayer))
+        {
+            return hit.point - dir * epsilon;
+        }
+        else
+        {
+            return center + dir * (baseRadius - epsilon);
+        }
+    }
+
+    private Vector3 GetFarthestExplosionPosition(float digRadius)
+    {
+        Vector3 bestPos = transform.position;
+        float bestDist = -Mathf.Infinity;
+
+        int count = Mathf.Min(activeHitZones, hitZones.Count);
+        for (int i = 0; i < count; i++)
+        {
+            Transform t = hitZones[i];
+            // 掘削中心（通常掘削と同等）
+            Vector3 center = t.position + t.up * (digRadius * 0.3f);
+            Vector3 dir = t.forward.normalized;
+            float epsilon = 0.05f;
+
+            Vector3 candidate;
+            Ray ray = new Ray(center, dir);
+            if (Physics.Raycast(ray, out RaycastHit hit, digRadius, terrainLayer))
+            {
+                candidate = hit.point - dir * epsilon;
+            }
+            else
+            {
+                candidate = center + dir * (digRadius - epsilon);
+            }
+
+            float proj = Vector3.Dot(candidate - center, dir);
+            if (proj > bestDist)
+            {
+                bestDist = proj;
+                bestPos = candidate;
+            }
+        }
+
+        return bestPos;
     }
 
     private void SpawnExplosionMarker(Vector3 position, float radius, float delaySeconds)

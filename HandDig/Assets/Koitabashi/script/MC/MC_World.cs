@@ -56,11 +56,12 @@ public class MC_World : MonoBehaviour
         if (spawnManager == null)
         {
             // 従来の固定スポーン処理（後方互換性のため残す）
-            Vector3 startDigPos = new Vector3(
+            Vector3 startDigLocal = new Vector3(
                 chunkSize * chunkCountX / 2f,
                 -chunkSize * 2,
                 chunkSize * chunkCountZ / 2f
             );
+            Vector3 startDigPos = transform.position + startDigLocal;
             Dig(startDigPos, 10f);
             
             Debug.Log("[MC_World] SpawnManagerが見つかりません。固定スポーンを使用します。");
@@ -89,11 +90,12 @@ public class MC_World : MonoBehaviour
                     int shiftedY = -y;
 
                     Vector3Int pos = new Vector3Int(x, shiftedY, z);
-                    Vector3 worldPos = new Vector3(
+                    Vector3 localPos = new Vector3(
                         x * chunkSize,
                         shiftedY * chunkSize,
                         z * chunkSize
                     );
+                    Vector3 worldPos = transform.position + localPos;
 
                     GameObject obj = Instantiate(chunkPrefab, worldPos, Quaternion.identity, transform);
                     MC_Chunk chunk = obj.GetComponent<MC_Chunk>();
@@ -182,11 +184,12 @@ public class MC_World : MonoBehaviour
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
-                Vector3 spawnPos = new Vector3(
+                Vector3 spawnLocal = new Vector3(
                     chunkSize * chunkCountX / 2f,
                     10f, // 少し上に配置
                     chunkSize * chunkCountZ / 2f
                 );
+                Vector3 spawnPos = transform.position + spawnLocal;
                 player.transform.position = spawnPos;
                 Debug.Log($"[MC_World] プレイヤーを固定位置にスポーン: {spawnPos}");
             }
@@ -194,10 +197,12 @@ public class MC_World : MonoBehaviour
     }
     Vector3Int WorldToChunkCoord(Vector3 worldPos)
     {
+        // ワールド原点ではなく、このMC_Worldの原点（transform.position）を基準にローカル換算
+        Vector3 local = worldPos - transform.position;
         return new Vector3Int(
-            Mathf.FloorToInt(worldPos.x / chunkSize),
-            Mathf.FloorToInt(worldPos.y / chunkSize),
-            Mathf.FloorToInt(worldPos.z / chunkSize)
+            Mathf.FloorToInt(local.x / chunkSize),
+            Mathf.FloorToInt(local.y / chunkSize),
+            Mathf.FloorToInt(local.z / chunkSize)
         );
 
     }
