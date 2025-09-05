@@ -280,3 +280,4 @@ public class DigSoundManager : MonoBehaviour
         Debug.Log("[DigSoundManager] 音声設定を更新しました。");
     }
 }
+
