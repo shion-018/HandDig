@@ -34,7 +34,8 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     [Tooltip("地形レイヤー（必要ならRaycastで使用）")]
     public LayerMask terrainLayer;
 
-
+    // 音声管理
+    private DigSoundManager soundManager;
 
     void Start()
     {
@@ -45,6 +46,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     void Awake()
     {
         toolManager = FindObjectOfType<VRDigToolManager>();
+        soundManager = FindObjectOfType<DigSoundManager>();
     }
 
     public void SetStats(DigToolStats newStats, int level)
@@ -160,13 +162,9 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                 digManager.DigAt(digPosition, radius);
 
                 // 掘削音を再生
-                if (toolManager != null)
+                if (soundManager != null)
                 {
-                    var soundManager = toolManager.GetSoundManager();
-                    if (soundManager != null)
-                    {
-                        soundManager.PlayPickaxeDigSound(comboStage, digPosition);
-                    }
+                    soundManager.PlayPickaxeDigSound(comboStage, digPosition);
                 }
 
                 Debug.Log($"[PickaxeMaster] 判定{i + 1} Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
@@ -183,13 +181,9 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                     SpawnExplosionMarker(pos, explosionRadius, stats.explosionDelaySeconds);
                     
                     // 爆発マーカー設置音を再生
-                    if (toolManager != null)
+                    if (soundManager != null)
                     {
-                        var soundManager = toolManager.GetSoundManager();
-                        if (soundManager != null)
-                        {
-                            soundManager.PlayPickaxeExplosionMarkerSound(pos);
-                        }
+                        soundManager.PlayPickaxeExplosionMarkerSound(pos);
                     }
                     
                     Debug.Log($"[PickaxeMaster] 爆発マーカー設置（残りチャージ: {toolManager.GetPickaxeExplosionCharges()}）");

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0069280835, g: 0.005384504, b: 0.0011342899, a: 1}
+  m_IndirectSpecularColor: {r: 0.0009569491, g: 0.00093978015, b: 0.0009535097, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4942,7 +4942,7 @@ Light:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 10
-  m_SpotAngle: 70
+  m_SpotAngle: 90
   m_InnerSpotAngle: 7
   m_CookieSize: 10
   m_Shadows:
@@ -6224,7 +6224,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b884915bf19093948ab148d55d72ea6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawChunkGizmos: 1
+  drawChunkGizmos: 0
   gizmoColor: {r: 1, g: 0.83578515, b: 0, a: 0.5}
   chunkSize: {x: 32, y: 32, z: 32}
 --- !u!4 &1757650895 stripped
