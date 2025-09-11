@@ -4,9 +4,10 @@ using UnityEngine;
 
 public static class MC_MeshGenerator
 {
-    public static Mesh GenerateMesh(MC_ChunkData chunkData, float surfaceLevel = 0.5f)
+    public static Mesh GenerateMesh(MC_ChunkData chunkData, float surfaceLevel = 0.5f, float uvScale = 0.1f)
     {
         List<Vector3> vertices = new List<Vector3>();
+        List<Vector2> uvs = new List<Vector2>();
         List<int> triangles = new List<int>();
 
         for (int x = 0; x < chunkData.width; x++)
@@ -31,13 +32,14 @@ public static class MC_MeshGenerator
                         cube[i] = chunkData.densityMap[cx, cy, cz];
                     }
 
-                    MyMarchingCubes.Polygonise(position, cube, surfaceLevel, vertices, triangles);
+                    MyMarchingCubes.Polygonise(position, cube, surfaceLevel, vertices, uvs, triangles, uvScale);
                 }
             }
         }
 
         Mesh mesh = new Mesh();
         mesh.vertices = vertices.ToArray();
+        mesh.uv = uvs.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.RecalculateNormals();
 

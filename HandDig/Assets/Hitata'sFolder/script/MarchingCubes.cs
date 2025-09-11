@@ -3,16 +3,17 @@ using System.Collections.Generic;
 
 public class MarchingCubes
 {
-    public static Mesh GenerateMesh(float[,,] density, float isoLevel = 0f)
+    public static Mesh GenerateMesh(float[,,] density, float isoLevel = 0f, float uvScale = 0.1f)
     {
         int sizeX = density.GetLength(0) - 1;
         int sizeY = density.GetLength(1) - 1;
         int sizeZ = density.GetLength(2) - 1;
 
         List<Vector3> vertices = new List<Vector3>();
+        List<Vector2> uvs = new List<Vector2>();
         List<int> triangles = new List<int>();
 
-        // ”ñí‚ÉƒVƒ“ƒvƒ‹‚È—ái1‚Â‚ÌOŠpŒ`‚ÅƒXƒp[ƒX‚É•\Œ»j
+        // ï¿½ï¿½ï¿½ÉƒVï¿½ï¿½ï¿½vï¿½ï¿½ï¿½È—ï¿½i1ï¿½Â‚ÌOï¿½pï¿½`ï¿½ÅƒXï¿½pï¿½[ï¿½Xï¿½É•\ï¿½ï¿½ï¿½j
         for (int x = 0; x < sizeX; x++)
             for (int y = 0; y < sizeY; y++)
                 for (int z = 0; z < sizeZ; z++)
@@ -24,6 +25,11 @@ public class MarchingCubes
                     vertices.Add(pos + Vector3.up);
                     vertices.Add(pos + Vector3.right);
 
+                    // UVåº§æ¨™ã‚’è¿½åŠ 
+                    uvs.Add(new Vector2(pos.x * uvScale, pos.z * uvScale));
+                    uvs.Add(new Vector2((pos.x + Vector3.up.x) * uvScale, (pos.z + Vector3.up.z) * uvScale));
+                    uvs.Add(new Vector2((pos.x + Vector3.right.x) * uvScale, (pos.z + Vector3.right.z) * uvScale));
+
                     int index = vertices.Count - 3;
                     triangles.Add(index);
                     triangles.Add(index + 1);
@@ -33,6 +39,7 @@ public class MarchingCubes
         Mesh mesh = new Mesh();
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.SetVertices(vertices);
+        mesh.SetUVs(0, uvs);
         mesh.SetTriangles(triangles, 0);
         mesh.RecalculateNormals();
         return mesh;
