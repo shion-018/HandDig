@@ -5,6 +5,10 @@ using Cysharp.Threading.Tasks;
 
 public class PerformanceOptimizer : MonoBehaviour
 {
+    [Header("自動配置設定")]
+    [Tooltip("シーン開始時に自動で配置されるか")]
+    public bool autoPlaceOnStart = true;
+    
     [Header("パフォーマンス設定")]
     [Tooltip("lilToonの自動マイグレーションを無効化")]
     public bool disableLilToonMigration = true;
@@ -14,6 +18,23 @@ public class PerformanceOptimizer : MonoBehaviour
     
     [Tooltip("重い処理の分散間隔（フレーム数）")]
     public int heavyProcessInterval = 3;
+
+    /// <summary>
+    /// シーン開始時に自動でPerformanceOptimizerを配置する
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void AutoPlaceIfNeeded()
+    {
+        if (FindObjectOfType<PerformanceOptimizer>() == null)
+        {
+            GameObject optimizer = new GameObject("PerformanceOptimizer");
+            var component = optimizer.AddComponent<PerformanceOptimizer>();
+            component.autoPlaceOnStart = true;
+            DontDestroyOnLoad(optimizer);
+            
+            Debug.Log("[PerformanceOptimizer] 自動配置されました");
+        }
+    }
 
     void Awake()
     {
