@@ -2032,6 +2032,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b62cf0c885dabb40848de44dc80260e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoPlaceOnStart: 1
   disableLilToonMigration: 0
   delayVRInitialization: 1
   heavyProcessInterval: 5
