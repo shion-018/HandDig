@@ -16,9 +16,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 81e910ff7cb6ea5439005daac41a4cc5, type: 3}
   pickaxeExplosionMarkerSound: {fileID: 8300000, guid: 726ced6a74e196e49af59496aa704bba, type: 3}
   pickaxeExplosionSound: {fileID: 8300000, guid: d9b17561b0f8ca843a6136222992e6a8, type: 3}
-  drillDigSound: {fileID: 8300000, guid: 8cd1d9215be7d1749a8bc5ecd5d57c11, type: 3}
+  drillDigSound: {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   handDigSound: {fileID: 0}
-  baseVolume: 1
+  baseVolume: 0.7
   basePitch: 1
   useSpatialBlending: 1
   maxDistance: 50
