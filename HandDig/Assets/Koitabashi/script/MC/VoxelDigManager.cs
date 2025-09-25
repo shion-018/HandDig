@@ -25,4 +25,24 @@ public class VoxelDigManager : MonoBehaviour
             Debug.LogError("MC_World が設定されていません");
         }
     }
+
+    /// <summary>
+    /// 掘削を試行し、実際に掘削が発生したかどうかを返す
+    /// </summary>
+    /// <param name="position">掘削位置</param>
+    /// <param name="radius">掘削半径</param>
+    /// <returns>実際に掘削が発生した場合true</returns>
+    public bool TryDigAt(Vector3 position, float radius)
+    {
+        MC_World target = worldRouter != null && worldRouter.CurrentWorld != null ? worldRouter.CurrentWorld : world;
+        if (target != null)
+        {
+            return target.TryDig(position, radius);
+        }
+        else
+        {
+            Debug.LogError("MC_World が設定されていません");
+            return false;
+        }
+    }
 }

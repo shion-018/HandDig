@@ -114,7 +114,7 @@ MonoBehaviour:
   surfaceLevel: 0.5
   uvScale: 0.1
   materialSettings:
-    albedoTexture: {fileID: 2800000, guid: e14854bc767685f49b09fff039b05007, type: 3}
+    albedoTexture: {fileID: 2800000, guid: 36b864d57de5c3441801e72cae4e93fb, type: 3}
     normalMap: {fileID: 0}
     tiling: 0.5
     blendSharpness: 2

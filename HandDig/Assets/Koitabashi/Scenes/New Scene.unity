@@ -7140,7 +7140,8 @@ MonoBehaviour:
   effectDuration: 1
   effectScaleMultiplier: 1
   effectColor: {r: 1, g: 1, b: 1, a: 1}
-  useParticleSystem: 1
+  preservePrefabSettings: 1
+  useParticleSystem: 0
   particleCount: 20
   particleSpeed: 3
   particleLifetime: 1
@@ -7851,7 +7852,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   useAsyncInitialization: 0
-  treasureSpawners: []
+  treasureSpawners:
+  - {fileID: 333065110}
   digVolumesToApply:
   - {fileID: 544222540}
   - {fileID: 446522149}
@@ -9086,6 +9088,56 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 415681542}
   m_SourcePrefab: {fileID: 100100000, guid: e83fb4b532398f847afe0ee183adc6e1, type: 3}
+--- !u!1 &2113511499
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2113511501}
+  - component: {fileID: 2113511500}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2113511500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2113511499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9345108e30cae1a42bb7618a7c1e13f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  testRadius: 2
+  testEffectColor: {r: 1, g: 1, b: 1, a: 1}
+  testEffectDuration: 2
+  spawnEffectKey: 101
+  changeColorKey: 99
+  changeDurationKey: 100
+--- !u!4 &2113511501
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2113511499}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 349.68857, y: -655.2184, z: 613.7257}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2117724021
 GameObject:
   m_ObjectHideFlags: 0
@@ -9451,6 +9503,7 @@ SceneRoots:
   - {fileID: 626118459}
   - {fileID: 228749824}
   - {fileID: 1597683973}
+  - {fileID: 2113511501}
   - {fileID: 443673715}
   - {fileID: 1751749892}
   - {fileID: 3901731436506281488}

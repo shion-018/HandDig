@@ -17,8 +17,11 @@ public class DigEffectManager : MonoBehaviour
     [Tooltip("エフェクトのスケール（掘り半径に対する倍率）")]
     public float effectScaleMultiplier = 1.0f;
     
-    [Tooltip("エフェクトの色")]
+    [Tooltip("エフェクトの色（プレハブ使用時は無視されます）")]
     public Color effectColor = Color.yellow;
+    
+    [Tooltip("プレハブの元の設定を保持するか（色やマテリアルを上書きしない）")]
+    public bool preservePrefabSettings = true;
     
     [Header("パーティクル設定")]
     [Tooltip("パーティクルシステムを使用するか")]
@@ -195,35 +198,63 @@ public class DigEffectManager : MonoBehaviour
     private void CreatePrefabEffect(Vector3 position, float radius)
     {
         GameObject effectObj = Instantiate(digEffectPrefab, position, Quaternion.identity);
-        effectObj.transform.localScale = Vector3.one * (radius * effectScaleMultiplier);
         
-        // エフェクトの色を変更
-        Renderer[] renderers = effectObj.GetComponentsInChildren<Renderer>();
-        foreach (var renderer in renderers)
+        // プレハブの元の設定を保持するかどうかで分岐
+        if (!preservePrefabSettings)
         {
-            if (renderer.material != null)
+            // インスペクター設定で上書きする場合
+            effectObj.transform.localScale = Vector3.one * (radius * effectScaleMultiplier);
+            
+            // エフェクトの色を変更
+            Renderer[] renderers = effectObj.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in renderers)
             {
-                // マテリアルのコピーを作成して色を変更
-                Material newMaterial = new Material(renderer.material);
-                newMaterial.color = effectColor;
-                renderer.material = newMaterial;
+                if (renderer.material != null)
+                {
+                    // マテリアルのコピーを作成して色を変更
+                    Material newMaterial = new Material(renderer.material);
+                    newMaterial.color = effectColor;
+                    renderer.material = newMaterial;
+                }
+            }
+            
+            // パーティクルシステムの色も変更
+            ParticleSystem[] particleSystems = effectObj.GetComponentsInChildren<ParticleSystem>();
+            foreach (var ps in particleSystems)
+            {
+                var main = ps.main;
+                main.startColor = effectColor;
+                
+                // パーティクルレンダラーのマテリアルも修正
+                var psRenderer = ps.GetComponent<ParticleSystemRenderer>();
+                if (psRenderer != null && psRenderer.material != null)
+                {
+                    Material particleMaterial = CreateParticleMaterial();
+                    psRenderer.material = particleMaterial;
+                }
             }
         }
-        
-        // パーティクルシステムの色も変更
-        ParticleSystem[] particleSystems = effectObj.GetComponentsInChildren<ParticleSystem>();
-        foreach (var ps in particleSystems)
+        else
         {
-            var main = ps.main;
-            main.startColor = effectColor;
+            // プレハブの元の設定を保持する場合
+            // スケールのみ半径に応じて調整（プレハブの元のスケールを基準に）
+            Vector3 originalScale = digEffectPrefab.transform.localScale;
+            effectObj.transform.localScale = originalScale * (radius * effectScaleMultiplier);
             
-            // パーティクルレンダラーのマテリアルも修正
-            var psRenderer = ps.GetComponent<ParticleSystemRenderer>();
-            if (psRenderer != null && psRenderer.material != null)
+            // プレハブのパーティクルシステムの表示時間を取得
+            ParticleSystem[] particleSystems = effectObj.GetComponentsInChildren<ParticleSystem>();
+            float maxDuration = 0f;
+            foreach (var ps in particleSystems)
             {
-                Material particleMaterial = CreateParticleMaterial();
-                psRenderer.material = particleMaterial;
+                var main = ps.main;
+                float psDuration = main.duration + main.startLifetime.constantMax;
+                maxDuration = Mathf.Max(maxDuration, psDuration);
             }
+            
+            // プレハブの表示時間を使用（0の場合はデフォルト値を使用）
+            float actualDuration = maxDuration > 0f ? maxDuration : effectDuration;
+            StartCoroutine(DestroyEffectAfterDelay(effectObj, actualDuration));
+            return; // 早期リターンで下のStartCoroutineをスキップ
         }
         
         StartCoroutine(DestroyEffectAfterDelay(effectObj, effectDuration));

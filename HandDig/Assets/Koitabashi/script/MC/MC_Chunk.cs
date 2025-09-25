@@ -71,4 +71,39 @@ public class MC_Chunk : MonoBehaviour
                         chunkData.densityMap[x, y, z] = value;
                 }
     }
+
+    /// <summary>
+    /// 指定範囲にボクセルが存在するかどうかをチェック
+    /// </summary>
+    /// <param name="worldPos">チェック位置</param>
+    /// <param name="radius">チェック半径</param>
+    /// <returns>ボクセルが存在する場合true</returns>
+    public bool HasVoxelsInRange(Vector3 worldPos, float radius)
+    {
+        Vector3 localPos = worldPos - transform.position;
+
+        int minX = Mathf.Max(0, Mathf.FloorToInt(localPos.x - radius));
+        int maxX = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.x + radius));
+        int minY = Mathf.Max(0, Mathf.FloorToInt(localPos.y - radius));
+        int maxY = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.y + radius));
+        int minZ = Mathf.Max(0, Mathf.FloorToInt(localPos.z - radius));
+        int maxZ = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.z + radius));
+
+        for (int x = minX; x <= maxX; x++)
+            for (int y = minY; y <= maxY; y++)
+                for (int z = minZ; z <= maxZ; z++)
+                {
+                    Vector3 diff = new Vector3(x, y, z) - localPos;
+                    if (diff.magnitude <= radius)
+                    {
+                        // 密度が閾値以上（ボクセルが存在）かチェック
+                        if (chunkData.densityMap[x, y, z] > 0.5f)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+        return false;
+    }
 }

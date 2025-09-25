@@ -155,9 +155,30 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                 Vector3 upwardOffset = t.up * (radius * 0.3f);
                 Vector3 digPosition = t.position + upwardOffset;
 
-                digManager.DigAt(digPosition, radius);
+                // 実際に掘りが発生したかどうかをチェック
+                bool digOccurred = digManager.TryDigAt(digPosition, radius);
 
-                Debug.Log($"[PickaxeMaster] 判定{i + 1} Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                if (digOccurred)
+                {
+                    // 掘削エフェクトを生成
+                    if (DigEffectManager.Instance != null)
+                    {
+                        DigEffectManager.Instance.CreateDigEffect(digPosition, radius);
+                    }
+
+                    // 掘削音を再生
+                    var soundManager = DigSoundManager.Instance;
+                    if (soundManager != null)
+                    {
+                        soundManager.PlayPickaxeDigSound(comboStage, digPosition);
+                    }
+
+                    Debug.Log($"[PickaxeMaster] 判定{i + 1} 実際に掘削発生！ Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                }
+                else
+                {
+                    Debug.Log($"[PickaxeMaster] 判定{i + 1} 掘削範囲にボクセルなし - エフェクトと音をスキップ");
+                }
             }
             
             // 爆発モード: 通常掘削に加えてマーカーを1つ設置（チャージ消費）
