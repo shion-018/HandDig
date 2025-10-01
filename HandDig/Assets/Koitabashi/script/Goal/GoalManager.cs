@@ -23,6 +23,9 @@ public class GoalManager : MonoBehaviour
     [Tooltip("フェードイン時間（秒）")]
     public float fadeInDuration = 1.0f;
     
+    [Tooltip("フェード演出を使用するか")]
+    public bool useFade = true;
+    
     [Header("ゴールUI設定")]
     [Tooltip("ゴールUI表示時間（秒）")]
     public float goalUIDisplayDuration = 3.0f;
@@ -106,9 +109,9 @@ public class GoalManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 指定されたオブジェクトがプレイヤーかどうかを判定
+    /// 指定されたオブジェクトがプレイヤーかどうかを判定（公開API）
     /// </summary>
-    private bool IsPlayer(GameObject obj)
+    public bool IsPlayerObject(GameObject obj)
     {
         if (obj == null) return false;
         
@@ -127,6 +130,12 @@ public class GoalManager : MonoBehaviour
         return false;
     }
 
+    // 互換性のための内部メソッド（既存処理からの呼び出し用）
+    private bool IsPlayer(GameObject obj)
+    {
+        return IsPlayerObject(obj);
+    }
+
     /// <summary>
     /// ゴール時の一連の処理を実行
     /// </summary>
@@ -138,7 +147,7 @@ public class GoalManager : MonoBehaviour
         }
 
         // 1. フェードアウト
-        if (FadeManager.Instance != null)
+        if (useFade && FadeManager.Instance != null)
         {
             yield return FadeManager.Instance.FadeOut(fadeOutDuration);
         }
@@ -150,7 +159,7 @@ public class GoalManager : MonoBehaviour
         }
 
         // 3. フェードイン
-        if (FadeManager.Instance != null)
+        if (useFade && FadeManager.Instance != null)
         {
             yield return FadeManager.Instance.FadeIn(fadeInDuration);
         }
@@ -170,6 +179,29 @@ public class GoalManager : MonoBehaviour
         {
             Debug.Log("[GoalManager] ゴール処理完了");
         }
+    }
+
+    /// <summary>
+    /// 外部からゴールシーケンスを開始（委譲用公開API）
+    /// </summary>
+    /// <param name="warpPoint">ゴール後にワープする地点（null可）</param>
+    /// <param name="playerOverride">プレイヤールートの明示指定（null可）</param>
+    public void StartGoalSequence(Transform warpPoint = null, GameObject playerOverride = null)
+    {
+        if (hasReachedGoal) return;
+
+        if (warpPoint != null)
+        {
+            goalWarpPoint = warpPoint;
+        }
+
+        if (playerOverride != null)
+        {
+            playerRoot = playerOverride;
+        }
+
+        hasReachedGoal = true;
+        StartCoroutine(HandleGoalSequence());
     }
 
     /// <summary>

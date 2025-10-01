@@ -20,17 +20,6 @@ public class GoalTrigger : MonoBehaviour
     [Tooltip("ドアが開いた後にゴール判定を有効にするか")]
     public bool requireDoorOpen = true;
     
-    [Header("フェード設定")]
-    [Tooltip("フェードアウト時間（秒）")]
-    public float fadeOutDuration = 1.0f;
-    
-    [Tooltip("フェードイン時間（秒）")]
-    public float fadeInDuration = 1.0f;
-    
-    [Header("ゴールUI設定")]
-    [Tooltip("ゴールUI表示時間（秒）")]
-    public float goalUIDisplayDuration = 3.0f;
-    
     [Header("デバッグ")]
     [Tooltip("デバッグログを出力するか")]
     public bool enableDebugLog = true;
@@ -99,10 +88,14 @@ public class GoalTrigger : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // ゴール判定が有効で、プレイヤーがゴールに到達した場合
-        if (!hasReachedGoal && isGoalEnabled && IsPlayer(other.gameObject))
+        if (!hasReachedGoal && isGoalEnabled && GoalManager.Instance != null && GoalManager.Instance.IsPlayerObject(other.gameObject))
         {
             hasReachedGoal = true;
-            StartCoroutine(HandleGoalSequence());
+            if (enableDebugLog)
+            {
+                Debug.Log("[GoalTrigger] ゴール到達を検知。GoalManagerへ委譲します。");
+            }
+            GoalManager.Instance.StartGoalSequence(goalWarpPoint, playerRoot);
         }
     }
 
@@ -116,113 +109,6 @@ public class GoalTrigger : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log("[GoalTrigger] ドアが開いたため、ゴール判定を有効化しました");
-        }
-    }
-
-    /// <summary>
-    /// 指定されたオブジェクトがプレイヤーかどうかを判定
-    /// </summary>
-    private bool IsPlayer(GameObject obj)
-    {
-        if (obj == null) return false;
-        
-        // 直接プレイヤーかチェック
-        if (obj.CompareTag("Player")) return true;
-        
-        // プレイヤーの子オブジェクトかチェック
-        if (playerRoot != null && obj.transform.IsChildOf(playerRoot.transform)) return true;
-        
-        // CharacterControllerを持つかチェック
-        if (obj.GetComponent<CharacterController>() != null) return true;
-        
-        // VRプレイヤーの場合
-        if (obj.name.Contains("OVRCameraRig") || obj.name.Contains("VRPlayer")) return true;
-        
-        return false;
-    }
-
-    /// <summary>
-    /// ゴール時の一連の処理を実行
-    /// </summary>
-    private System.Collections.IEnumerator HandleGoalSequence()
-    {
-        if (enableDebugLog)
-        {
-            Debug.Log("[GoalTrigger] ゴール到達！処理開始");
-        }
-
-        // 1. フェードアウト
-        if (FadeManager.Instance != null)
-        {
-            yield return FadeManager.Instance.FadeOut(fadeOutDuration);
-        }
-
-        // 2. プレイヤーをワープ
-        if (goalWarpPoint != null && playerRoot != null)
-        {
-            WarpPlayerToGoal();
-        }
-
-        // 3. フェードイン
-        if (FadeManager.Instance != null)
-        {
-            yield return FadeManager.Instance.FadeIn(fadeInDuration);
-        }
-
-        // 4. ゴールUI表示
-        if (GoalUI.Instance != null)
-        {
-            GoalUI.Instance.ShowGoalUI();
-            
-            // UI表示時間待機
-            yield return new WaitForSeconds(goalUIDisplayDuration);
-            
-            GoalUI.Instance.HideGoalUI();
-        }
-
-        if (enableDebugLog)
-        {
-            Debug.Log("[GoalTrigger] ゴール処理完了");
-        }
-    }
-
-    /// <summary>
-    /// プレイヤーをゴール位置にワープ
-    /// </summary>
-    private void WarpPlayerToGoal()
-    {
-        if (playerRoot == null || goalWarpPoint == null) return;
-
-        Vector3 warpPosition = goalWarpPoint.position;
-        Vector3 oldPosition = playerRoot.transform.position;
-
-        // CharacterControllerがある場合は特別な処理
-        CharacterController controller = playerRoot.GetComponent<CharacterController>();
-        if (controller != null)
-        {
-            // CharacterControllerを一時的に無効化
-            controller.enabled = false;
-            
-            // 位置を設定
-            playerRoot.transform.position = warpPosition;
-            
-            // CharacterControllerを再度有効化
-            controller.enabled = true;
-            
-            if (enableDebugLog)
-            {
-                Debug.Log($"[GoalTrigger] CharacterController付きプレイヤーをワープ: {oldPosition} → {warpPosition}");
-            }
-        }
-        else
-        {
-            // 通常の位置設定
-            playerRoot.transform.position = warpPosition;
-            
-            if (enableDebugLog)
-            {
-                Debug.Log($"[GoalTrigger] プレイヤーをワープ: {oldPosition} → {warpPosition}");
-            }
         }
     }
 
@@ -272,7 +158,10 @@ public class GoalTrigger : MonoBehaviour
         if (!hasReachedGoal)
         {
             hasReachedGoal = true;
-            StartCoroutine(HandleGoalSequence());
+            if (GoalManager.Instance != null)
+            {
+                GoalManager.Instance.StartGoalSequence(goalWarpPoint, playerRoot);
+            }
         }
     }
 }
