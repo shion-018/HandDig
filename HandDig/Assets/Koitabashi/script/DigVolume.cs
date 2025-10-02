@@ -1,3 +1,4 @@
+//今のところスフィアとボックスコライダーにしか対応してない
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,22 +19,24 @@ public class DigVolume : MonoBehaviour
 
         Bounds bounds = col.bounds;
         
-        Debug.Log($"[DigVolume] 掘削開始: {bounds.size}");
+        Debug.Log($"[DigVolume] 掘削開始: {bounds.size} (コライダータイプ: {col.GetType().Name})");
 
         int processedVoxels = 0;
         int totalVoxels = 0;
 
-        // 元の密度で掘削
+        // コライダータイプに応じて掘削処理
         for (float x = bounds.min.x; x <= bounds.max.x; x += 1f)
         {
             for (float y = bounds.min.y; y <= bounds.max.y; y += 1f)
             {
                 for (float z = bounds.min.z; z <= bounds.max.z; z += 1f)
                 {
-                    Vector3 p = new Vector3(x, y, z);
-                    if (col.bounds.Contains(p) && col.ClosestPoint(p) == p)
+                    Vector3 worldPos = new Vector3(x, y, z);
+                    
+                    // コライダータイプに応じた判定
+                    if (IsPointInsideCollider(col, worldPos))
                     {
-                        world.Dig(p, 0.5f, digValue);
+                        world.Dig(worldPos, 0.5f, digValue);
                         processedVoxels++;
                         totalVoxels++;
                         if (processedVoxels >= voxelsPerFrame)
@@ -62,21 +65,23 @@ public class DigVolume : MonoBehaviour
 
         Bounds bounds = col.bounds;
         
-        Debug.Log($"[DigVolume] 掘削開始: {bounds.size} (同期)");
+        Debug.Log($"[DigVolume] 掘削開始: {bounds.size} (同期, コライダータイプ: {col.GetType().Name})");
 
         int totalVoxels = 0;
 
-        // 元の密度で掘削
+        // コライダータイプに応じて掘削処理
         for (float x = bounds.min.x; x <= bounds.max.x; x += 1f)
         {
             for (float y = bounds.min.y; y <= bounds.max.y; y += 1f)
             {
                 for (float z = bounds.min.z; z <= bounds.max.z; z += 1f)
                 {
-                    Vector3 p = new Vector3(x, y, z);
-                    if (col.bounds.Contains(p) && col.ClosestPoint(p) == p)
+                    Vector3 worldPos = new Vector3(x, y, z);
+                    
+                    // コライダータイプに応じた判定
+                    if (IsPointInsideCollider(col, worldPos))
                     {
-                        world.Dig(p, 0.5f, digValue);
+                        world.Dig(worldPos, 0.5f, digValue);
                         totalVoxels++;
                     }
                 }
@@ -89,5 +94,96 @@ public class DigVolume : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+    
+    /// <summary>
+    /// コライダータイプに応じた点の内部判定
+    /// </summary>
+    private bool IsPointInsideCollider(Collider col, Vector3 worldPos)
+    {
+        if (col is BoxCollider boxCollider)
+        {
+            return IsPointInsideBoxCollider(boxCollider, worldPos);
+        }
+        else if (col is SphereCollider sphereCollider)
+        {
+            return IsPointInsideSphereCollider(sphereCollider, worldPos);
+        }
+        else if (col is CapsuleCollider capsuleCollider)
+        {
+            return IsPointInsideCapsuleCollider(capsuleCollider, worldPos);
+        }
+        else
+        {
+            // その他のコライダーは従来の方法を使用
+            return col.bounds.Contains(worldPos) && col.ClosestPoint(worldPos) == worldPos;
+        }
+    }
+    
+    /// <summary>
+    /// BoxColliderの内部判定（ローカル座標で判定）
+    /// </summary>
+    private bool IsPointInsideBoxCollider(BoxCollider boxCollider, Vector3 worldPos)
+    {
+        // ワールド座標をローカル座標に変換
+        Vector3 localPos = boxCollider.transform.InverseTransformPoint(worldPos);
+        
+        // ローカル座標で -size/2 ～ size/2 の範囲内かチェック
+        Vector3 halfSize = boxCollider.size * 0.5f;
+        
+        return Mathf.Abs(localPos.x) <= halfSize.x &&
+               Mathf.Abs(localPos.y) <= halfSize.y &&
+               Mathf.Abs(localPos.z) <= halfSize.z;
+    }
+    
+    /// <summary>
+    /// SphereColliderの内部判定
+    /// </summary>
+    private bool IsPointInsideSphereCollider(SphereCollider sphereCollider, Vector3 worldPos)
+    {
+        // ワールド座標をローカル座標に変換
+        Vector3 localPos = sphereCollider.transform.InverseTransformPoint(worldPos);
+        
+        // スケールを考慮した半径を計算
+        float scaledRadius = sphereCollider.radius * Mathf.Max(
+            Mathf.Abs(sphereCollider.transform.lossyScale.x),
+            Mathf.Abs(sphereCollider.transform.lossyScale.y),
+            Mathf.Abs(sphereCollider.transform.lossyScale.z)
+        );
+        
+        // 中心からの距離が半径以下かチェック
+        return localPos.magnitude <= scaledRadius;
+    }
+    
+    /// <summary>
+    /// CapsuleColliderの内部判定
+    /// </summary>
+    private bool IsPointInsideCapsuleCollider(CapsuleCollider capsuleCollider, Vector3 worldPos)
+    {
+        // ワールド座標をローカル座標に変換
+        Vector3 localPos = capsuleCollider.transform.InverseTransformPoint(worldPos);
+        
+        // カプセルの軸に応じて判定
+        Vector3 axis = Vector3.zero;
+        switch (capsuleCollider.direction)
+        {
+            case 0: axis = Vector3.right; break;   // X軸
+            case 1: axis = Vector3.up; break;      // Y軸
+            case 2: axis = Vector3.forward; break; // Z軸
+        }
+        
+        // 軸方向の距離と半径方向の距離を計算
+        float axisDistance = Vector3.Dot(localPos, axis);
+        float radiusDistance = Vector3.Distance(localPos, axis * axisDistance);
+        
+        // カプセルの高さと半径を考慮
+        float halfHeight = capsuleCollider.height * 0.5f;
+        float scaledRadius = capsuleCollider.radius * Mathf.Max(
+            Mathf.Abs(capsuleCollider.transform.lossyScale.x),
+            Mathf.Abs(capsuleCollider.transform.lossyScale.y),
+            Mathf.Abs(capsuleCollider.transform.lossyScale.z)
+        );
+        
+        return Mathf.Abs(axisDistance) <= halfHeight && radiusDistance <= scaledRadius;
     }
 }

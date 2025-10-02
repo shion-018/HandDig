@@ -230,6 +230,51 @@ public class MC_World : MonoBehaviour
         CheckForExposedBuriedObjects(worldPos, radius);
     }
 
+    /// <summary>
+    /// 掘削を試行し、実際に掘削が発生したかどうかを返す
+    /// </summary>
+    /// <param name="worldPos">掘削位置</param>
+    /// <param name="radius">掘削半径</param>
+    /// <param name="value">掘削値（デフォルト0）</param>
+    /// <returns>実際に掘削が発生した場合true</returns>
+    public bool TryDig(Vector3 worldPos, float radius, float value = 0f)
+    {
+        Vector3 min = worldPos - Vector3.one * radius;
+        Vector3 max = worldPos + Vector3.one * radius;
+
+        Vector3Int minChunk = WorldToChunkCoord(min);
+        Vector3Int maxChunk = WorldToChunkCoord(max);
+
+        bool digOccurred = false;
+
+        for (int x = minChunk.x; x <= maxChunk.x; x++)
+            for (int y = minChunk.y; y <= maxChunk.y; y++)
+                for (int z = minChunk.z; z <= maxChunk.z; z++)
+                {
+                    Vector3Int chunkCoord = new Vector3Int(x, y, z);
+                    if (chunkMap.TryGetValue(chunkCoord, out var chunk))
+                    {
+                        // 掘削前の状態をチェック
+                        bool hadVoxels = chunk.HasVoxelsInRange(worldPos, radius);
+                        
+                        if (hadVoxels)
+                        {
+                            chunk.ModifyDensity(worldPos, radius, value);
+                            chunk.GenerateMesh();
+                            digOccurred = true;
+                        }
+                    }
+                }
+        
+        // 掘削が発生した場合のみ埋蔵物チェック
+        if (digOccurred)
+        {
+            CheckForExposedBuriedObjects(worldPos, radius);
+        }
+
+        return digOccurred;
+    }
+
     
     void CheckForExposedBuriedObjects(Vector3 position, float radius)
     {

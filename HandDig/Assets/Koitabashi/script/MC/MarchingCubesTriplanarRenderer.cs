@@ -151,3 +151,9 @@ public class MarchingCubesTriplanarRenderer : MonoBehaviour
         }
     }
 }
+
+
+
+
+
+

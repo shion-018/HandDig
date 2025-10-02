@@ -29,16 +29,12 @@ public class VRDigToolManager : MonoBehaviour
     private int pickaxeExplosionCharges = 0;
     private bool pickaxeExplosionUnlocked = false;
 
-
-
     void Start()
     {
         if (tools.Count > 0)
         {
             ActivateTool(currentIndex);
         }
-
-
     }
 
     void Update()
@@ -338,13 +334,5 @@ public class VRDigToolManager : MonoBehaviour
         if (!pickaxeExplosionUnlocked || pickaxeExplosionCharges <= 0) return false;
         pickaxeExplosionCharges--;
         return true;
-    }
-
-    /// <summary>
-    /// 音声マネージャーを取得
-    /// </summary>
-    public DigSoundManager GetSoundManager()
-    {
-        return DigSoundManager.Instance;
     }
 }

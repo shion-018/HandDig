@@ -75,3 +75,9 @@ public static class TriplanarUVGenerator
         return normal.normalized;
     }
 }
+
+
+
+
+
+

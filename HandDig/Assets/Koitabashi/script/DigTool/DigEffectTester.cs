@@ -26,6 +26,10 @@ public class DigEffectTester : MonoBehaviour
     
     [Tooltip("エフェクト時間変更キー")]
     public KeyCode changeDurationKey = KeyCode.D;
+    
+    [Header("デバッグ設定")]
+    [Tooltip("デバッグ情報を画面に表示するか")]
+    public bool showDebugGUI = false;
 
     private Camera playerCamera;
     private int colorIndex = 0;
@@ -155,15 +159,18 @@ public class DigEffectTester : MonoBehaviour
 
     void OnGUI()
     {
-        // デバッグ情報を表示
-        GUILayout.BeginArea(new Rect(10, 10, 300, 200));
-        GUILayout.Label("掘りエフェクトテスト", GUI.skin.box);
-        GUILayout.Label($"現在の色: {testEffectColor}");
-        GUILayout.Label($"表示時間: {testEffectDuration}秒");
-        GUILayout.Label($"掘り半径: {testRadius}");
-        GUILayout.Label($"{spawnEffectKey}キー: エフェクト生成");
-        GUILayout.Label($"{changeColorKey}キー: 色変更");
-        GUILayout.Label($"{changeDurationKey}キー: 時間変更");
-        GUILayout.EndArea();
+        // デバッグ情報を表示（showDebugGUIがtrueの場合のみ）
+        if (showDebugGUI)
+        {
+            GUILayout.BeginArea(new Rect(10, 10, 300, 200));
+            GUILayout.Label("掘りエフェクトテスト", GUI.skin.box);
+            GUILayout.Label($"現在の色: {testEffectColor}");
+            GUILayout.Label($"表示時間: {testEffectDuration}秒");
+            GUILayout.Label($"掘り半径: {testRadius}");
+            GUILayout.Label($"{spawnEffectKey}キー: エフェクト生成");
+            GUILayout.Label($"{changeColorKey}キー: 色変更");
+            GUILayout.Label($"{changeDurationKey}キー: 時間変更");
+            GUILayout.EndArea();
+        }
     }
 } 

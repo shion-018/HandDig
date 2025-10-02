@@ -64,3 +64,9 @@ Shader "Custom/TriplanarMapping"
     
     FallBack "Diffuse"
 }
+
+
+
+
+
+

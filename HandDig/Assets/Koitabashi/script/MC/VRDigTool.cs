@@ -57,16 +57,31 @@ public class VRDigTool : MonoBehaviour, IDigToolWithStats
         if (currentHitCollider != null && (isTriggerPressed || isSpacePressed) && stats != null)
         {
             float radius = stats.GetRadius(0, upgradeLevel); // comboStage = 0（コンボ段階なし）
-            digManager.DigAt(toolPosition, radius);
             
-            // 掘削音を再生
-            var soundManager = DigSoundManager.Instance;
-            if (soundManager != null)
+            // 実際に掘りが発生したかどうかをチェック
+            bool digOccurred = digManager.TryDigAt(toolPosition, radius);
+            
+            if (digOccurred)
             {
-                soundManager.PlayHandDigSound(toolPosition);
+                // 掘削音を再生
+                var soundManager = DigSoundManager.Instance;
+                if (soundManager != null)
+                {
+                    soundManager.PlayHandDigSound(toolPosition);
+                }
+                
+                // 掘削エフェクトを生成
+                if (DigEffectManager.Instance != null)
+                {
+                    DigEffectManager.Instance.CreateDigEffect(toolPosition, radius);
+                }
+                
+                Debug.Log($"[HandDig] 実際に掘削発生！ Radius: {radius}");
             }
-            
-            Debug.Log($"[HandDig] 掘削実行！ Radius: {radius}");
+            else
+            {
+                Debug.Log($"[HandDig] 掘削範囲にボクセルなし - エフェクトと音をスキップ");
+            }
         }
     }
 }

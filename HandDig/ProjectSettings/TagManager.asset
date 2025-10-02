@@ -10,6 +10,7 @@ TagManager:
   - Pickaxe
   - SwingZone
   - ResetZone
+  - Key
   layers:
   - Default
   - TransparentFX

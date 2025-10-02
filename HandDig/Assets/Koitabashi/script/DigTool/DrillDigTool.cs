@@ -108,15 +108,30 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     if (hitZones[i] != null)
                     {
                         Vector3 digPosition = hitZones[i].position;
-                        digManager.DigAt(digPosition, radius);
                         
-                        // 掘削音を再生
-                        if (soundManager != null)
+                        // 実際に掘りが発生したかどうかをチェック
+                        bool digOccurred = digManager.TryDigAt(digPosition, radius);
+                        
+                        if (digOccurred)
                         {
-                            soundManager.PlayDrillDigSound(digPosition);
+                            // 掘削音を再生
+                            if (soundManager != null)
+                            {
+                                soundManager.PlayDrillDigSound(digPosition);
+                            }
+                            
+                            // 掘削エフェクトを生成
+                            if (DigEffectManager.Instance != null)
+                            {
+                                DigEffectManager.Instance.CreateDigEffect(digPosition, radius);
+                            }
+                            
+                            Debug.Log($"[Drill] 判定{i + 1} 実際に掘削発生！ radius {radius} / interval {currentDigInterval:F3}s");
                         }
-                        
-                        Debug.Log($"[Drill] 判定{i + 1} Dig at radius {radius} / interval {currentDigInterval:F3}s");
+                        else
+                        {
+                            Debug.Log($"[Drill] 判定{i + 1} 掘削範囲にボクセルなし - 音とエフェクトをスキップ");
+                        }
                     }
                 }
             }

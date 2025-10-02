@@ -34,9 +34,6 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     [Tooltip("地形レイヤー（必要ならRaycastで使用）")]
     public LayerMask terrainLayer;
 
-    // 音声管理
-    private DigSoundManager soundManager;
-
     void Start()
     {
         // 初期化時に判定エリアの表示/非表示を設定
@@ -46,7 +43,6 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     void Awake()
     {
         toolManager = FindObjectOfType<VRDigToolManager>();
-        soundManager = FindObjectOfType<DigSoundManager>();
     }
 
     public void SetStats(DigToolStats newStats, int level)
@@ -159,15 +155,30 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                 Vector3 upwardOffset = t.up * (radius * 0.3f);
                 Vector3 digPosition = t.position + upwardOffset;
 
-                digManager.DigAt(digPosition, radius);
+                // 実際に掘りが発生したかどうかをチェック
+                bool digOccurred = digManager.TryDigAt(digPosition, radius);
 
-                // 掘削音を再生
-                if (soundManager != null)
+                if (digOccurred)
                 {
-                    soundManager.PlayPickaxeDigSound(comboStage, digPosition);
-                }
+                    // 掘削エフェクトを生成
+                    if (DigEffectManager.Instance != null)
+                    {
+                        DigEffectManager.Instance.CreateDigEffect(digPosition, radius);
+                    }
 
-                Debug.Log($"[PickaxeMaster] 判定{i + 1} Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                    // 掘削音を再生
+                    var soundManager = DigSoundManager.Instance;
+                    if (soundManager != null)
+                    {
+                        soundManager.PlayPickaxeDigSound(comboStage, digPosition);
+                    }
+
+                    Debug.Log($"[PickaxeMaster] 判定{i + 1} 実際に掘削発生！ Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                }
+                else
+                {
+                    Debug.Log($"[PickaxeMaster] 判定{i + 1} 掘削範囲にボクセルなし - エフェクトと音をスキップ");
+                }
             }
             
             // 爆発モード: 通常掘削に加えてマーカーを1つ設置（チャージ消費）
@@ -179,13 +190,6 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                     float explosionRadius = stats.GetExplosionRadius(upgradeLevel);
                     Vector3 pos = GetFarthestExplosionPosition(radius);
                     SpawnExplosionMarker(pos, explosionRadius, stats.explosionDelaySeconds);
-                    
-                    // 爆発マーカー設置音を再生
-                    if (soundManager != null)
-                    {
-                        soundManager.PlayPickaxeExplosionMarkerSound(pos);
-                    }
-                    
                     Debug.Log($"[PickaxeMaster] 爆発マーカー設置（残りチャージ: {toolManager.GetPickaxeExplosionCharges()}）");
 
                     if (toolManager.GetPickaxeExplosionCharges() <= 0)
