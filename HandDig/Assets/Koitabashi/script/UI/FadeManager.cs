@@ -225,3 +225,4 @@ public class FadeManager : MonoBehaviour
         return 0f;
     }
 }
+

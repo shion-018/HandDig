@@ -278,3 +278,4 @@ public class GoalManager : MonoBehaviour
         }
     }
 }
+

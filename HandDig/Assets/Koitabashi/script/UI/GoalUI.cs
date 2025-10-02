@@ -349,3 +349,4 @@ public class GoalUI : MonoBehaviour
         HideGoalUI();
     }
 }
+
