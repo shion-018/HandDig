@@ -201,6 +201,58 @@ public class FadeManager : MonoBehaviour
     }
 
     /// <summary>
+    /// フェードアウト（画面を暗くする）- コールバック付き
+    /// </summary>
+    /// <param name="duration">フェード時間（秒）。0の場合はfadeSpeedを使用</param>
+    /// <param name="onComplete">フェード完了時のコールバック</param>
+    public Coroutine FadeOutWithCallback(float duration, System.Action onComplete)
+    {
+        if (duration <= 0f) duration = fadeSpeed;
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[FadeManager] フェードアウト開始（コールバック付き）: {duration}秒");
+        }
+        
+        return StartCoroutine(FadeOutCoroutine(duration, onComplete));
+    }
+
+    /// <summary>
+    /// フェードイン（画面を明るくする）- コールバック付き
+    /// </summary>
+    /// <param name="duration">フェード時間（秒）。0の場合はfadeSpeedを使用</param>
+    /// <param name="onComplete">フェード完了時のコールバック</param>
+    public Coroutine FadeInWithCallback(float duration, System.Action onComplete)
+    {
+        if (duration <= 0f) duration = fadeSpeed;
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[FadeManager] フェードイン開始（コールバック付き）: {duration}秒");
+        }
+        
+        return StartCoroutine(FadeInCoroutine(duration, onComplete));
+    }
+
+    /// <summary>
+    /// フェードアウトコルーチン（コールバック付き）
+    /// </summary>
+    private IEnumerator FadeOutCoroutine(float duration, System.Action onComplete)
+    {
+        yield return StartCoroutine(FadeCoroutine(0f, 1f, duration));
+        onComplete?.Invoke();
+    }
+
+    /// <summary>
+    /// フェードインコルーチン（コールバック付き）
+    /// </summary>
+    private IEnumerator FadeInCoroutine(float duration, System.Action onComplete)
+    {
+        yield return StartCoroutine(FadeCoroutine(1f, 0f, duration));
+        onComplete?.Invoke();
+    }
+
+    /// <summary>
     /// 即座にフェード状態を設定
     /// </summary>
     /// <param name="alpha">アルファ値（0-1）</param>
@@ -225,4 +277,5 @@ public class FadeManager : MonoBehaviour
         return 0f;
     }
 }
+
 

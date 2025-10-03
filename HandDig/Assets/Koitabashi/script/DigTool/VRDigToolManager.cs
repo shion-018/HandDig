@@ -24,10 +24,21 @@ public class VRDigToolManager : MonoBehaviour
     
     // ドリルの判定数増加量を保存
     private int drillHitZoneBonus = 0;
+    
+    // ドリルの速度レベル増加量を保存
+    private int drillSpeedBonus = 0;
 
     // つるはしの爆発モード（お宝でアンロック）
     private int pickaxeExplosionCharges = 0;
     private bool pickaxeExplosionUnlocked = false;
+
+    // お宝取得数の追跡
+    private int totalTreasureCount = 0;
+    private int normalTreasureCount = 0;
+    private int pickaxeHitZoneTreasureCount = 0;
+    private int drillHitZoneTreasureCount = 0;
+    private int drillSpeedTreasureCount = 0;
+    private int explosiveTreasureCount = 0;
 
     void Start()
     {
@@ -113,7 +124,7 @@ public class VRDigToolManager : MonoBehaviour
                 pickaxeHitZoneBonus = 0;
             }
 
-            // ドリルの場合、保存された判定数増加量を適用
+            // ドリルの場合、保存された判定数増加量と速度増加量を適用
             if (digTool is DrillDigTool drillToolApply)
             {
                 Debug.Log($"[VRDigToolManager] ドリルに切り替え: 保存された判定数増加量 {drillHitZoneBonus} を適用開始");
@@ -123,9 +134,18 @@ public class VRDigToolManager : MonoBehaviour
                 }
                 Debug.Log($"[VRDigToolManager] ドリルに切り替え: 判定数増加量 {drillHitZoneBonus} を適用完了");
                 
+                // 速度増加量も適用
+                Debug.Log($"[VRDigToolManager] ドリルに切り替え: 保存された速度増加量 {drillSpeedBonus} を適用開始");
+                for (int i = 0; i < drillSpeedBonus; i++)
+                {
+                    drillToolApply.IncreaseSpeed();
+                }
+                Debug.Log($"[VRDigToolManager] ドリルに切り替え: 速度増加量 {drillSpeedBonus} を適用完了");
+                
                 // 適用後はリセット（重複適用を防ぐ）
                 drillHitZoneBonus = 0;
-                Debug.Log($"[VRDigToolManager] ドリル判定数増加量をリセット: {drillHitZoneBonus}");
+                drillSpeedBonus = 0;
+                Debug.Log($"[VRDigToolManager] ドリル判定数・速度増加量をリセット: {drillHitZoneBonus}, {drillSpeedBonus}");
             }
 
             Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
@@ -264,6 +284,7 @@ public class VRDigToolManager : MonoBehaviour
     // ドリルの採掘速度を加速（お宝で呼び出される）
     public void IncreaseDrillSpeed(int amount = 1)
     {
+        // 現在ドリルがアクティブなら即座に適用（保存はしない）
         if (currentTool is DrillDigTool drillToolSpeed)
         {
             for (int i = 0; i < amount; i++)
@@ -274,7 +295,9 @@ public class VRDigToolManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[VRDigToolManager] ドリルが非アクティブのため、速度アップは適用されません");
+            // ドリルが非アクティブの場合のみ保存
+            drillSpeedBonus += amount;
+            Debug.Log($"[VRDigToolManager] ドリルの速度増加量を保存: {drillSpeedBonus}");
         }
     }
 
@@ -288,6 +311,37 @@ public class VRDigToolManager : MonoBehaviour
     public int GetDrillHitZoneBonus()
     {
         return drillHitZoneBonus;
+    }
+
+    // ドリルの速度レベルを取得
+    public int GetDrillSpeedLevel()
+    {
+        var drillData = toolDataList.Find(data => data.drillStats != null);
+        if (drillData != null)
+        {
+            // 現在アクティブなドリルの場合は実際のレベルを返す
+            if (currentTool is DrillDigTool)
+            {
+                return drillData.currentSpeedUpgradeLevel;
+            }
+            // 非アクティブの場合は保存されたボーナスも含める
+            else
+            {
+                return drillData.currentSpeedUpgradeLevel + drillSpeedBonus;
+            }
+        }
+        return 0;
+    }
+
+    // ドリルの最大速度レベルを取得
+    public int GetDrillMaxSpeedLevel()
+    {
+        var drillData = toolDataList.Find(data => data.drillStats != null);
+        if (drillData != null && drillData.drillStats != null)
+        {
+            return drillData.drillStats.GetMaxSpeedUpgradeLevel();
+        }
+        return 1;
     }
     
     /// <summary>
@@ -335,4 +389,38 @@ public class VRDigToolManager : MonoBehaviour
         pickaxeExplosionCharges--;
         return true;
     }
+
+    // ---- Treasure Count APIs ----
+    public void AddTreasureCount(string treasureType, int count = 1)
+    {
+        totalTreasureCount += count;
+        
+        switch (treasureType)
+        {
+            case "Normal":
+                normalTreasureCount += count;
+                break;
+            case "PickaxeHitZone":
+                pickaxeHitZoneTreasureCount += count;
+                break;
+            case "DrillHitZone":
+                drillHitZoneTreasureCount += count;
+                break;
+            case "DrillSpeed":
+                drillSpeedTreasureCount += count;
+                break;
+            case "Explosive":
+                explosiveTreasureCount += count;
+                break;
+        }
+        
+        Debug.Log($"[VRDigToolManager] お宝取得: {treasureType} +{count} (総数: {totalTreasureCount})");
+    }
+
+    public int GetTotalTreasureCount() => totalTreasureCount;
+    public int GetNormalTreasureCount() => normalTreasureCount;
+    public int GetPickaxeHitZoneTreasureCount() => pickaxeHitZoneTreasureCount;
+    public int GetDrillHitZoneTreasureCount() => drillHitZoneTreasureCount;
+    public int GetDrillSpeedTreasureCount() => drillSpeedTreasureCount;
+    public int GetExplosiveTreasureCount() => explosiveTreasureCount;
 }

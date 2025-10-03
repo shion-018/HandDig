@@ -146,10 +146,15 @@ public class GoalManager : MonoBehaviour
             Debug.Log("[GoalManager] ゴール到達！処理開始");
         }
 
-        // 1. フェードアウト
+        // 1. フェードアウト（フェード完了時にゴールUI表示）
         if (useFade && FadeManager.Instance != null)
         {
-            yield return FadeManager.Instance.FadeOut(fadeOutDuration);
+            yield return FadeManager.Instance.FadeOutWithCallback(fadeOutDuration, OnFadeOutComplete);
+        }
+        else
+        {
+            // フェードを使用しない場合は即座にゴールUIを表示
+            OnFadeOutComplete();
         }
 
         // 2. プレイヤーをワープ
@@ -164,20 +169,39 @@ public class GoalManager : MonoBehaviour
             yield return FadeManager.Instance.FadeIn(fadeInDuration);
         }
 
-        // 4. ゴールUI表示
+        if (enableDebugLog)
+        {
+            Debug.Log("[GoalManager] ゴール処理完了");
+        }
+    }
+
+    /// <summary>
+    /// フェードアウト完了時のコールバック
+    /// </summary>
+    private void OnFadeOutComplete()
+    {
+        // ゴールUI表示
         if (GoalUI.Instance != null)
         {
             GoalUI.Instance.ShowGoalUI();
             
-            // UI表示時間待機
-            yield return new WaitForSeconds(goalUIDisplayDuration);
-            
-            GoalUI.Instance.HideGoalUI();
+            // UI表示開始のコルーチンを起動
+            StartCoroutine(HandleGoalUIDisplay());
         }
+    }
 
-        if (enableDebugLog)
+    /// <summary>
+    /// ゴールUI表示の処理
+    /// </summary>
+    private IEnumerator HandleGoalUIDisplay()
+    {
+        // UI表示時間待機
+        yield return new WaitForSeconds(goalUIDisplayDuration);
+        
+        // UI非表示
+        if (GoalUI.Instance != null)
         {
-            Debug.Log("[GoalManager] ゴール処理完了");
+            GoalUI.Instance.HideGoalUI();
         }
     }
 
@@ -278,4 +302,5 @@ public class GoalManager : MonoBehaviour
         }
     }
 }
+
 
