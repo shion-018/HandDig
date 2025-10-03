@@ -13,6 +13,8 @@ public class TreasureCollector : MonoBehaviour
     {
         if (!other.CompareTag(treasureTag)) return;
 
+        Debug.Log($"お宝 [{other.name}] を取得しました");
+
         // TreasureItem コンポーネントがあれば通常の強化
         TreasureItem item = other.GetComponent<TreasureItem>();
         if (item != null && toolManager != null)
@@ -21,6 +23,13 @@ public class TreasureCollector : MonoBehaviour
             {
                 toolManager.UpgradeTool(toolIndex, item.upgradeAmount);
             }
+            toolManager.AddTreasureCount("Normal", 1);
+            
+            // 通知表示
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("Normal");
+            }
         }
 
         // HitZoneTreasureItem（判定数増加お宝）を処理
@@ -28,6 +37,13 @@ public class TreasureCollector : MonoBehaviour
         if (hitZoneItem != null)
         {
             ProcessHitZoneTreasure(hitZoneItem);
+            if (toolManager != null) toolManager.AddTreasureCount("PickaxeHitZone", 1);
+            
+            // 通知表示
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("PickaxeHitZone");
+            }
         }
 
         // DrillHitZoneTreasureItem（ドリル判定数増加お宝）を処理
@@ -35,6 +51,13 @@ public class TreasureCollector : MonoBehaviour
         if (drillHitZoneItem != null)
         {
             ProcessDrillHitZoneTreasure(drillHitZoneItem);
+            if (toolManager != null) toolManager.AddTreasureCount("DrillHitZone", 1);
+            
+            // 通知表示
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("DrillHitZone");
+            }
         }
 
         // DrillSpeedTreasureItem（ドリル速度増加お宝）を処理
@@ -42,6 +65,13 @@ public class TreasureCollector : MonoBehaviour
         if (drillSpeedItem != null)
         {
             ProcessDrillSpeedTreasure(drillSpeedItem);
+            if (toolManager != null) toolManager.AddTreasureCount("DrillSpeed", 1);
+            
+            // 通知表示
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("DrillSpeed");
+            }
         }
 
         // ExplosivePickaxeTreasureItem（つるはし爆発お宝）を処理
@@ -49,27 +79,17 @@ public class TreasureCollector : MonoBehaviour
         if (explosiveItem != null)
         {
             ProcessExplosivePickaxeTreasure(explosiveItem);
+            if (toolManager != null) toolManager.AddTreasureCount("Explosive", 1);
+            
+            // 通知表示
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("Explosive");
+            }
         }
 
         // お宝を非表示に
         other.gameObject.SetActive(false);
-    }
-
-    // ExplosivePickaxeTreasureItem の処理
-    private void ProcessExplosivePickaxeTreasure(ExplosivePickaxeTreasureItem item)
-    {
-        Debug.Log($"[{item.treasureName}] つるはし爆発お宝を処理中...");
-
-        if (toolManager != null)
-        {
-            toolManager.AddPickaxeExplosionCharges(item.chargesPerPickup);
-            toolManager.UnlockPickaxeExplosion();
-            Debug.Log($"[{item.treasureName}] 爆発モードをアンロックし、チャージを {item.chargesPerPickup} 追加しました。");
-        }
-        else
-        {
-            Debug.LogWarning($"[{item.treasureName}] ツールマネージャーが見つかりません。");
-        }
     }
 
     // 判定数増加お宝の処理
@@ -115,11 +135,28 @@ public class TreasureCollector : MonoBehaviour
         {
             // VRDigToolManagerに速度増加を依頼（現在のツールに関係なく保存される）
             toolManager.IncreaseDrillSpeed(drillSpeedItem.speedIncreaseAmount);
-            Debug.Log($"[{drillSpeedItem.treasureName}] ドリルの採掘速度を {drillSpeedItem.speedIncreaseAmount} 段階アップさせました！");
+            Debug.Log($"[{drillSpeedItem.treasureName}] ドリルの速度を {drillSpeedItem.speedIncreaseAmount} 段階アップさせました！");
         }
         else
         {
             Debug.LogWarning($"[{drillSpeedItem.treasureName}] ツールマネージャーが見つかりません。");
+        }
+    }
+
+    // ExplosivePickaxeTreasureItemの処理
+    private void ProcessExplosivePickaxeTreasure(ExplosivePickaxeTreasureItem explosiveItem)
+    {
+        Debug.Log($"[{explosiveItem.treasureName}] つるはし爆発お宝を処理中...");
+        
+        if (toolManager != null)
+        {
+            // VRDigToolManagerに爆発チャージ追加を依頼
+            toolManager.AddPickaxeExplosionCharges(explosiveItem.chargesPerPickup);
+            Debug.Log($"[{explosiveItem.treasureName}] つるはし爆発チャージを {explosiveItem.chargesPerPickup} 追加しました！");
+        }
+        else
+        {
+            Debug.LogWarning($"[{explosiveItem.treasureName}] ツールマネージャーが見つかりません。");
         }
     }
 }

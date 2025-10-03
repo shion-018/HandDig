@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: NewPickaxeDigStats
   m_EditorClassIdentifier: 
   baseRadius: 1.2
-  stage2Radius: 1.7
-  stage3Radius: 2.2
+  stage2Radius: 1.2
+  stage3Radius: 1.2
   baseRadiusMax: 2.2
-  stage2RadiusMax: 2.7
-  stage3RadiusMax: 3.2
+  stage2RadiusMax: 2.2
+  stage3RadiusMax: 2.2
   upgradeSteps: 5
   enableExplosionMode: 1
   explosionDelaySeconds: 1

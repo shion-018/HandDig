@@ -101,8 +101,12 @@ public class GoalUI : MonoBehaviour
             SetupUI();
         }
         
-        // 初期状態では非表示
-        HideGoalUI(false);
+        // 初期状態では完全に非表示
+        if (goalCanvas != null)
+        {
+            goalCanvas.gameObject.SetActive(false);
+        }
+        SetUIAlpha(0f);
     }
 
     /// <summary>
@@ -185,6 +189,12 @@ public class GoalUI : MonoBehaviour
     public void ShowGoalUI(bool animate = true)
     {
         if (isShowing) return;
+        
+        // Canvasをアクティブにする
+        if (goalCanvas != null)
+        {
+            goalCanvas.gameObject.SetActive(true);
+        }
         
         isShowing = true;
         
@@ -287,6 +297,13 @@ public class GoalUI : MonoBehaviour
         }
         
         SetUIAlpha(endAlpha);
+        
+        // 非表示時はCanvasも非アクティブにする
+        if (endAlpha <= 0f && goalCanvas != null)
+        {
+            goalCanvas.gameObject.SetActive(false);
+        }
+        
         currentAnimation = null;
     }
 
@@ -349,4 +366,5 @@ public class GoalUI : MonoBehaviour
         HideGoalUI();
     }
 }
+
 

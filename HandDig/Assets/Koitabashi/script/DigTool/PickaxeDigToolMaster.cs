@@ -235,6 +235,12 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         }
     }
 
+    // 爆発モード状態を取得
+    public bool IsExplosionMode()
+    {
+        return isExplosionMode;
+    }
+
     private Vector3 GetExplosionPosition(Transform t)
     {
         // 既存のdigPositionロジックと同等の位置を利用
