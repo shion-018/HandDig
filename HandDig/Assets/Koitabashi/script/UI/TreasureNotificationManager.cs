@@ -353,3 +353,4 @@ public class TreasureNotificationManager : MonoBehaviour
         };
     }
 }
+

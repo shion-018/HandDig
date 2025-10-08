@@ -5,18 +5,11 @@ using UnityEngine;
 public class PickaxeHitZone : MonoBehaviour
 {
     public PickaxeDigToolMaster masterTool;
-    [Tooltip("つるはしが掘れるレイヤー（Terrainに加えてPickaxe専用レイヤーなどを設定）")]
-    public LayerMask diggableLayers;
-    
-    private bool IsInLayerMask(int layer, LayerMask mask)
-    {
-        return (mask.value & (1 << layer)) != 0;
-    }
     
     private void OnTriggerEnter(Collider other)
     {
-        // 後方互換のためTag判定も残しつつ、レイヤーマスクでも判定
-        if (other.CompareTag("Terrain") || IsInLayerMask(other.gameObject.layer, diggableLayers))
+        // 全ツール共通 + つるはし専用タグで判定
+        if (other.CompareTag("Terrain") || other.CompareTag("PickaxeOnly"))
         {
             Debug.Log("[PickaxeHitZone] Terrainと衝突しました");
             

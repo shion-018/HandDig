@@ -20,14 +20,6 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     // 音声管理
     private DigSoundManager soundManager;
 
-    [Header("レイヤー設定")]
-    [Tooltip("ドリルが有効になる地形レイヤー（通常はTerrainのみ）")]
-    public LayerMask drillDiggableLayers;
-
-    private bool IsInLayerMask(int layer, LayerMask mask)
-    {
-        return (mask.value & (1 << layer)) != 0;
-    }
 
     public void SetStats(DigToolStats newStats, int level)
     {
@@ -56,7 +48,8 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Terrain") || IsInLayerMask(other.gameObject.layer, drillDiggableLayers))
+        // 全ツール共通タグのみで判定（つるはし専用タグは除外）
+        if (other.CompareTag("Terrain"))
             currentCollider = other;
     }
 
