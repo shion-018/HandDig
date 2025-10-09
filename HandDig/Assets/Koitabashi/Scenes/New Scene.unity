@@ -2489,7 +2489,7 @@ Transform:
   m_GameObject: {fileID: 446522146}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 220.3, y: -26, z: 64.7}
+  m_LocalPosition: {x: 220.3, y: -26, z: 60}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6159,6 +6159,9 @@ MonoBehaviour:
     m_Bits: 1
   useAsyncInitialization: 0
   treasureSpawners: []
+  pickaxeChunkPrefab: {fileID: 0}
+  pickaxeTerrainCenters: []
+  pickaxeTerrainRadii: 
   digVolumesToApply: []
 --- !u!4 &1135181568
 Transform:
@@ -8771,7 +8774,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
@@ -8822,7 +8825,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 5, y: 5, z: 12}
   m_Center: {x: 0, y: 0, z: 0}
@@ -9132,6 +9135,14 @@ MonoBehaviour:
   useAsyncInitialization: 0
   treasureSpawners:
   - {fileID: 333065110}
+  pickaxeChunkPrefab: {fileID: 9100339038365024726, guid: 52491515279c0d34a86b04f99717e97a, type: 3}
+  pickaxeTerrainCenters:
+  - {fileID: 446522147}
+  - {fileID: 33062727}
+  - {fileID: 525060314}
+  - {fileID: 780307107}
+  - {fileID: 1714399802}
+  pickaxeTerrainRadii: 0100000001000000010000000100000001000000
   digVolumesToApply:
   - {fileID: 544222540}
   - {fileID: 446522149}
