@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0009601032, g: 0.000942877, b: 0.0009566496, a: 1}
+  m_IndirectSpecularColor: {r: 0.001426884, g: 0.0014012828, b: 0.001421753, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4227,8 +4227,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
+  currentCollider: {fileID: 734702458}
   hitZones:
   - {fileID: 734702456}
+  drillDiggableLayers:
+    serializedVersion: 2
+    m_Bits: 1
 --- !u!1 &748401582
 GameObject:
   m_ObjectHideFlags: 0
@@ -8137,7 +8141,7 @@ MonoBehaviour:
   swingZoneTag: SwingZone
   terrainLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
 --- !u!135 &1524513172
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -10008,7 +10012,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   digManager: {fileID: 357044877}
+  currentCollider: {fileID: 0}
   hitZones: []
+  drillDiggableLayers:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1001 &1942280036
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -17,6 +17,10 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     private int activeHitZones = 1;
 
     private DigSoundManager soundManager;
+    
+    [Header("レイヤー/タグ制御")]
+    [Tooltip("ドリルで掘ってよい地形のレイヤーを設定（例: Terrain のみ）")]
+    public LayerMask drillDiggableLayers;
 
     public void SetStats(DigToolStats newStats, int level) { }
     public void SetDrillStats(DrillDigStats newStats, int level)
@@ -37,7 +41,10 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Terrain"))
+        // マスク未設定(0)ならフォールバックでなんでも許可（従来挙動）
+        if (drillDiggableLayers.value == 0
+            || other.CompareTag("Terrain")
+            || ((drillDiggableLayers.value & (1 << other.gameObject.layer)) != 0))
         {
             currentCollider = other;
         }
@@ -93,7 +100,10 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
         bool triggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger) || Input.GetKey(KeyCode.Space);
 
         // 万が一currentColliderがTerrain以外になっていたらリセット
-        if (currentCollider != null && !currentCollider.CompareTag("Terrain"))
+        if (currentCollider != null
+            && drillDiggableLayers.value != 0
+            && !currentCollider.CompareTag("Terrain")
+            && (drillDiggableLayers.value & (1 << currentCollider.gameObject.layer)) == 0)
         {
             currentCollider = null;
         }
@@ -113,6 +123,22 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     if (hitZones[i] != null)
                     {
                         Vector3 digPosition = hitZones[i].position;
+                        
+                        // 掘削地点に「掘ってよいレイヤー」のコライダーが存在するかをチェック
+                        bool canDrillHere = true;
+                        if (drillDiggableLayers.value != 0)
+                        {
+                            canDrillHere = Physics.CheckSphere(
+                                digPosition,
+                                radius * 0.35f,
+                                drillDiggableLayers,
+                                QueryTriggerInteraction.Ignore
+                            );
+                        }
+                        if (!canDrillHere)
+                        {
+                            continue; // PickaxeOnly など、ドリル非対応領域はスキップ
+                        }
 
                         bool digOccurred = digManager.TryDigAt(digPosition, radius);
 
