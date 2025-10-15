@@ -23,6 +23,16 @@ public class MC_World : MonoBehaviour
     [Tooltip("お宝を生成するTreasureSpawnerのリスト")]
     public List<TreasureSpawner> treasureSpawners = new List<TreasureSpawner>();
 
+    [Header("つるはし専用地面設定")]
+    [Tooltip("つるはし専用地面のプレハブ")]
+    public GameObject pickaxeChunkPrefab;
+    
+    [Tooltip("つるはし専用地面の中心地点（Transformのリスト）")]
+    public List<Transform> pickaxeTerrainCenters = new List<Transform>();
+    
+    [Tooltip("各地点のチャンク半径")]
+    public List<int> pickaxeTerrainRadii = new List<int>();
+
     public List<DigVolume> digVolumesToApply;
 
     Dictionary<Vector3Int, MC_Chunk> chunkMap = new Dictionary<Vector3Int, MC_Chunk>();
@@ -97,10 +107,20 @@ public class MC_World : MonoBehaviour
                     );
                     Vector3 worldPos = transform.position + localPos;
 
-                    GameObject obj = Instantiate(chunkPrefab, worldPos, Quaternion.identity, transform);
+                    // つるはし専用エリアかどうかを判定
+                    bool isPickaxeOnly = IsPickaxeOnlyChunk(pos);
+                    GameObject prefabToUse = isPickaxeOnly ? pickaxeChunkPrefab : chunkPrefab;
+                    
+                    GameObject obj = Instantiate(prefabToUse, worldPos, Quaternion.identity, transform);
                     MC_Chunk chunk = obj.GetComponent<MC_Chunk>();
                     chunk.Initialize(worldPos);
                     chunkMap[pos] = chunk;
+                    
+                    // デバッグログ
+                    if (isPickaxeOnly)
+                    {
+                        Debug.Log($"[MC_World] つるはし専用チャンク生成: {pos}, プレハブ: {prefabToUse.name}, タグ: {obj.tag}");
+                    }
 
                     // 除外チャンクの判定
                     bool isExcluded = false;
@@ -169,6 +189,36 @@ public class MC_World : MonoBehaviour
 
         Debug.Log("[MC_World] DigVolume処理完了");
     }
+
+    /// <summary>
+    /// 指定チャンクがつるはし専用エリアかどうかを判定
+    /// </summary>
+    private bool IsPickaxeOnlyChunk(Vector3Int chunkCoord)
+    {
+        if (pickaxeChunkPrefab == null || pickaxeTerrainCenters.Count == 0)
+            return false;
+        
+        for (int i = 0; i < pickaxeTerrainCenters.Count; i++)
+        {
+            if (pickaxeTerrainCenters[i] == null) continue;
+            
+            Vector3 centerPos = pickaxeTerrainCenters[i].position;
+            Vector3Int centerChunk = WorldToChunkCoord(centerPos);
+            int radius = (i < pickaxeTerrainRadii.Count) ? pickaxeTerrainRadii[i] : 2;
+            
+            int distanceX = Mathf.Abs(chunkCoord.x - centerChunk.x);
+            int distanceY = Mathf.Abs(chunkCoord.y - centerChunk.y);
+            int distanceZ = Mathf.Abs(chunkCoord.z - centerChunk.z);
+            
+            if (distanceX <= radius && distanceY <= radius && distanceZ <= radius)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
 
     void SpawnPlayerAtFinalPosition()
     {

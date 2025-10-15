@@ -11,11 +11,12 @@ TagManager:
   - SwingZone
   - ResetZone
   - Key
+  - PickaxeOnly
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - PickaxeOnly
   - Water
   - UI
   - gems

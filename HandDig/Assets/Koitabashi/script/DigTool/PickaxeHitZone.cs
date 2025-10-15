@@ -5,12 +5,13 @@ using UnityEngine;
 public class PickaxeHitZone : MonoBehaviour
 {
     public PickaxeDigToolMaster masterTool;
-    
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Terrain"))
+        // Terrainタグ + PickaxeOnlyタグの両方で判定
+        if (other.CompareTag("Terrain") || other.CompareTag("PickaxeOnly"))
         {
-            Debug.Log("[PickaxeHitZone] Terrainと衝突しました");
+            Debug.Log($"[PickaxeHitZone] 衝突: {other.name}, タグ: {other.tag}, 位置: {other.transform.position}");
             
             if (masterTool != null)
             {

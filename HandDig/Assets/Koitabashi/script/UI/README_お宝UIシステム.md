@@ -148,3 +148,6 @@ TreasureNotificationManager.Instance.ShowNotification("カスタム通知！");
 ### 爆発システムが表示されない
 - 爆発お宝を1つ以上取得しているか確認
 - `showExplosionSystemAfterFirstGet`がtrueに設定されているか確認
+
+
+
