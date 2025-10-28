@@ -7,16 +7,27 @@ public class MC_Chunk : MonoBehaviour
 {
     public MC_ChunkData chunkData;
     public int chunkSize = 32;
-    float baseHeight = 0f; // �S�̂̃x�[�X�����i�n�\�j
-    float variation = 5f;   // ���ʂ̒��x�i�����0�ɂ���Ɗ��S�ɕ���j
+    float baseHeight = 0f;
+    float variation = 5f;
 
     public bool isExcluded=false;
+    [Header("Prebaked Data")]
+    public MC_ChunkDataAsset prebakedData;
 
     public void Initialize(Vector3 position)
     {
-        chunkData = new MC_ChunkData(chunkSize, chunkSize, chunkSize, chunkSize, 1f);
+        // 事前生成データがあればそれを使用、なければ生成
+        if (prebakedData != null && prebakedData.HasData)
+        {
+            chunkData = prebakedData.ToRuntimeData();
+            chunkSize = prebakedData.chunkSize;
+        }
+        else
+        {
+            chunkData = new MC_ChunkData(chunkSize, chunkSize, chunkSize, chunkSize, 1f);
+            GenerateDensity();
+        }
         transform.position = position;
-        GenerateDensity();  // �e�X�g�I�ɒn�`�f�[�^������
         GenerateMesh();
     }
 
@@ -47,7 +58,7 @@ public class MC_Chunk : MonoBehaviour
         if (!collider)
             collider = gameObject.AddComponent<MeshCollider>();
 
-        collider.sharedMesh = mesh; // �X�V���ꂽ���b�V���ɍ��킹�ăR���C�_�[���X�V
+            collider.sharedMesh = mesh;
     }
 
 
@@ -72,12 +83,6 @@ public class MC_Chunk : MonoBehaviour
                 }
     }
 
-    /// <summary>
-    /// 指定範囲にボクセルが存在するかどうかをチェック
-    /// </summary>
-    /// <param name="worldPos">チェック位置</param>
-    /// <param name="radius">チェック半径</param>
-    /// <returns>ボクセルが存在する場合true</returns>
     public bool HasVoxelsInRange(Vector3 worldPos, float radius)
     {
         Vector3 localPos = worldPos - transform.position;
@@ -89,6 +94,7 @@ public class MC_Chunk : MonoBehaviour
         int minZ = Mathf.Max(0, Mathf.FloorToInt(localPos.z - radius));
         int maxZ = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.z + radius));
 
+        const float filledThreshold = 0.5f;
         for (int x = minX; x <= maxX; x++)
             for (int y = minY; y <= maxY; y++)
                 for (int z = minZ; z <= maxZ; z++)
@@ -96,11 +102,8 @@ public class MC_Chunk : MonoBehaviour
                     Vector3 diff = new Vector3(x, y, z) - localPos;
                     if (diff.magnitude <= radius)
                     {
-                        // 密度が閾値以上（ボクセルが存在）かチェック
-                        if (chunkData.densityMap[x, y, z] > 0.5f)
-                        {
+                        if (chunkData != null && chunkData.densityMap[x, y, z] > filledThreshold)
                             return true;
-                        }
                     }
                 }
 
