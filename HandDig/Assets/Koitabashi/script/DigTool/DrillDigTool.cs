@@ -8,8 +8,8 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     private DrillDigStats stats;
     private int upgradeLevel;
     private int speedUpgradeLevel = 0;
-    [SerializeField]
-    private Collider currentCollider;
+
+    [SerializeField] private Collider currentCollider;
     private float digTimer = 0f;
 
     [Tooltip("複数の判定エリア（Transform）を追加（最大3個）")]
@@ -17,11 +17,34 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     private int activeHitZones = 1;
 
     private DigSoundManager soundManager;
-    
+
     [Header("レイヤー/タグ制御")]
     [Tooltip("ドリルで掘ってよい地形のレイヤーを設定（例: Terrain のみ）")]
     public LayerMask drillDiggableLayers;
 
+    [Header("ドリル射出設定")]
+    public GameObject drillTipPrefab;     // 飛ばすドリル先端のプレハブ
+    public Transform drillTipOrigin;      // 射出の起点（ドリルの先端位置）
+    public float shootDuration = 3f;      // 存続時間
+    private bool isShootMode = false;     // モード切替（通常 or 射出）
+
+    [SerializeField] private float shootCooldown = 1.0f;
+    private float shootTimer = 0f;
+
+    [Header("表示用ドリル先端")]
+    [SerializeField] private GameObject visibleDrillTip;
+    private bool canShowTip = true;
+
+    private void Start()
+    {
+        UpdateHitZoneVisibility();
+        soundManager = FindObjectOfType<DigSoundManager>();
+
+        if (visibleDrillTip != null)
+            visibleDrillTip.SetActive(true);
+    }
+
+    // ステータス設定関連
     public void SetStats(DigToolStats newStats, int level) { }
     public void SetDrillStats(DrillDigStats newStats, int level)
     {
@@ -39,9 +62,28 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
         }
     }
 
+    // === 射出モードの切替 ===
+    private void Update()
+    {
+        shootTimer += Time.deltaTime;
+
+        // 半分経過したら再表示
+        if (!canShowTip && shootTimer >= shootCooldown * 0.5f)
+        {
+            if (visibleDrillTip != null)
+                visibleDrillTip.SetActive(true);
+            canShowTip = true;
+        }
+
+        if (OVRInput.GetDown(OVRInput.RawButton.X) || Input.GetKeyDown(KeyCode.X))
+        {
+            isShootMode = !isShootMode;
+            Debug.Log($"[DrillDigTool] モード切替: {(isShootMode ? "射出モード" : "通常モード")}");
+        }
+    }
+
     public void OnTriggerEnter(Collider other)
     {
-        // マスク未設定(0)ならフォールバックでなんでも許可（従来挙動）
         if (drillDiggableLayers.value == 0
             || other.CompareTag("Terrain")
             || ((drillDiggableLayers.value & (1 << other.gameObject.layer)) != 0))
@@ -52,12 +94,10 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
     private void OnTriggerStay(Collider other)
     {
-        // Terrainタグのオブジェクトに触れている間だけ更新
         if (other.CompareTag("Terrain"))
         {
             currentCollider = other;
         }
-        // Terrainでないものに触れていた場合は解除
         else if (currentCollider == other)
         {
             currentCollider = null;
@@ -89,25 +129,21 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
         }
     }
 
-    void Start()
-    {
-        UpdateHitZoneVisibility();
-        soundManager = FindObjectOfType<DigSoundManager>();
-    }
-
+    // === 掘削＆射出動作 ===
     public void UpdateDig(Vector3 toolPosition)
     {
         bool triggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger) || Input.GetKey(KeyCode.Space);
 
-        // 万が一currentColliderがTerrain以外になっていたらリセット
-        if (currentCollider != null
-            && drillDiggableLayers.value != 0
-            && !currentCollider.CompareTag("Terrain")
-            && (drillDiggableLayers.value & (1 << currentCollider.gameObject.layer)) == 0)
+        if (isShootMode)
         {
-            currentCollider = null;
+            if (triggerHeld)
+            {
+                ShootDrillTip();
+            }
+            return;
         }
 
+        // 通常掘削モード
         if (currentCollider != null && triggerHeld && stats != null)
         {
             float currentDigInterval = stats.GetDigInterval(speedUpgradeLevel);
@@ -123,8 +159,7 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     if (hitZones[i] != null)
                     {
                         Vector3 digPosition = hitZones[i].position;
-                        
-                        // 掘削地点に「掘ってよいレイヤー」のコライダーが存在するかをチェック
+
                         bool canDrillHere = true;
                         if (drillDiggableLayers.value != 0)
                         {
@@ -136,9 +171,7 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                             );
                         }
                         if (!canDrillHere)
-                        {
-                            continue; // PickaxeOnly など、ドリル非対応領域はスキップ
-                        }
+                            continue;
 
                         bool digOccurred = digManager.TryDigAt(digPosition, radius);
 
@@ -159,4 +192,24 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
             digTimer = 0f;
         }
     }
+
+    // === ドリル射出処理 ===
+    private void ShootDrillTip()
+    {
+        bool triggerPressed = OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger) || Input.GetKeyDown(KeyCode.Space);
+        if (!triggerPressed || shootTimer < shootCooldown) return;
+        shootTimer = 0f;
+
+        // 先端を非表示
+        if (visibleDrillTip != null)
+            visibleDrillTip.SetActive(false);
+        canShowTip = false;
+
+        // プレハブを生成して飛ばす
+        GameObject tip = Instantiate(drillTipPrefab, drillTipOrigin.position, drillTipOrigin.rotation);
+        DrillTipProjectile projectile = tip.AddComponent<DrillTipProjectile>();
+        projectile.Initialize(digManager, stats, upgradeLevel, drillDiggableLayers, shootDuration, soundManager, speedUpgradeLevel);
+    }
+
+
 }
