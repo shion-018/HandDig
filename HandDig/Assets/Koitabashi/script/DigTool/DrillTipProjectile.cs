@@ -47,7 +47,7 @@ public class DrillTipProjectile : MonoBehaviour
         // Œ@íƒ^ƒCƒ~ƒ“ƒOŠÇ—
         digTimer += Time.deltaTime;
         // š Œ@íŠÔŠu‚ÉŒy‚¢•â³‚ð‚©‚¯‚é
-        float interval = stats.GetDigInterval(speedLevel) * 0.3f;
+        float interval = stats.GetDigInterval(speedLevel) * 0.5f;
         if (digTimer >= interval)
         {
             digTimer = 0f;
