@@ -24,19 +24,19 @@ public class DrillTipProjectile : MonoBehaviour
         this.soundManager = soundManager;
         this.speedLevel = speedLevel;
 
-        // Œ@íŠÔŠu‚ª’Z‚¢i‘¬‚¢j‚Ù‚ÇˆÚ“®‘¬“x‚à‘¬‚­‚·‚é
+        // æ˜å‰Šé–“éš”ãŒçŸ­ã„ï¼ˆé€Ÿã„ï¼‰ã»ã©ç§»å‹•é€Ÿåº¦ã‚‚é€Ÿãã™ã‚‹
         float interval = stats.GetDigInterval(0);
-        moveSpeed = Mathf.Clamp(3f / interval, 2f, 10f); // Å¬2AÅ‘å10‚­‚ç‚¢‚Ì”ÍˆÍ‚É’²®
+        moveSpeed = Mathf.Clamp(3f / interval, 2f, 10f); // æœ€å°2ã€æœ€å¤§10ãã‚‰ã„ã®ç¯„å›²ã«èª¿æ•´
     }
 
     private void Update()
     {
         if (stats == null || digManager == null) return;
 
-        // ˆê’è‘¬“x‚Å‘Oii•¨—‚ğg‚í‚È‚¢j
+        // ä¸€å®šé€Ÿåº¦ã§å‰é€²ï¼ˆç‰©ç†ã‚’ä½¿ã‚ãªã„ï¼‰
         transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime, Space.Self);
 
-        // õ–½ŠÇ—
+        // å¯¿å‘½ç®¡ç†
         lifeTimer += Time.deltaTime;
         if (lifeTimer >= lifetime)
         {
@@ -44,9 +44,10 @@ public class DrillTipProjectile : MonoBehaviour
             return;
         }
 
-        // Œ@íƒ^ƒCƒ~ƒ“ƒOŠÇ—
+        // æ˜å‰Šã‚¿ã‚¤ãƒŸãƒ³ã‚°ç®¡ç†
         digTimer += Time.deltaTime;
-        float interval = stats.GetDigInterval(0);
+        // â˜… æ˜å‰Šé–“éš”ã«è»½ã„è£œæ­£ã‚’ã‹ã‘ã‚‹
+        float interval = stats.GetDigInterval(speedLevel) * 0.5f;
         if (digTimer >= interval)
         {
             digTimer = 0f;
@@ -76,10 +77,10 @@ public class DrillTipProjectile : MonoBehaviour
         }
     }
 
-    // ’µ‚Ë•Ô‚è–h~FƒRƒ‰ƒCƒ_[‚É“–‚½‚Á‚½‚ç~‚Ü‚é or Á‚¦‚é
+    // è·³ã­è¿”ã‚Šé˜²æ­¢ï¼šã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã«å½“ãŸã£ãŸã‚‰æ­¢ã¾ã‚‹ or æ¶ˆãˆã‚‹
     private void OnCollisionEnter(Collision collision)
     {
-        // Œ@í‘ÎÛˆÈŠO‚É‚Ô‚Â‚©‚Á‚½‚çÁ–Å
+        // æ˜å‰Šå¯¾è±¡ä»¥å¤–ã«ã¶ã¤ã‹ã£ãŸã‚‰æ¶ˆæ»…
         if (((1 << collision.gameObject.layer) & diggableLayers) == 0)
         {
             Destroy(gameObject);
