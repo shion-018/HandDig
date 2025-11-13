@@ -24,19 +24,19 @@ public class DrillTipProjectile : MonoBehaviour
         this.soundManager = soundManager;
         this.speedLevel = speedLevel;
 
-        // �@��Ԋu���Z���i�����j�قǈړ����x����������
+        // 掘削間隔が短い（速い）ほど移動速度も速くする
         float interval = stats.GetDigInterval(0);
-        moveSpeed = Mathf.Clamp(3f / interval, 2f, 10f); // �ŏ�2�A�ő�10���炢�͈̔͂ɒ���
+        moveSpeed = Mathf.Clamp(3f / interval, 2f, 10f); // 最小2、最大10くらいの範囲に調整
     }
 
     private void Update()
     {
         if (stats == null || digManager == null) return;
 
-        // ��葬�x�őO�i�i�������g��Ȃ��j
+        // 一定速度で前進（物理を使わない）
         transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime, Space.Self);
 
-        // �����Ǘ�
+        // 寿命管理
         lifeTimer += Time.deltaTime;
         if (lifeTimer >= lifetime)
         {
@@ -44,9 +44,9 @@ public class DrillTipProjectile : MonoBehaviour
             return;
         }
 
-        // �@��^�C�~���O�Ǘ�
+        // 掘削タイミング管理
         digTimer += Time.deltaTime;
-        // �� �@��Ԋu�Ɍy���␳��������
+        // ★ 掘削間隔に軽い補正をかける
         float interval = stats.GetDigInterval(speedLevel) * 0.5f;
         if (digTimer >= interval)
         {
@@ -77,10 +77,10 @@ public class DrillTipProjectile : MonoBehaviour
         }
     }
 
-    // ���˕Ԃ�h�~�F�R���C�_�[�ɓ���������~�܂� or ������
+    // 跳ね返り防止：コライダーに当たったら止まる or 消える
     private void OnCollisionEnter(Collision collision)
     {
-        // �@��ΏۈȊO�ɂԂ����������
+        // 掘削対象以外にぶつかったら消滅
         if (((1 << collision.gameObject.layer) & diggableLayers) == 0)
         {
             Destroy(gameObject);
