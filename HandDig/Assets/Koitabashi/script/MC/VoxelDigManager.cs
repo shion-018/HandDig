@@ -4,23 +4,45 @@ using UnityEngine;
 
 public class VoxelDigManager : MonoBehaviour
 {
-    public MC_World world;         // ƒ[ƒ‹ƒh‘S‘Ì‚ğQÆ
-    public float digRadius = 2f;   // Œ@‚é”¼Œa
+    public MC_World world;
+    [Tooltip("ç¾åœ¨ã®æ˜å‰Šå…ˆãƒ¯ãƒ¼ãƒ«ãƒ‰ã‚’ç®¡ç†ã™ã‚‹ãƒ«ãƒ¼ã‚¿ãƒ¼ï¼ˆè¨­å®šã•ã‚Œã¦ã„ã‚Œã°å„ªå…ˆï¼‰")]
+    public CurrentWorldRouter worldRouter;
+    public float digRadius = 2f;
     public void DigAt(Vector3 position)
     {
-        DigAt(position, 1.0f); // ƒfƒtƒHƒ‹ƒg‚Ì”¼Œa‚ÅŒ@‚éi1.0f‚Í‚¨D‚İ‚Åj
+        DigAt(position, 1.0f);
     }
     public void DigAt(Vector3 position, float radius)
     {
-        Debug.Log($"”ÍˆÍ{radius}‚ÅŒ@íI");
 
-        if (world != null)
+        MC_World target = worldRouter != null && worldRouter.CurrentWorld != null ? worldRouter.CurrentWorld : world;
+        if (target != null)
         {
-            world.Dig(position, radius); // © ÀÛ‚Éƒ[ƒ‹ƒh‚©‚çŒ@í‚·‚éˆ—
+            target.Dig(position, radius);
         }
         else
         {
-            Debug.LogError("MC_World ‚ªƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚Ü‚¹‚ñI");
+            Debug.LogError("MC_World ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
+        }
+    }
+
+    /// <summary>
+    /// æ˜å‰Šã‚’è©¦è¡Œã—ã€å®Ÿéš›ã«æ˜å‰ŠãŒç™ºç”Ÿã—ãŸã‹ã©ã†ã‹ã‚’è¿”ã™
+    /// </summary>
+    /// <param name="position">æ˜å‰Šä½ç½®</param>
+    /// <param name="radius">æ˜å‰ŠåŠå¾„</param>
+    /// <returns>å®Ÿéš›ã«æ˜å‰ŠãŒç™ºç”Ÿã—ãŸå ´åˆtrue</returns>
+    public bool TryDigAt(Vector3 position, float radius)
+    {
+        MC_World target = worldRouter != null && worldRouter.CurrentWorld != null ? worldRouter.CurrentWorld : world;
+        if (target != null)
+        {
+            return target.TryDig(position, radius);
+        }
+        else
+        {
+            Debug.LogError("MC_World ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
+            return false;
         }
     }
 }

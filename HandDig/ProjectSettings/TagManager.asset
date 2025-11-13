@@ -7,14 +7,19 @@ TagManager:
   - Terrain
   - Treasure
   - Target
+  - Pickaxe
+  - SwingZone
+  - ResetZone
+  - Key
+  - PickaxeOnly
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - PickaxeOnly
   - Water
   - UI
-  - 
+  - gems
   - 
   - 
   - 
