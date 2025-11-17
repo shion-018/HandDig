@@ -4,50 +4,114 @@ using UnityEngine;
 
 public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
 {
+    [Header("Core")]
     public VoxelDigManager digManager;
 
-    [Tooltip("複数の判定エリアを追加（最大3個）")]
+    // --- 従来（互換）方式：Transform の配列（各 Transform が掘りポイント） ---
+    [Tooltip("従来互換：複数の判定エリアを追加（最大3個など）")]
     public List<Transform> hitZones = new List<Transform>();
+    private int activeHitZones = 1; // 従来の段階的増加方式向け
 
+    // --- 新方式：強化段階ごとのヒットゾーンオブジェクト（丸ごとON/OFF） ---
+    [Header("強化段階ごとのヒットゾーン（丸ごとオブジェクト）")]
+    [Tooltip("各要素が強化レベルごとのヒットゾーン（子に複数コライダーを持てる）")]
+    public List<GameObject> hitZoneObjects = new List<GameObject>();
+    [Tooltip("true の場合は hitZoneObjects を使う（レベルごとに丸ごと切り替え）")]
+    public bool useLevelHitZoneObjects = false;
+    private int currentHitZoneLevel = 0;
+    private GameObject currentHitZoneObject = null;
+    private List<Transform> currentHitPoints = new List<Transform>(); // 現在使っている掘りポイント（コライダーの transform など）
+
+    // Stats & upgrade
     private PickaxeDigStats stats;
-    private int upgradeLevel;
+    private int upgradeLevel = 0;
 
+    // Combo timing
     public float minComboTime = 0.5f;
     public float maxComboTime = 1.5f;
-
     private float lastDigTime = -10f;
     private int comboStage = 0;
 
+    // Swing ready
     private bool isSwingReady = false;
-    private int activeHitZones = 1; // 1個からスタート
 
-    // SwingReadyZoneの機能を統合
-    [Header("振りかぶりゾーン設定")]
+    // SwingReadyZone の設定（従来互換）
+    [Header("振りかぶりゾーン設定（従来互換）")]
     [Tooltip("振りかぶりゾーンのコライダー")]
     public Collider swingZoneCollider;
     [Tooltip("振りかぶりゾーンに入った時のタグ")]
     public string swingZoneTag = "SwingZone";
 
-    // 爆発モード関連
+    // 爆発モード関連（元のロジック）
     private VRDigToolManager toolManager;
     private bool isExplosionMode = false;
     [Tooltip("地形レイヤー（必要ならRaycastで使用）")]
     public LayerMask terrainLayer;
 
-    void Start()
-    {
-        // 初期化時に判定エリアの表示/非表示を設定
-        UpdateHitZoneVisibility();
-    }
-
     void Awake()
     {
         toolManager = FindObjectOfType<VRDigToolManager>();
+        // 初期設定
+        if (useLevelHitZoneObjects && hitZoneObjects != null && hitZoneObjects.Count > 0)
+        {
+            SetHitZoneLevel(0);
+        }
+        else
+        {
+            // 従来互換モード：活性ヒット数に応じて表示を更新
+            UpdateHitZoneVisibility();
+            CollectTransformsFromHitZones(); // currentHitPoints を補助的に作る（必要なら）
+        }
     }
 
+    void Start()
+    {
+        // Start 時点でも更新（エディタでの切り替え反映等）
+        if (useLevelHitZoneObjects)
+            SetHitZoneLevel(currentHitZoneLevel);
+        else
+            UpdateHitZoneVisibility();
+    }
+
+    void Update()
+    {
+        // ---------- PCテスト用キー ----------
+        // Space: 振りかぶり準備をOn（VRではトリガーと組み合わせて OnTriggerEnter でも有効）
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            SetSwingReady(true);
+            Debug.Log("[PickaxeMaster][TEST] Space: SwingReady = true");
+        }
+
+        // G: SwingReady を解除（デバッグ用）
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            SetSwingReady(false);
+            Debug.Log("[PickaxeMaster][TEST] G: SwingReady = false");
+        }
+
+        // F: 強制掘り（実際に掘りを試みる。振りかぶりが必要。）
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            Debug.Log("[PickaxeMaster][TEST] F: Force OnAnyHit()");
+            OnAnyHit();
+        }
+        // ---------------------------------
+
+        // 爆発モード切り替え（元のキー X / VRボタン）
+        if (OVRInput.GetDown(OVRInput.Button.Three) || Input.GetKeyDown(KeyCode.X))
+        {
+            if (toolManager != null && stats != null && stats.enableExplosionMode && toolManager.IsPickaxeExplosionUnlocked() && toolManager.GetPickaxeExplosionCharges() > 0)
+            {
+                isExplosionMode = !isExplosionMode;
+                Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} (残り {toolManager.GetPickaxeExplosionCharges()} 回)");
+            }
+        }
+    }
+
+    // -------------------- Stats セット（互換） --------------------
     public void SetStats(DigToolStats newStats, int level)
     {
-        // 後方互換性のため残す
         Debug.LogWarning("[PickaxeDigToolMaster] SetStats(DigToolStats) is deprecated. Use SetPickaxeStats instead.");
     }
 
@@ -58,51 +122,129 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         Debug.Log($"[PickaxeMaster] SetStats: Level {upgradeLevel}");
     }
 
-    public void SetHandStats(HandDigStats newStats, int level) { /* Pickaxe用なので未実装 */ }
-    public void SetDrillStats(DrillDigStats newStats, int level) { /* Pickaxe用なので未実装 */ }
+    public void SetHandStats(HandDigStats newStats, int level) { /* 未実装 */ }
+    public void SetDrillStats(DrillDigStats newStats, int level) { /* 未実装 */ }
 
+    // -------------------- Swing Ready --------------------
     public void SetSwingReady(bool ready)
     {
         isSwingReady = ready;
         Debug.Log($"[PickaxeMaster] SwingReady = {ready}");
     }
 
-    // isSwingReadyを確認するためのパブリックメソッド
     public bool IsSwingReady()
     {
         return isSwingReady;
     }
 
+    // -------------------- ヒットゾーン管理 --------------------
+    /// <summary>
+    /// IncreaseHitZone はモードに応じて動作：
+    /// - useLevelHitZoneObjects == true の場合は「レベルを +1 にしてそのオブジェクトを有効化」
+    /// - そうでない場合は activeHitZones を増加（従来の挙動）
+    /// </summary>
     public void IncreaseHitZone()
     {
-        activeHitZones = Mathf.Min(activeHitZones + 1, hitZones.Count);
-        Debug.Log($"[PickaxeMaster] 判定数が {activeHitZones} になりました");
-        
-        // 判定エリアの表示/非表示を更新
-        UpdateHitZoneVisibility();
+        if (useLevelHitZoneObjects && hitZoneObjects != null && hitZoneObjects.Count > 0)
+        {
+            int next = Mathf.Clamp(currentHitZoneLevel + 1, 0, hitZoneObjects.Count - 1);
+            SetHitZoneLevel(next);
+            Debug.Log($"[PickaxeMaster] レベルヒットゾーンへ切替: {next}");
+        }
+        else
+        {
+            activeHitZones = Mathf.Min(activeHitZones + 1, hitZones.Count);
+            Debug.Log($"[PickaxeMaster] 判定数が {activeHitZones} になりました (従来互換)");
+            UpdateHitZoneVisibility();
+            CollectTransformsFromHitZones();
+        }
     }
-    
+
+    /// <summary>
+    /// 従来互換：hitZones の可視化を更新
+    /// </summary>
     private void UpdateHitZoneVisibility()
     {
         for (int i = 0; i < hitZones.Count; i++)
         {
             if (hitZones[i] != null)
             {
-                // i < activeHitZones なら表示、そうでなければ非表示
                 hitZones[i].gameObject.SetActive(i < activeHitZones);
             }
         }
     }
 
-    // 振りかぶりゾーンに入った時の処理
+    /// <summary>
+    /// レベルヒットゾーン（丸ごとオブジェクト）を切り替える
+    /// </summary>
+    public void SetHitZoneLevel(int level)
+    {
+        if (hitZoneObjects == null || hitZoneObjects.Count == 0)
+        {
+            Debug.LogWarning("[PickaxeMaster] hitZoneObjects が設定されていません");
+            return;
+        }
+
+        level = Mathf.Clamp(level, 0, hitZoneObjects.Count - 1);
+        currentHitZoneLevel = level;
+
+        for (int i = 0; i < hitZoneObjects.Count; i++)
+        {
+            if (hitZoneObjects[i] != null)
+            {
+                hitZoneObjects[i].SetActive(i == level);
+            }
+        }
+
+        currentHitZoneObject = hitZoneObjects[level];
+        CollectHitPointsFromCurrentObject();
+
+        Debug.Log($"[PickaxeMaster] 強化レベル {level} のヒットゾーンを使用中");
+    }
+
+    /// <summary>
+    /// 現在の HitZoneObject の子にある Collider.transform を掘りポイントとして収集
+    /// </summary>
+    private void CollectHitPointsFromCurrentObject()
+    {
+        currentHitPoints.Clear();
+
+        if (currentHitZoneObject == null) return;
+
+        // GetComponentsInChildren<Collider>() を使って、コライダーの transform を収集
+        Collider[] cols = currentHitZoneObject.GetComponentsInChildren<Collider>(includeInactive: true);
+        foreach (var c in cols)
+        {
+            currentHitPoints.Add(c.transform);
+        }
+
+        Debug.Log($"[PickaxeMaster] {currentHitPoints.Count} 個の掘りポイントを登録（レベル {currentHitZoneLevel}）");
+    }
+
+    /// <summary>
+    /// hitZones (Transform list) から currentHitPoints を作る（互換サポート）
+    /// </summary>
+    private void CollectTransformsFromHitZones()
+    {
+        currentHitPoints.Clear();
+        for (int i = 0; i < Mathf.Min(activeHitZones, hitZones.Count); i++)
+        {
+            if (hitZones[i] != null)
+                currentHitPoints.Add(hitZones[i]);
+        }
+        Debug.Log($"[PickaxeMaster] (互換) {currentHitPoints.Count} 個の掘りポイントを登録しました");
+    }
+
+    // -------------------- 振りかぶりゾーンのトリガー（従来互換） --------------------
+    // 注意：この OnTriggerEnter はこのコンポーネントがアタッチされた GameObject の Collider が
+    //       trigger になっている、または外部から呼ばれている前提です。
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag(swingZoneTag))
         {
             bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
             bool isSpaceHeld = Input.GetKey(KeyCode.Space);
-            
-            // トリガーを押している時のみ振りかぶり準備を有効にする
+
             if (isTriggerHeld || isSpaceHeld)
             {
                 SetSwingReady(true);
@@ -115,22 +257,30 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         }
     }
 
-    // 振りかぶりゾーンから出た時の処理
     public void OnTriggerExit(Collider other)
     {
         if (other.CompareTag(swingZoneTag))
         {
-            // ゾーンから出ても振りかぶり状態は維持（掘り判定に触れるまで）
+            // 従来の設計ではゾーンから出ても SwingReady は維持する（掘り判定に触れるまで）
             Debug.Log("[PickaxeMaster] 振りかぶりゾーンから出ましたが、振りかぶり状態は維持中...");
         }
     }
 
+    // SwingReady zone から明示的に出たときに呼ぶ想定のメソッド
+    public void OnSwingZoneExit()
+    {
+        isSwingReady = false;
+        Debug.Log("[PickaxeMaster] SwingReady = false (ゾーンから出ました)");
+    }
+
+    // -------------------- 掘り処理（コア） --------------------
     public void OnAnyHit()
     {
+        // 入力取得（VR と PC 両対応のため）
         bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
         bool isSpaceHeld = Input.GetKey(KeyCode.Space);
 
-        // 振りかぶり準備ができていて、トリガーを押している場合のみ掘る
+        // 振りかぶりかつトリガー/スペース押下が必要（PCテスト時は Space を用いる）
         if (isSwingReady && (isTriggerHeld || isSpaceHeld) && stats != null)
         {
             float currentTime = Time.time;
@@ -142,49 +292,50 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                 comboStage = 0;
 
             lastDigTime = currentTime;
-            
-            // 掘った後は振りかぶり状態をリセット（次の振りかぶりを待つ）
+
+            // 掘った後はSwingReadyをリセット（次の振りかぶりを待つ）
             isSwingReady = false;
 
             float radius = stats.GetRadius(comboStage, upgradeLevel);
 
-            for (int i = 0; i < activeHitZones; i++)
+            // currentHitPoints に登録されたすべてのポイントで掘る
+            for (int i = 0; i < currentHitPoints.Count; i++)
             {
-                Transform t = hitZones[i];
+                Transform t = currentHitPoints[i];
+                if (t == null) continue;
 
                 Vector3 upwardOffset = t.up * (radius * 0.3f);
                 Vector3 digPosition = t.position + upwardOffset;
 
-                // 実際に掘りが発生したかどうかをチェック
-                bool digOccurred = digManager.TryDigAt(digPosition, radius);
+                bool digOccurred = false;
+                if (digManager != null)
+                {
+                    digOccurred = digManager.TryDigAt(digPosition, radius);
+                }
 
                 if (digOccurred)
                 {
-                    // 掘削エフェクトを生成
                     if (DigEffectManager.Instance != null)
                     {
                         DigEffectManager.Instance.CreateDigEffect(digPosition, radius);
                     }
-
-                    // 掘削音を再生
                     var soundManager = DigSoundManager.Instance;
                     if (soundManager != null)
                     {
                         soundManager.PlayPickaxeDigSound(comboStage, digPosition);
                     }
 
-                    Debug.Log($"[PickaxeMaster] 判定{i + 1} 実際に掘削発生！ Combo {comboStage + 1} / radius: {radius} / Y: {upwardOffset.y:F2}");
+                    Debug.Log($"[PickaxeMaster] 掘削発生: ポイント {i + 1} / Combo {comboStage + 1} / radius {radius:F2} / Y {upwardOffset.y:F2}");
                 }
                 else
                 {
-                    Debug.Log($"[PickaxeMaster] 判定{i + 1} 掘削範囲にボクセルなし - エフェクトと音をスキップ");
+                    Debug.Log($"[PickaxeMaster] ポイント {i + 1} にボクセルなし（エフェクト/音スキップ）");
                 }
             }
-            
-            // 爆発モード: 通常掘削に加えてマーカーを1つ設置（チャージ消費）
+
+            // ---------- 爆発モード処理（元のロジックを復元） ----------
             if (isExplosionMode && toolManager != null && toolManager.GetPickaxeExplosionCharges() > 0)
             {
-                // チャージ消費に成功したらマーカー設置
                 if (toolManager.TryConsumePickaxeExplosionCharge())
                 {
                     float explosionRadius = stats.GetExplosionRadius(upgradeLevel);
@@ -199,51 +350,34 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                 }
             }
 
-            Debug.Log("[PickaxeMaster] 掘り完了！次の振りかぶりを待機中...");
+            Debug.Log("[PickaxeMaster] 掘り完了（OnAnyHit）。次の振りかぶりを待機中...");
         }
-        else if (!isSwingReady)
+        else
         {
-            // 振りかぶり準備ができていない場合は何もしない
-            Debug.Log("[PickaxeMaster] 振りかぶり準備ができていません。後ろに振りかぶってゾーンに入ってください。");
-        }
-        else if (!isTriggerHeld && !isSpaceHeld)
-        {
-            // トリガーを押していない場合
-            Debug.Log("[PickaxeMaster] トリガーを押してください。");
-        }
-    }
-    
-    public void UpdateDig(Vector3 pos) { /* 何もせず */ }
-    
-    // SwingReadyZoneから出た時に呼ばれる
-    public void OnSwingZoneExit()
-    {
-        isSwingReady = false;
-        Debug.Log("[PickaxeMaster] SwingReady = false (ゾーンから出ました)");
-    }
-
-    void Update()
-    {
-        // 爆発モード切り替え（左コントローラX / キーボードX）
-        if (OVRInput.GetDown(OVRInput.Button.Three) || Input.GetKeyDown(KeyCode.X))
-        {
-            if (toolManager != null && stats != null && stats.enableExplosionMode && toolManager.IsPickaxeExplosionUnlocked() && toolManager.GetPickaxeExplosionCharges() > 0)
+            // デバッグ向け詳細ログ（原因を特定しやすくする）
+            if (!isSwingReady)
             {
-                isExplosionMode = !isExplosionMode;
-                Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} (残り {toolManager.GetPickaxeExplosionCharges()} 回)");
+                Debug.Log("[PickaxeMaster] 振りかぶり準備ができていません。後ろに振りかぶってゾーンに入ってください。");
+            }
+            else if (!isTriggerHeld && !isSpaceHeld)
+            {
+                Debug.Log("[PickaxeMaster] トリガー/スペースが押されていません。入力してください。");
+            }
+            else if (stats == null)
+            {
+                Debug.LogWarning("[PickaxeMaster] stats が設定されていません");
             }
         }
     }
 
-    // 爆発モード状態を取得
-    public bool IsExplosionMode()
-    {
-        return isExplosionMode;
-    }
+    public void UpdateDig(Vector3 pos) { /* 何もしない（必要なら拡張） */ }
 
+    // -------------------- 爆発のための位置決め --------------------
     private Vector3 GetExplosionPosition(Transform t)
     {
-        // 既存のdigPositionロジックと同等の位置を利用
+        if (t == null || stats == null)
+            return transform.position;
+
         float baseRadius = stats.GetRadius(comboStage, upgradeLevel);
         Vector3 upwardOffset = t.up * (baseRadius * 0.3f);
         Vector3 center = t.position + upwardOffset;
@@ -261,16 +395,20 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         }
     }
 
+    /// <summary>
+    /// 現在のヒットポイント群の中で最も外側（forward 方向に最も遠い）位置を爆発中心候補として返す
+    /// </summary>
     private Vector3 GetFarthestExplosionPosition(float digRadius)
     {
         Vector3 bestPos = transform.position;
         float bestDist = -Mathf.Infinity;
 
-        int count = Mathf.Min(activeHitZones, hitZones.Count);
-        for (int i = 0; i < count; i++)
+        // currentHitPoints を基に評価（レベル切替 or 互換どちらでも currentHitPoints が埋まっている）
+        for (int i = 0; i < currentHitPoints.Count; i++)
         {
-            Transform t = hitZones[i];
-            // 掘削中心（通常掘削と同等）
+            Transform t = currentHitPoints[i];
+            if (t == null) continue;
+
             Vector3 center = t.position + t.up * (digRadius * 0.3f);
             Vector3 dir = t.forward.normalized;
             float epsilon = 0.05f;
@@ -299,6 +437,12 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
 
     private void SpawnExplosionMarker(Vector3 position, float radius, float delaySeconds)
     {
+        if (stats == null)
+        {
+            Debug.LogWarning("[PickaxeMaster] stats が未設定のため爆発マーカーを生成できません");
+            return;
+        }
+
         if (stats.explosionMarkerPrefab == null)
         {
             Debug.LogWarning("[PickaxeMaster] explosionMarkerPrefab が未設定です");
@@ -315,5 +459,11 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         {
             Debug.LogWarning("[PickaxeMaster] ExplosiveMarker コンポーネントが見つかりません");
         }
+    }
+
+    // 爆発モード取得
+    public bool IsExplosionMode()
+    {
+        return isExplosionMode;
     }
 }
