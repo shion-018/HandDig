@@ -1573,8 +1573,38 @@ MonoBehaviour:
   - {fileID: 8770522314091433460, guid: 3782493fdb2427f42b52d64ae0776698, type: 3}
   - {fileID: 8587737299066770002, guid: 246f6fd6553c1d74ab9dcdb63af95052, type: 3}
   spawnChance: 0.1
-  maxAttemptsPerChunk: 1
+  minAttemptsPerChunk: 1
+  maxAttemptsPerChunk: 5
   chunkSize: 32
+  nearDistance: 0
+  farDistance: 150
+  distanceFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1.2
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.3
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  chunkEdgePadding: 4
+  placementRetries: 5
+  solidDensityThreshold: 0.005
 --- !u!4 &206718485
 Transform:
   m_ObjectHideFlags: 0
@@ -2511,8 +2541,38 @@ MonoBehaviour:
   - {fileID: 3020638012149682057, guid: 3fcb770e58f5e3c45a374a80533c45d4, type: 3}
   - {fileID: 6718049075907697980, guid: dca683df8fadbd14cbe1c03d5944229c, type: 3}
   spawnChance: 0.01
-  maxAttemptsPerChunk: 2
+  minAttemptsPerChunk: 1
+  maxAttemptsPerChunk: 5
   chunkSize: 32
+  nearDistance: 0
+  farDistance: 150
+  distanceFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1.2
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.3
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  chunkEdgePadding: 4
+  placementRetries: 6
+  solidDensityThreshold: 0.55
 --- !u!4 &333065111
 Transform:
   m_ObjectHideFlags: 0
@@ -4673,8 +4733,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48f1947d4baa85444ade757033c67c3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPoints:
-  - {fileID: 544222541}
+  spawnPoint: {fileID: 544222541}
   playerRoot: {fileID: 1291946206}
   worldManager: {fileID: 1755998391}
   showDebugInfo: 0
@@ -11038,9 +11097,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cbd9f5476ea51544a08b17724ecc460, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: {fileID: 0}
-  door: {fileID: 832193566}
-  rend: {fileID: 0}
 --- !u!65 &1632874856
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11677,20 +11733,14 @@ MonoBehaviour:
   useAsyncInitialization: 0
   treasureSpawners:
   - {fileID: 333065110}
+  - {fileID: 206718484}
   pickaxeChunkPrefab: {fileID: 9100339038365024726, guid: 52491515279c0d34a86b04f99717e97a, type: 3}
   pickaxeTerrainCenters:
   - {fileID: 446522147}
   - {fileID: 33062727}
   - {fileID: 525060314}
   pickaxeTerrainRadii: 010000000100000001000000
-  digVolumesToApply:
-  - {fileID: 544222540}
-  - {fileID: 446522149}
-  - {fileID: 33062729}
-  - {fileID: 525060316}
-  - {fileID: 1140289047}
-  - {fileID: 1144570335}
-  - {fileID: 1896153699}
+  digVolumesToApply: []
   usePrebakedData: 1
   prebakedAssets:
   - {fileID: 11400000, guid: 70cef2a2789400447bdfa05eb348d451, type: 2}

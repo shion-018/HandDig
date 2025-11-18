@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SpawnPointMarker : MonoBehaviour
@@ -70,36 +68,4 @@ public class SpawnPointMarker : MonoBehaviour
         Debug.Log($"[SpawnPointMarker] 位置変更: {oldPosition} → {newPosition}");
     }
 
-    /// <summary>
-    /// このスポーンポイントの周囲9チャンクの座標を取得
-    /// </summary>
-    /// <param name="chunkSize">チャンクサイズ</param>
-    /// <returns>除外するチャンク座標のリスト</returns>
-    public List<Vector3Int> GetExcludedChunks(int chunkSize)
-    {
-        List<Vector3Int> excludedChunks = new List<Vector3Int>();
-        
-        // スポーンポイントのチャンク座標を計算
-        Vector3Int centerChunk = new Vector3Int(
-            Mathf.FloorToInt(transform.position.x / chunkSize),
-            Mathf.FloorToInt(transform.position.y / chunkSize),
-            Mathf.FloorToInt(transform.position.z / chunkSize)
-        );
-        
-        // 周囲9チャンクを除外リストに追加
-        for (int dx = -1; dx <= 1; dx++)
-        {
-            for (int dz = -1; dz <= 1; dz++)
-            {
-                Vector3Int excludedChunk = new Vector3Int(
-                    centerChunk.x + dx,
-                    centerChunk.y,
-                    centerChunk.z + dz
-                );
-                excludedChunks.Add(excludedChunk);
-            }
-        }
-        
-        return excludedChunks;
-    }
 } 

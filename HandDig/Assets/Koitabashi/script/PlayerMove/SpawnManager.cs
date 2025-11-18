@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
     [Header("スポーン設定")]
-    [Tooltip("利用可能なスポーンポイントのリスト")]
-    public List<SpawnPointMarker> spawnPoints = new List<SpawnPointMarker>();
+    [Tooltip("利用するスポーンポイント")]
+    public SpawnPointMarker spawnPoint;
     
     [Tooltip("プレイヤーのルートオブジェクト")]
     public GameObject playerRoot;
@@ -19,69 +17,27 @@ public class SpawnManager : MonoBehaviour
     public bool showDebugInfo = true;
 
     private SpawnPointMarker selectedSpawnPoint;
-    private List<Vector3Int> excludedChunks = new List<Vector3Int>();
-
     void Start()
     {
         // スポーンポイントが設定されているかチェック
-        if (spawnPoints.Count == 0)
+        if (spawnPoint == null)
         {
-            Debug.LogWarning("[SpawnManager] スポーンポイントが設定されていません。固定スポーンを使用します。");
+            spawnPoint = GetComponentInChildren<SpawnPointMarker>();
+        }
+
+        if (spawnPoint == null)
+        {
+            Debug.LogError("[SpawnManager] スポーンポイントが設定されていません。");
             return;
         }
 
-        // ランダムでスポーンポイントを選択
-        SelectRandomSpawnPoint();
+        selectedSpawnPoint = spawnPoint;
+        if (showDebugInfo)
+        {
+            Debug.Log($"[SpawnManager] 固定スポーンポイントを使用: {selectedSpawnPoint.spawnPointName}");
+        }
         
-        // 選択されたスポーンポイントの周囲9チャンクを除外
-        SetupExcludedChunks();
-        
-        // プレイヤーのスポーンはMC_Worldが完了後に実行される
         Debug.Log("[SpawnManager] 初期化完了。プレイヤーのスポーンはワールド生成完了後に実行されます。");
-    }
-
-    /// <summary>
-    /// ランダムでスポーンポイントを選択
-    /// </summary>
-    private void SelectRandomSpawnPoint()
-    {
-        if (spawnPoints.Count == 0) return;
-        
-        int randomIndex = Random.Range(0, spawnPoints.Count);
-        selectedSpawnPoint = spawnPoints[randomIndex];
-        
-        if (showDebugInfo)
-        {
-            Debug.Log($"[SpawnManager] スポーンポイントを選択: {selectedSpawnPoint.spawnPointName}");
-        }
-    }
-
-    /// <summary>
-    /// 選択されたスポーンポイントの周囲9チャンクを除外設定
-    /// </summary>
-    private void SetupExcludedChunks()
-    {
-        if (selectedSpawnPoint == null || worldManager == null) return;
-        
-        // 除外するチャンク座標を取得
-        excludedChunks = selectedSpawnPoint.GetExcludedChunks(worldManager.chunkSize);
-        
-        // 各TreasureSpawnerに除外チャンクを設定
-        foreach (var spawner in worldManager.treasureSpawners)
-        {
-            if (spawner != null)
-            {
-                foreach (var chunkCoord in excludedChunks)
-                {
-                    spawner.AddExcludedChunk(chunkCoord);
-                }
-            }
-        }
-        
-        if (showDebugInfo)
-        {
-            Debug.Log($"[SpawnManager] {excludedChunks.Count}個のチャンクを除外設定しました");
-        }
     }
 
     /// <summary>
@@ -110,24 +66,11 @@ public class SpawnManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 除外されているチャンクのリストを取得
+    /// 現在設定されているスポーン位置を取得
     /// </summary>
-    public List<Vector3Int> GetExcludedChunks()
+    public Vector3 GetSpawnPosition()
     {
-        return excludedChunks;
-    }
-
-    /// <summary>
-    /// 手動でスポーンポイントを選択（デバッグ用）
-    /// </summary>
-    [ContextMenu("ランダムスポーン再実行")]
-    public void RespawnRandom()
-    {
-        if (spawnPoints.Count == 0) return;
-        
-        SelectRandomSpawnPoint();
-        SetupExcludedChunks();
-        SpawnPlayerAtFinalPosition();
+        return selectedSpawnPoint != null ? selectedSpawnPoint.transform.position : transform.position;
     }
 
     void OnDrawGizmos()
@@ -137,23 +80,5 @@ public class SpawnManager : MonoBehaviour
         // 選択されたスポーンポイントを強調表示
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(selectedSpawnPoint.transform.position, 3f);
-        
-        // 除外チャンクの範囲を表示
-        if (worldManager != null)
-        {
-            Gizmos.color = new Color(1f, 0f, 0f, 0.2f);
-            foreach (var chunkCoord in excludedChunks)
-            {
-                Vector3 chunkWorldPos = new Vector3(
-                    chunkCoord.x * worldManager.chunkSize,
-                    chunkCoord.y * worldManager.chunkSize,
-                    chunkCoord.z * worldManager.chunkSize
-                );
-                Gizmos.DrawWireCube(
-                    chunkWorldPos + Vector3.one * worldManager.chunkSize * 0.5f,
-                    Vector3.one * worldManager.chunkSize
-                );
-            }
-        }
     }
 } 
