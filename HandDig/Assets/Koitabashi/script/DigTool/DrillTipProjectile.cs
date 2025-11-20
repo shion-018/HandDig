@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class DrillTipProjectile : MonoBehaviour
 {
+
+    [SerializeField] private LayerMask destructLayers;
+
     private VoxelDigManager digManager;
     private DrillDigStats stats;
     private int upgradeLevel;
@@ -78,10 +81,9 @@ public class DrillTipProjectile : MonoBehaviour
     }
 
     // 跳ね返り防止：コライダーに当たったら止まる or 消える
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        // 掘削対象以外にぶつかったら消滅
-        if (((1 << collision.gameObject.layer) & diggableLayers) == 0)
+        if (((1 << other.gameObject.layer) & destructLayers) != 0)
         {
             Destroy(gameObject);
         }

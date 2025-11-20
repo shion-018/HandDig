@@ -88,8 +88,22 @@ public class TreasureCollector : MonoBehaviour
             }
         }
 
+        CompassAbilityTreasureItem compassUnlock = other.GetComponent<CompassAbilityTreasureItem>();
+        if (compassUnlock != null)
+        {
+            ProcessCompassUnlock(compassUnlock);
+
+            if (toolManager != null) toolManager.AddTreasureCount("CompassUnlock", 1);
+
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("CompassUnlock");
+            }
+        }
+
         // お宝を非表示に
-        other.gameObject.SetActive(false);
+        Destroy(other.gameObject, 0.1f);
+        //other.gameObject.SetActive(false);
     }
 
     // 判定数増加お宝の処理
@@ -157,6 +171,20 @@ public class TreasureCollector : MonoBehaviour
         else
         {
             Debug.LogWarning($"[{explosiveItem.treasureName}] ツールマネージャーが見つかりません。");
+        }
+    }
+
+    //コンパスの機能開放用
+    private void ProcessCompassUnlock(CompassAbilityTreasureItem item)
+    {
+        if (item.compassScript != null)
+        {
+            item.compassScript.searchCharenge = true;
+            Debug.Log($"[{item.treasureName}] コンパス機能が解放されました！");
+        }
+        else
+        {
+            Debug.LogWarning($"[{item.treasureName}] CompassScript が設定されていません！");
         }
     }
 }
