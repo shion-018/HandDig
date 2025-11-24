@@ -1572,7 +1572,7 @@ MonoBehaviour:
   - {fileID: 8132653704986034256, guid: 384b6c5d7a08d9c48b6c754f0a6557df, type: 3}
   - {fileID: 8770522314091433460, guid: 3782493fdb2427f42b52d64ae0776698, type: 3}
   - {fileID: 8587737299066770002, guid: 246f6fd6553c1d74ab9dcdb63af95052, type: 3}
-  spawnChance: 1
+  spawnChance: 0.5
   minAttemptsPerChunk: 2
   maxAttemptsPerChunk: 5
   chunkSize: 32
@@ -1585,17 +1585,17 @@ MonoBehaviour:
       time: 0
       value: 1.2
       inSlope: 0
-      outSlope: 0
-      tangentMode: 0
+      outSlope: -0.90000004
+      tangentMode: 69
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
       value: 0.3
-      inSlope: 0
+      inSlope: -0.90000004
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 69
       weightedMode: 0
       inWeight: 0
       outWeight: 0
