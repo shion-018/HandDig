@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class DrillTipProjectile : MonoBehaviour
 {
+    public System.Action onDestroyed;
 
     [SerializeField] private LayerMask destructLayers;
 
@@ -17,7 +18,8 @@ public class DrillTipProjectile : MonoBehaviour
     private float moveSpeed;
     private float lifeTimer = 0f;
 
-    public void Initialize(VoxelDigManager digManager, DrillDigStats stats, int level, LayerMask diggableLayers, float lifetime, DigSoundManager soundManager, int speedLevel)
+    public void Initialize(VoxelDigManager digManager, DrillDigStats stats, int level,
+        LayerMask diggableLayers, float lifetime, DigSoundManager soundManager, int speedLevel)
     {
         this.digManager = digManager;
         this.stats = stats;
@@ -27,19 +29,16 @@ public class DrillTipProjectile : MonoBehaviour
         this.soundManager = soundManager;
         this.speedLevel = speedLevel;
 
-        // 掘削間隔が短い（速い）ほど移動速度も速くする
-        float interval = stats.GetDigInterval(0);
-        moveSpeed = Mathf.Clamp(3f / interval, 2f, 10f); // 最小2、最大10くらいの範囲に調整
+        float interval = stats.GetDigInterval(speedLevel);
+        moveSpeed = Mathf.Clamp(3f / interval, 2f, 10f);
     }
 
     private void Update()
     {
         if (stats == null || digManager == null) return;
 
-        // 一定速度で前進（物理を使わない）
         transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime, Space.Self);
 
-        // 寿命管理
         lifeTimer += Time.deltaTime;
         if (lifeTimer >= lifetime)
         {
@@ -47,9 +46,7 @@ public class DrillTipProjectile : MonoBehaviour
             return;
         }
 
-        // 掘削タイミング管理
         digTimer += Time.deltaTime;
-        // ★ 掘削間隔に軽い補正をかける
         float interval = stats.GetDigInterval(speedLevel) * 0.5f;
         if (digTimer >= interval)
         {
@@ -66,7 +63,12 @@ public class DrillTipProjectile : MonoBehaviour
         bool canDrill = true;
         if (diggableLayers.value != 0)
         {
-            canDrill = Physics.CheckSphere(pos, radius * 0.35f, diggableLayers, QueryTriggerInteraction.Ignore);
+            canDrill = Physics.CheckSphere(
+                pos,
+                radius * 0.35f,
+                diggableLayers,
+                QueryTriggerInteraction.Ignore
+            );
         }
 
         if (canDrill)
@@ -80,12 +82,16 @@ public class DrillTipProjectile : MonoBehaviour
         }
     }
 
-    // 跳ね返り防止：コライダーに当たったら止まる or 消える
     private void OnTriggerEnter(Collider other)
     {
         if (((1 << other.gameObject.layer) & destructLayers) != 0)
         {
             Destroy(gameObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        onDestroyed?.Invoke();
     }
 }

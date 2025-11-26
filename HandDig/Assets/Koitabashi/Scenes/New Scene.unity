@@ -1572,12 +1572,12 @@ MonoBehaviour:
   - {fileID: 8132653704986034256, guid: 384b6c5d7a08d9c48b6c754f0a6557df, type: 3}
   - {fileID: 8770522314091433460, guid: 3782493fdb2427f42b52d64ae0776698, type: 3}
   - {fileID: 8587737299066770002, guid: 246f6fd6553c1d74ab9dcdb63af95052, type: 3}
-  spawnChance: 0.5
-  minAttemptsPerChunk: 2
-  maxAttemptsPerChunk: 5
+  spawnChance: 1
+  minAttemptsPerChunk: 0
+  maxAttemptsPerChunk: 20
   chunkSize: 32
   nearDistance: 0
-  farDistance: 100
+  farDistance: 50
   distanceFalloff:
     serializedVersion: 2
     m_Curve:
@@ -1604,7 +1604,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   chunkEdgePadding: 4
   placementRetries: 5
-  solidDensityThreshold: 0.005
+  solidDensityThreshold: 0.55
 --- !u!4 &206718485
 Transform:
   m_ObjectHideFlags: 0
