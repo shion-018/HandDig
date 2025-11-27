@@ -1155,7 +1155,7 @@ Transform:
   m_GameObject: {fileID: 154967486}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 197.36, y: -78.45, z: 200.529}
+  m_LocalPosition: {x: 275.2, y: -296, z: 200.529}
   m_LocalScale: {x: 15, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1572,12 +1572,12 @@ MonoBehaviour:
   - {fileID: 8132653704986034256, guid: 384b6c5d7a08d9c48b6c754f0a6557df, type: 3}
   - {fileID: 8770522314091433460, guid: 3782493fdb2427f42b52d64ae0776698, type: 3}
   - {fileID: 8587737299066770002, guid: 246f6fd6553c1d74ab9dcdb63af95052, type: 3}
-  spawnChance: 1
+  spawnChance: 0.5
   minAttemptsPerChunk: 0
-  maxAttemptsPerChunk: 20
+  maxAttemptsPerChunk: 5
   chunkSize: 32
   nearDistance: 0
-  farDistance: 50
+  farDistance: 250
   distanceFalloff:
     serializedVersion: 2
     m_Curve:
@@ -1585,15 +1585,15 @@ MonoBehaviour:
       time: 0
       value: 1.2
       inSlope: 0
-      outSlope: -0.90000004
+      outSlope: -1.0500001
       tangentMode: 69
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0.3
-      inSlope: -0.90000004
+      value: 0.15
+      inSlope: -1.0500001
       outSlope: 0
       tangentMode: 69
       weightedMode: 0
@@ -2539,7 +2539,6 @@ MonoBehaviour:
   treasurePrefabs:
   - {fileID: 6718049075907697980, guid: ee046c5e2b40cc045a2b2ceaaa9929d8, type: 3}
   - {fileID: 3020638012149682057, guid: 3fcb770e58f5e3c45a374a80533c45d4, type: 3}
-  - {fileID: 6718049075907697980, guid: dca683df8fadbd14cbe1c03d5944229c, type: 3}
   spawnChance: 0.01
   minAttemptsPerChunk: 1
   maxAttemptsPerChunk: 2
@@ -3499,7 +3498,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -110.6}
+  m_AnchoredPosition: {x: 0, y: -74.3}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &497990290
@@ -3522,7 +3521,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7206\u767A\u63A1\u6398\u304A\u5B9D\u3092\u53D6\u5F97\uFF01"
+  m_text: "\u25CB\u25CB\u25CB\u25CB\u304A\u5B9D\u3092\u53D6\u5F97\uFF01"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 511117f1095c8854c8afafc1dceea49d, type: 2}
   m_sharedMaterial: {fileID: -664653956823450381, guid: 511117f1095c8854c8afafc1dceea49d, type: 2}
@@ -7081,7 +7080,7 @@ Transform:
   m_GameObject: {fileID: 1048835488}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.00015400922, y: 0.02101, z: 0.00038}
+  m_LocalPosition: {x: 0.00015400922, y: 0.0206, z: 0.00038}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7157,7 +7156,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.005
+  m_Radius: 0.0075
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &1050681121 stripped
 Transform:
@@ -9825,11 +9824,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d0d8eb6a8eff66449bf5d59d75f03b22, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 192.631
+      value: 270.471
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d0d8eb6a8eff66449bf5d59d75f03b22, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -73.037994
+      value: -290.588
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d0d8eb6a8eff66449bf5d59d75f03b22, type: 3}
       propertyPath: m_LocalPosition.z
@@ -15238,7 +15237,7 @@ MonoBehaviour:
   notificationCanvas: {fileID: 204771250}
   notificationText: {fileID: 497990290}
   backgroundPanel: {fileID: 0}
-  normalTreasureMessage: "\u6398\u524A\u7BC4\u56F2\u5897\u52A0\u5F37\u5316\u304A\u5B9D\u3092\u53D6\u5F97\uFF01"
+  normalTreasureMessage: "\u6398\u524A\u7BC4\u56F2\u5897\u52A0\u304A\u5B9D\u3092\u53D6\u5F97\uFF01"
   pickaxeHitZoneMessage: "\u3064\u308B\u306F\u3057\u5224\u5B9A\u6570\u5897\u52A0\u304A\u5B9D\u3092\u53D6\u5F97\uFF01"
   drillHitZoneMessage: "\u30C9\u30EA\u30EB\u5224\u5B9A\u6570\u5897\u52A0\u304A\u5B9D\u3092\u53D6\u5F97\uFF01"
   drillSpeedMessage: "\u30C9\u30EA\u30EB\u901F\u5EA6\u5897\u52A0\u304A\u5B9D\u3092\u53D6\u5F97\uFF01"
@@ -15398,7 +15397,7 @@ Transform:
   m_GameObject: {fileID: 2094635214}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 203.33, y: -70.89, z: 212.28693}
+  m_LocalPosition: {x: 281.17, y: -288.44, z: 212.28693}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

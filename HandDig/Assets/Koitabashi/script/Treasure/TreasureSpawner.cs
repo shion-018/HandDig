@@ -85,6 +85,10 @@ public class TreasureSpawner : MonoBehaviour
 
         Vector3 spawnPos = spawnManager.GetSpawnPosition();
         float distance = Vector3.Distance(chunkCenter, spawnPos);
+        Debug.Log(
+    $"[TreasureSpawner] chunkCenter={chunkCenter}, " +
+    $"playerPos={spawnPos}, distance={distance}"
+);
         if (farDistance <= nearDistance)
             return Mathf.Max(0f, distanceFalloff.Evaluate(0f));
 
