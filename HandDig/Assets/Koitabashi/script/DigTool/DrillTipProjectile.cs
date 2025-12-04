@@ -65,7 +65,7 @@ public class DrillTipProjectile : MonoBehaviour
         {
             canDrill = Physics.CheckSphere(
                 pos,
-                radius * 0.35f,
+                radius,
                 diggableLayers,
                 QueryTriggerInteraction.Ignore
             );
