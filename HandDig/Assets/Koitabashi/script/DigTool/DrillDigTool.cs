@@ -171,6 +171,11 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     bool digOccurred = digManager.TryDigAt(digPosition, radius);
                     if (digOccurred)
                     {
+
+                        // チュートリアル：最初の掘削でお宝出現
+                        TutorialManager.Instance?.OnFirstDig(digPosition, radius);
+                        TutorialManager.Instance?.OnAnyDigSuccess();
+
                         soundManager?.PlayDrillDigSound(digPosition);
                         DigEffectManager.Instance?.CreateDigEffect(digPosition, radius);
                     }

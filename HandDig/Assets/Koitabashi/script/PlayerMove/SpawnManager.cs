@@ -55,6 +55,12 @@ public class SpawnManager : MonoBehaviour
         selectedSpawnPoint.SpawnPlayer(playerRoot);
         
         Debug.Log("[SpawnManager] プレイヤーを最終スポーン位置に移動しました");
+
+        if (TutorialManager.Instance != null)
+        {
+            TutorialManager.Instance.OnPlayerSpawned();
+        }
+
     }
 
     /// <summary>

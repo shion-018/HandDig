@@ -148,6 +148,7 @@ public class VRDigToolManager : MonoBehaviour
             }
 
             Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
+            TutorialManager.Instance?.OnToolChanged(currentTool, currentIndex);
         }
     }
 

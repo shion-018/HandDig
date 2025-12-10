@@ -315,6 +315,13 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
 
                 if (digOccurred)
                 {
+
+                    // --- チュートリアル通知（最初の1回用） ---
+                    TutorialManager.Instance?.OnFirstDig(digPosition, radius);
+
+                    // --- 「つるはしで1回掘る」ステップ用 ---
+                    TutorialManager.Instance?.OnAnyDigSuccess();
+
                     if (DigEffectManager.Instance != null)
                     {
                         DigEffectManager.Instance.CreateDigEffect(digPosition, radius);
