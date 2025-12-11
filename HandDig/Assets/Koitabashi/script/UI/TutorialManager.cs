@@ -9,10 +9,10 @@ public class TutorialManager : MonoBehaviour
     public enum TutorialStep
     {
         Move,
-        Dig,
-        GetCompass,
+        Look,
         ToolChange,
         AnyDig,
+        GetCompass,
         Complete
     }
 
@@ -23,6 +23,9 @@ public class TutorialManager : MonoBehaviour
     [Header("コンパス")]
     public GameObject tutorialCompassPrefab;
 
+    public GameObject compassObject;
+    private bool compassUnlocked = false;
+
 
     [Header("プレイヤー")]
     [SerializeField] private Transform playerRoot;
@@ -31,9 +34,14 @@ public class TutorialManager : MonoBehaviour
     private bool compassSpawned = false;
 
     private VRDigToolManager toolManager;
-
+    [SerializeField] private float requiredMoveTime = 1.0f;
     [SerializeField] private float moveInputThreshold = 0.3f;
     private bool moveInputDetected = false;
+    private float moveInputTimer = 0f;
+
+    [SerializeField] private float requiredLookTime = 0.6f;
+    [SerializeField] private float lookThreshold = 0.3f;
+    private float lookTimer = 0f;
 
 
     private void Awake()
@@ -58,8 +66,8 @@ public class TutorialManager : MonoBehaviour
                 CheckMove();
                 break;
 
-            case TutorialStep.AnyDig:
-                // 掘削成功イベント待ち（外部通知）
+            case TutorialStep.Look:
+                CheckLook();
                 break;
         }
     }
@@ -70,25 +78,33 @@ public class TutorialManager : MonoBehaviour
 
     private void CheckMove()
     {
-        // Meta XR 用（OVRInput）
-        Vector2 moveInput = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
+        // 左スティック入力（Meta XR）
+        Vector2 move = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
 
-        if (moveInput.magnitude >= moveInputThreshold)
+        // 一定以上倒しているか
+        if (move.magnitude >= moveInputThreshold)
         {
-            if (!moveInputDetected)
+            moveInputTimer += Time.deltaTime;
+
+            if (moveInputTimer >= requiredMoveTime)
             {
-                moveInputDetected = true;
-                Debug.Log("[Tutorial] Move Input Detected");
-                SetStep(TutorialStep.Dig);
+                Debug.Log("[Tutorial] Move Completed");
+                SetStep(TutorialStep.Look);
             }
+        }
+        else
+        {
+            // 入力していない場合はカウント0にリセット
+            moveInputTimer = 0f;
         }
     }
 
 
 
+
     public void OnFirstDig(Vector3 digPos, float radius)
     {
-        if (currentStep != TutorialStep.Dig || firstDigDone) return;
+        if (currentStep != TutorialStep.AnyDig || firstDigDone) return;
 
         firstDigDone = true;
 
@@ -106,7 +122,7 @@ public class TutorialManager : MonoBehaviour
     public void OnToolChanged(IDigTool tool, int toolIndex)
     {
         
-        if (currentStep != TutorialStep.Dig &&
+        if (currentStep != TutorialStep.AnyDig &&
             currentStep != TutorialStep.ToolChange)
             return;
 
@@ -150,12 +166,8 @@ public class TutorialManager : MonoBehaviour
                 tutorialText.text = "左スティックで移動しよう";
                 break;
 
-            case TutorialStep.Dig:
-                UpdateDigTextByTool();
-                break;
-
-            case TutorialStep.GetCompass:
-                tutorialText.text = "出現したコンパスを取ろう";
+            case TutorialStep.Look:
+                tutorialText.text = "右スティックで視点を動かしてみよう";
                 break;
 
             case TutorialStep.ToolChange:
@@ -163,9 +175,12 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.AnyDig:
-                tutorialText.text = "つるはし か ドリル で\n1回掘ってみよう";
+                UpdateDigTextByTool();
                 break;
 
+            case TutorialStep.GetCompass:
+                tutorialText.text = "出てきたコンパスを取ろう";
+                break;
 
             case TutorialStep.Complete:
                 tutorialText.text = "チュートリアル完了！";
@@ -173,6 +188,7 @@ public class TutorialManager : MonoBehaviour
                 break;
         }
     }
+
 
     private void UpdateDigTextByTool()
     {
@@ -251,4 +267,36 @@ public class TutorialManager : MonoBehaviour
         SetStep(TutorialStep.Move);
     }
 
+    private void CheckLook()
+    {
+        // 右スティック
+        float rightX = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick).x;
+
+        if (Mathf.Abs(rightX) >= lookThreshold)
+        {
+            lookTimer += Time.deltaTime;
+
+            if (lookTimer >= requiredLookTime)
+            {
+                Debug.Log("[Tutorial] Look Completed");
+                SetStep(TutorialStep.ToolChange);
+            }
+        }
+        else
+        {
+            // 入力離したらリセット
+            lookTimer = 0f;
+        }
+    }
+
+    public void UnlockCompass()
+    {
+        if (compassUnlocked) return;
+
+        compassUnlocked = true;
+        if (compassObject != null)
+            compassObject.SetActive(true);
+
+        Debug.Log("[TutorialManager] コンパスが解放されました！");
+    }
 }
