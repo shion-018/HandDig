@@ -17,10 +17,18 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     [Tooltip("各要素が強化レベルごとのヒットゾーン（子に複数コライダーを持てる）")]
     public List<GameObject> hitZoneObjects = new List<GameObject>();
     [Tooltip("true の場合は hitZoneObjects を使う（レベルごとに丸ごと切り替え）")]
+
+
     public bool useLevelHitZoneObjects = false;
     private int currentHitZoneLevel = 0;
     private GameObject currentHitZoneObject = null;
     private List<Transform> currentHitPoints = new List<Transform>(); // 現在使っている掘りポイント（コライダーの transform など）
+
+    [Header("DigPoint Groups (Level Switch)")]
+    [Tooltip("強化レベルごとの DigPoint グループ")]
+    public List<GameObject> digPointGroups = new List<GameObject>();
+
+    private int currentDigPointLevel = 0;
 
     // Stats & upgrade
     private PickaxeDigStats stats;
@@ -51,17 +59,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     void Awake()
     {
         toolManager = FindObjectOfType<VRDigToolManager>();
-        // 初期設定
-        if (useLevelHitZoneObjects && hitZoneObjects != null && hitZoneObjects.Count > 0)
-        {
-            SetHitZoneLevel(0);
-        }
-        else
-        {
-            // 従来互換モード：活性ヒット数に応じて表示を更新
-            UpdateHitZoneVisibility();
-            CollectTransformsFromHitZones(); // currentHitPoints を補助的に作る（必要なら）
-        }
+        SetDigPointLevel(0);
     }
 
     void Start()
@@ -145,20 +143,15 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     /// </summary>
     public void IncreaseHitZone()
     {
-        if (useLevelHitZoneObjects && hitZoneObjects != null && hitZoneObjects.Count > 0)
-        {
-            int next = Mathf.Clamp(currentHitZoneLevel + 1, 0, hitZoneObjects.Count - 1);
-            SetHitZoneLevel(next);
-            Debug.Log($"[PickaxeMaster] レベルヒットゾーンへ切替: {next}");
-        }
-        else
-        {
-            activeHitZones = Mathf.Min(activeHitZones + 1, hitZones.Count);
-            Debug.Log($"[PickaxeMaster] 判定数が {activeHitZones} になりました (従来互換)");
-            UpdateHitZoneVisibility();
-            CollectTransformsFromHitZones();
-        }
+        int next = Mathf.Clamp(
+            currentDigPointLevel + 1,
+            0,
+            digPointGroups.Count - 1
+        );
+
+        SetDigPointLevel(next);
     }
+
 
     /// <summary>
     /// 従来互換：hitZones の可視化を更新
@@ -276,106 +269,94 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     // -------------------- 掘り処理（コア） --------------------
     public void OnAnyHit()
     {
-        // 入力取得（VR と PC 両対応のため）
         bool isTriggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
         bool isSpaceHeld = Input.GetKey(KeyCode.Space);
 
-        // 振りかぶりかつトリガー/スペース押下が必要（PCテスト時は Space を用いる）
-        if (isSwingReady && (isTriggerHeld || isSpaceHeld) && stats != null)
+        if (!(isSwingReady && (isTriggerHeld || isSpaceHeld) && stats != null))
         {
-            float currentTime = Time.time;
-            float timeSinceLast = currentTime - lastDigTime;
-
-            if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
-                comboStage = Mathf.Min(comboStage + 1, 2);
-            else
-                comboStage = 0;
-
-            lastDigTime = currentTime;
-
-            // 掘った後はSwingReadyをリセット（次の振りかぶりを待つ）
-            isSwingReady = false;
-
-            float radius = stats.GetRadius(comboStage, upgradeLevel);
-
-            // currentHitPoints に登録されたすべてのポイントで掘る
-            for (int i = 0; i < currentHitPoints.Count; i++)
-            {
-                Transform t = currentHitPoints[i];
-                if (t == null) continue;
-
-                Vector3 upwardOffset = t.up * (radius * 0.3f);
-                Vector3 digPosition = t.position + upwardOffset;
-
-                bool digOccurred = false;
-                if (digManager != null)
-                {
-                    digOccurred = digManager.TryDigAt(digPosition, radius);
-                }
-
-                if (digOccurred)
-                {
-
-                    // --- チュートリアル通知（最初の1回用） ---
-                    TutorialManager.Instance?.OnFirstDig(digPosition, radius);
-
-                    // --- 「つるはしで1回掘る」ステップ用 ---
-                    TutorialManager.Instance?.OnAnyDigSuccess();
-
-                    if (DigEffectManager.Instance != null)
-                    {
-                        DigEffectManager.Instance.CreateDigEffect(digPosition, radius);
-                    }
-                    var soundManager = DigSoundManager.Instance;
-                    if (soundManager != null)
-                    {
-                        soundManager.PlayPickaxeDigSound(comboStage, digPosition);
-                    }
-
-                    Debug.Log($"[PickaxeMaster] 掘削発生: ポイント {i + 1} / Combo {comboStage + 1} / radius {radius:F2} / Y {upwardOffset.y:F2}");
-                }
-                else
-                {
-                    Debug.Log($"[PickaxeMaster] ポイント {i + 1} にボクセルなし（エフェクト/音スキップ）");
-                }
-            }
-
-            // ---------- 爆発モード処理（元のロジックを復元） ----------
-            if (isExplosionMode && toolManager != null && toolManager.GetPickaxeExplosionCharges() > 0)
-            {
-                if (toolManager.TryConsumePickaxeExplosionCharge())
-                {
-                    float explosionRadius = stats.GetExplosionRadius(upgradeLevel);
-                    Vector3 pos = GetFarthestExplosionPosition(radius);
-                    SpawnExplosionMarker(pos, explosionRadius, stats.explosionDelaySeconds);
-                    Debug.Log($"[PickaxeMaster] 爆発マーカー設置（残りチャージ: {toolManager.GetPickaxeExplosionCharges()}）");
-
-                    if (toolManager.GetPickaxeExplosionCharges() <= 0)
-                    {
-                        isExplosionMode = false;
-                    }
-                }
-            }
-
-            Debug.Log("[PickaxeMaster] 掘り完了（OnAnyHit）。次の振りかぶりを待機中...");
-        }
-        else
-        {
-            // デバッグ向け詳細ログ（原因を特定しやすくする）
             if (!isSwingReady)
-            {
-                Debug.Log("[PickaxeMaster] 振りかぶり準備ができていません。後ろに振りかぶってゾーンに入ってください。");
-            }
+                Debug.Log("[PickaxeMaster] 振りかぶり準備ができていません");
             else if (!isTriggerHeld && !isSpaceHeld)
+                Debug.Log("[PickaxeMaster] 入力がありません");
+            else
+                Debug.LogWarning("[PickaxeMaster] stats 未設定");
+            return;
+        }
+
+        float currentTime = Time.time;
+        float timeSinceLast = currentTime - lastDigTime;
+
+        if (timeSinceLast >= minComboTime && timeSinceLast <= maxComboTime)
+            comboStage = Mathf.Min(comboStage + 1, 2);
+        else
+            comboStage = 0;
+
+        lastDigTime = currentTime;
+        isSwingReady = false;
+
+        float radius = stats.GetRadius(comboStage, upgradeLevel);
+
+        // --- 掘れた地点を記録 ---
+        List<Vector3> digSucceededPositions = new List<Vector3>();
+
+        for (int i = 0; i < currentHitPoints.Count; i++)
+        {
+            Transform t = currentHitPoints[i];
+            if (t == null) continue;
+
+            Vector3 upwardOffset = t.up * (radius * 0.3f);
+            Vector3 digPosition = t.position + upwardOffset;
+
+            bool digOccurred = digManager != null &&
+                               digManager.TryDigAt(digPosition, radius);
+
+            if (!digOccurred)
             {
-                Debug.Log("[PickaxeMaster] トリガー/スペースが押されていません。入力してください。");
+                Debug.Log($"[PickaxeMaster] ポイント {i + 1} にボクセルなし");
+                continue;
             }
-            else if (stats == null)
+
+            digSucceededPositions.Add(digPosition);
+
+            TutorialManager.Instance?.OnFirstDig(digPosition, radius);
+            TutorialManager.Instance?.OnAnyDigSuccess();
+
+            DigEffectManager.Instance?.CreateDigEffect(digPosition, radius);
+            DigSoundManager.Instance?.PlayPickaxeDigSound(comboStage, digPosition);
+
+            Debug.Log($"[PickaxeMaster] 掘削成功: Point {i + 1}");
+        }
+
+        // ---------- 爆発モード（ここが最大の変更点） ----------
+        if (isExplosionMode &&
+            digSucceededPositions.Count > 0 &&
+            toolManager != null &&
+            toolManager.GetPickaxeExplosionCharges() > 0)
+        {
+            // ★ 消費は1回だけ
+            if (toolManager.TryConsumePickaxeExplosionCharge())
             {
-                Debug.LogWarning("[PickaxeMaster] stats が設定されていません");
+                float explosionRadius = stats.GetExplosionRadius(upgradeLevel);
+
+                foreach (var pos in digSucceededPositions)
+                {
+                    SpawnExplosionMarker(
+                        pos,
+                        explosionRadius,
+                        stats.explosionDelaySeconds
+                    );
+                }
+
+                Debug.Log($"[PickaxeMaster] 爆発マーカー {digSucceededPositions.Count} 箇所に設置（残り {toolManager.GetPickaxeExplosionCharges()}）");
+
+                if (toolManager.GetPickaxeExplosionCharges() <= 0)
+                    isExplosionMode = false;
             }
         }
+
+        Debug.Log("[PickaxeMaster] 掘り完了。次の振りかぶり待ち");
     }
+
 
     public void UpdateDig(Vector3 pos) { /* 何もしない（必要なら拡張） */ }
 
@@ -473,4 +454,43 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     {
         return isExplosionMode;
     }
+
+    public void SetDigPointLevel(int level)
+    {
+        if (digPointGroups == null || digPointGroups.Count == 0)
+        {
+            Debug.LogWarning("[PickaxeMaster] digPointGroups が未設定");
+            return;
+        }
+
+        level = Mathf.Clamp(level, 0, digPointGroups.Count - 1);
+        currentDigPointLevel = level;
+
+        // 全OFF → 対象だけON
+        for (int i = 0; i < digPointGroups.Count; i++)
+        {
+            if (digPointGroups[i] != null)
+                digPointGroups[i].SetActive(i == level);
+        }
+
+        CollectDigPointsFromCurrentGroup();
+
+        Debug.Log($"[PickaxeMaster] DigPoint レベル {level} を使用中");
+    }
+
+    private void CollectDigPointsFromCurrentGroup()
+    {
+        currentHitPoints.Clear();
+
+        GameObject group = digPointGroups[currentDigPointLevel];
+        if (group == null) return;
+
+        foreach (Transform child in group.transform)
+        {
+            currentHitPoints.Add(child);
+        }
+
+        Debug.Log($"[PickaxeMaster] DigPoint {currentHitPoints.Count} 個を登録");
+    }
+
 }

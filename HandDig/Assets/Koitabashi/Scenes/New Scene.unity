@@ -3678,7 +3678,7 @@ Transform:
   m_GameObject: {fileID: 509309654}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 200.33002, y: -72.39, z: 195.38}
+  m_LocalPosition: {x: 277.26, y: -289.02, z: 195.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5864,7 +5864,7 @@ Transform:
   m_GameObject: {fileID: 829871432}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 197.82, y: -72.39, z: 195.38}
+  m_LocalPosition: {x: 274.75, y: -289.02, z: 195.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6737,7 +6737,7 @@ Transform:
   m_GameObject: {fileID: 990800530}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 199.17001, y: -72.39, z: 195.38}
+  m_LocalPosition: {x: 276.1, y: -289.02, z: 195.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -10170,6 +10170,7 @@ MonoBehaviour:
   - {fileID: 681472621}
   - {fileID: 584875363}
   useLevelHitZoneObjects: 1
+  digPointGroups: []
   minComboTime: 0.5
   maxComboTime: 1.5
   swingZoneCollider: {fileID: 234923323}
