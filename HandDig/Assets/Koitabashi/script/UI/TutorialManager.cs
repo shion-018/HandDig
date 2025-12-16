@@ -20,14 +20,14 @@ public class TutorialManager : MonoBehaviour
     public Canvas tutorialCanvas;
     public TextMeshProUGUI tutorialText;
 
-    [Header("ƒRƒ“ƒpƒX")]
+    [Header("ã‚³ãƒ³ãƒ‘ã‚¹")]
     public GameObject tutorialCompassPrefab;
 
     public GameObject compassObject;
     private bool compassUnlocked = false;
 
 
-    [Header("ƒvƒŒƒCƒ„[")]
+    [Header("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼")]
     [SerializeField] private Transform playerRoot;
     private TutorialStep currentStep = TutorialStep.Move;
     private bool firstDigDone = false;
@@ -73,15 +73,15 @@ public class TutorialManager : MonoBehaviour
     }
 
     // ==========================
-    // is”»’è
+    // é€²è¡Œå‡¦ç†
     // ==========================
 
     private void CheckMove()
     {
-        // ¶ƒXƒeƒBƒbƒN“ü—ÍiMeta XRj
+        // ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ï¼ˆMeta XRï¼‰
         Vector2 move = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
 
-        // ˆê’èˆÈã“|‚µ‚Ä‚¢‚é‚©
+        // é–¾å€¤ä»¥ä¸Šå‹•ã‹ã—ã¦ã„ã‚‹ã‹
         if (move.magnitude >= moveInputThreshold)
         {
             moveInputTimer += Time.deltaTime;
@@ -94,7 +94,7 @@ public class TutorialManager : MonoBehaviour
         }
         else
         {
-            // “ü—Í‚µ‚Ä‚¢‚È‚¢ê‡‚ÍƒJƒEƒ“ƒg0‚ÉƒŠƒZƒbƒg
+            // å…¥åŠ›ã—ã¦ã„ãªã„å ´åˆã¯ã‚¿ã‚¤ãƒãƒ¼0ã«ãƒªã‚»ãƒƒãƒˆ
             moveInputTimer = 0f;
         }
     }
@@ -116,7 +116,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (currentStep != TutorialStep.GetCompass) return;
 
-        SetStep(TutorialStep.ToolChange);
+        SetStep(TutorialStep.Complete);
     }
 
     public void OnToolChanged(IDigTool tool, int toolIndex)
@@ -126,13 +126,19 @@ public class TutorialManager : MonoBehaviour
             currentStep != TutorialStep.ToolChange)
             return;
 
+        // ToolChangeã‚¹ãƒ†ãƒƒãƒ—ã®æ™‚ã¯ã€ãƒ„ãƒ¼ãƒ«å¤‰æ›´ã‚’æ¤œçŸ¥ã—ãŸã‚‰AnyDigã‚¹ãƒ†ãƒƒãƒ—ã«é€²ã‚€
+        if (currentStep == TutorialStep.ToolChange)
+        {
+            SetStep(TutorialStep.AnyDig);
+        }
+
         if (tool is PickaxeDigToolMaster)
         {
-            ShowText("ƒgƒŠƒK[‚ğ‰Ÿ‚µ‚È‚ª‚çU‚è‰º‚ë‚µ‚ÄŒ@‚ë‚¤I");
+            ShowText("ãƒ”ãƒƒã‚±ãƒ«ã‚’æŒ¯ã‚Šã‹ã¶ã£ã¦æ˜ã£ã¦ã¿ã‚ˆã†ï¼");
         }
         else if (tool is DrillDigTool)
         {
-            ShowText("ƒgƒŠƒK[‚ğ‰Ÿ‚µ‚È‚ª‚ç\n•Ç‚ÉƒhƒŠƒ‹‚ğ‹ß‚Ã‚¯‚æ‚¤I");
+            ShowText("ãƒ”ãƒƒã‚±ãƒ«ã‚’æŒ¯ã‚Šã‹ã¶ã£ã¦\nãƒ‰ãƒªãƒ«ã‚’è¿‘ã¥ã‘ã‚ˆã†ï¼");
         }
     }
 
@@ -148,12 +154,12 @@ public class TutorialManager : MonoBehaviour
     }
 
     // ==========================
-    // “à•”ˆ—
+    // å†…éƒ¨å‡¦ç†
     // ==========================
 
     private void SetStep(TutorialStep next)
     {
-        Debug.Log($"[Tutorial] Step Changed: {currentStep} ¨ {next}");
+        Debug.Log($"[Tutorial] Step Changed: {currentStep} â†’ {next}");
         currentStep = next;
         UpdateText();
     }
@@ -163,15 +169,15 @@ public class TutorialManager : MonoBehaviour
         switch (currentStep)
         {
             case TutorialStep.Move:
-                tutorialText.text = "¶ƒXƒeƒBƒbƒN‚ÅˆÚ“®‚µ‚æ‚¤";
+                tutorialText.text = "ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã§ç§»å‹•ã—ã‚ˆã†";
                 break;
 
             case TutorialStep.Look:
-                tutorialText.text = "‰EƒXƒeƒBƒbƒN‚Å‹“_‚ğ“®‚©‚µ‚Ä‚İ‚æ‚¤";
+                tutorialText.text = "å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã§è¦–ç‚¹ã‚’å›è»¢ã•ã›ã¦ã¿ã‚ˆã†";
                 break;
 
             case TutorialStep.ToolChange:
-                tutorialText.text = "Bƒ{ƒ^ƒ“‚Å“¹‹ï‚ğØ‚è‘Ö‚¦‚æ‚¤";
+                tutorialText.text = "Bãƒœã‚¿ãƒ³ã§é“å…·ã‚’åˆ‡ã‚Šæ›¿ãˆã‚ˆã†";
                 break;
 
             case TutorialStep.AnyDig:
@@ -179,11 +185,11 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.GetCompass:
-                tutorialText.text = "o‚Ä‚«‚½ƒRƒ“ƒpƒX‚ğæ‚ë‚¤";
+                tutorialText.text = "å‡ºã¦ããŸã‚³ãƒ³ãƒ‘ã‚¹ã‚’æ‹¾ãŠã†";
                 break;
 
             case TutorialStep.Complete:
-                tutorialText.text = "ƒ`ƒ…[ƒgƒŠƒAƒ‹Š®—¹I";
+                tutorialText.text = "ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«å®Œäº†ã€ãŠã‚ã§ã¨ã†ï¼";
                 Invoke(nameof(HideUI), 2f);
                 break;
         }
@@ -196,11 +202,11 @@ public class TutorialManager : MonoBehaviour
 
         if (tool is PickaxeDigToolMaster)
         {
-            tutorialText.text = "ƒgƒŠƒK[‚ğ‰Ÿ‚µ‚È‚ª‚çU‚è‰º‚ë‚»‚¤";
+            tutorialText.text = "ãƒ”ãƒƒã‚±ãƒ«ã‚’æŒ¯ã‚Šã‹ã¶ã£ã¦æ˜ã£ã¦ã¿ã‚ˆã†";
         }
         else
         {
-            tutorialText.text = "ƒgƒŠƒK[‚ğ‰Ÿ‚µ‚È‚ª‚ç•Ç‚É‹ß‚Ã‚¯‚æ‚¤";
+            tutorialText.text = "ãƒ”ãƒƒã‚±ãƒ«ã‚’æŒ¯ã‚Šã‹ã¶ã£ã¦ãƒ‰ãƒªãƒ«ã‚’è¿‘ã¥ã‘ã‚ˆã†";
         }
     }
 
@@ -269,7 +275,7 @@ public class TutorialManager : MonoBehaviour
 
     private void CheckLook()
     {
-        // ‰EƒXƒeƒBƒbƒN
+        // å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯
         float rightX = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick).x;
 
         if (Mathf.Abs(rightX) >= lookThreshold)
@@ -284,7 +290,7 @@ public class TutorialManager : MonoBehaviour
         }
         else
         {
-            // “ü—Í—£‚µ‚½‚çƒŠƒZƒbƒg
+            // å…¥åŠ›ãŒç„¡ã„å ´åˆã¯ãƒªã‚»ãƒƒãƒˆ
             lookTimer = 0f;
         }
     }
@@ -297,6 +303,9 @@ public class TutorialManager : MonoBehaviour
         if (compassObject != null)
             compassObject.SetActive(true);
 
-        Debug.Log("[TutorialManager] ƒRƒ“ƒpƒX‚ª‰ğ•ú‚³‚ê‚Ü‚µ‚½I");
+        Debug.Log("[TutorialManager] ã‚³ãƒ³ãƒ‘ã‚¹ãŒè§£æ”¾ã•ã‚Œã¾ã—ãŸï¼");
+
+        // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã®é€²è¡Œã‚‚å‡¦ç†
+        OnGetCompass();
     }
 }

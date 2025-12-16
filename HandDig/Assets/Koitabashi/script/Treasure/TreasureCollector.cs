@@ -91,17 +91,17 @@ public class TreasureCollector : MonoBehaviour
         CompassMainUnlock compassMainUnlock = other.GetComponent<CompassMainUnlock>();
         if (compassMainUnlock != null)
         {
-            // ★TutorialManagerにお願いするだけ
+            
             if (TutorialManager.Instance != null)
                 TutorialManager.Instance.UnlockCompass();
 
             Debug.Log($"[{compassMainUnlock.treasureName}] コンパス本体を取得しました！");
 
             if (toolManager != null)
-                toolManager.AddTreasureCount("CompassUnlock", 1);
+                toolManager.AddTreasureCount("CompassMain", 1);
 
             if (TreasureNotificationManager.Instance != null)
-                TreasureNotificationManager.Instance.ShowTreasureNotification("CompassUnlock");
+                TreasureNotificationManager.Instance.ShowTreasureNotification("CompassMain");
         }
 
         CompassAbilityTreasureItem compassUnlock = other.GetComponent<CompassAbilityTreasureItem>();
