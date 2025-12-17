@@ -1580,7 +1580,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &196760663
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2519,7 +2519,8 @@ MonoBehaviour:
   treasurePrefabs:
   - {fileID: 6718049075907697980, guid: ee046c5e2b40cc045a2b2ceaaa9929d8, type: 3}
   - {fileID: 3020638012149682057, guid: 3fcb770e58f5e3c45a374a80533c45d4, type: 3}
-  spawnChance: 0.01
+  - {fileID: 6718049075907697980, guid: dca683df8fadbd14cbe1c03d5944229c, type: 3}
+  spawnChance: 0.1
   minAttemptsPerChunk: 1
   maxAttemptsPerChunk: 2
   chunkSize: 32
@@ -2878,7 +2879,7 @@ Transform:
   m_GameObject: {fileID: 366143455}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 161.50089, y: 302.11536, z: 153.88298}
+  m_LocalPosition: {x: 173.14597, y: -128.87, z: -80.19948}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8267,7 +8268,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!223 &1205952843
 Canvas:
   m_ObjectHideFlags: 0
@@ -9058,7 +9059,7 @@ Transform:
   m_GameObject: {fileID: 1291946206}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 161.9, y: 300, z: 153.5}
+  m_LocalPosition: {x: 173.14597, y: -131.03, z: -80.19948}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -11030,7 +11031,7 @@ Transform:
   m_GameObject: {fileID: 1721127561}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 161.9, y: 300, z: 153.5}
+  m_LocalPosition: {x: 173.14597, y: -132, z: -80.19948}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

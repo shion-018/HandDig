@@ -202,11 +202,11 @@ public class TutorialManager : MonoBehaviour
 
         if (tool is PickaxeDigToolMaster)
         {
-            tutorialText.text = "ピッケルを振りかぶって掘ってみよう";
+            tutorialText.text = "トリガーを押しながら\nピッケルを振りかぶって掘ってみよう";
         }
         else
         {
-            tutorialText.text = "ピッケルを振りかぶってドリルを近づけよう";
+            tutorialText.text = "トリガーを押しながら\nドリルを近づけよう";
         }
     }
 
