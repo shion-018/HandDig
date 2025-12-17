@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DrillDigTool : MonoBehaviour, IDigToolWithStats
@@ -28,13 +29,14 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     private bool isShootMode = false;
 
     [SerializeField] private float shootCooldown = 2.0f;
-    private float shootTimer = 0f;
-    private bool projectileActive = false; // ★ 今ドリルが飛んでるかどうか
+    private float cooldownTimer = 0f;
+
+    private bool projectileActive = false;
 
     [Header("表示用ドリル先端")]
     [SerializeField] private GameObject visibleDrillTip;
 
-    private bool canSwitchMode = true; // ★ クールタイム中はモード切替不可
+    private bool canSwitchMode = true;
 
     private void Start()
     {
@@ -64,22 +66,9 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
     private void Update()
     {
-        shootTimer += Time.deltaTime;
+        cooldownTimer += Time.deltaTime;
 
-        // === クールタイム終了時処理 ===
-        if (projectileActive && shootTimer >= shootDuration)
-        {
-            projectileActive = false; // 飛行が終わったとみなす
-        }
-
-        if (!canSwitchMode && shootTimer >= shootCooldown)
-        {
-            canSwitchMode = true;
-            if (visibleDrillTip != null)
-                visibleDrillTip.SetActive(true);
-        }
-
-        // === モード切替（Xボタン） ===
+        // モード切替（Xボタン）
         if (canSwitchMode && (OVRInput.GetDown(OVRInput.RawButton.X) || Input.GetKeyDown(KeyCode.X)))
         {
             isShootMode = !isShootMode;
@@ -140,8 +129,7 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
         // --- 射出モード ---
         if (isShootMode)
         {
-            // 射出モード中は通常掘り無効
-            if (triggerHeld && !projectileActive && shootTimer >= shootCooldown)
+            if (!projectileActive && triggerHeld && cooldownTimer >= shootCooldown)
             {
                 ShootDrillTip();
             }
@@ -150,7 +138,7 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
         // --- 通常掘削モード ---
         if (projectileActive)
-            return; // ★ 飛行中は掘削禁止
+            return;
 
         if (currentCollider != null && triggerHeld && stats != null)
         {
@@ -170,7 +158,12 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     bool canDrillHere = true;
                     if (drillDiggableLayers.value != 0)
                     {
-                        canDrillHere = Physics.CheckSphere(digPosition, radius * 0.35f, drillDiggableLayers, QueryTriggerInteraction.Ignore);
+                        canDrillHere = Physics.CheckSphere(
+                            digPosition,
+                            radius * 0.35f,
+                            drillDiggableLayers,
+                            QueryTriggerInteraction.Ignore
+                        );
                     }
 
                     if (!canDrillHere) continue;
@@ -178,6 +171,11 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
                     bool digOccurred = digManager.TryDigAt(digPosition, radius);
                     if (digOccurred)
                     {
+
+                        // チュートリアル：最初の掘削でお宝出現
+                        TutorialManager.Instance?.OnFirstDig(digPosition, radius);
+                        TutorialManager.Instance?.OnAnyDigSuccess();
+
                         soundManager?.PlayDrillDigSound(digPosition);
                         DigEffectManager.Instance?.CreateDigEffect(digPosition, radius);
                     }
@@ -193,21 +191,15 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     // === ドリル射出処理 ===
     private void ShootDrillTip()
     {
-        // 飛ばせるのは1つだけ
-        if (projectileActive) return;
-
         projectileActive = true;
-        shootTimer = 0f;
-        canSwitchMode = false;
+        cooldownTimer = 0f;
 
-        // ドリル先端を非表示
         if (visibleDrillTip != null)
             visibleDrillTip.SetActive(false);
 
-        // プレハブを生成
         GameObject tip = Instantiate(drillTipPrefab, drillTipOrigin.position, drillTipOrigin.rotation);
-        DrillTipProjectile projectile = tip.AddComponent<DrillTipProjectile>();
 
+        DrillTipProjectile projectile = tip.AddComponent<DrillTipProjectile>();
         projectile.Initialize(
             digManager,
             stats,
@@ -218,13 +210,14 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
             speedUpgradeLevel
         );
 
-        // 終了時に自動通知
-        StartCoroutine(WaitAndResetProjectile());
+        projectile.onDestroyed = OnProjectileDestroyed;
     }
 
-    private IEnumerator WaitAndResetProjectile()
+    private void OnProjectileDestroyed()
     {
-        yield return new WaitForSeconds(shootDuration);
         projectileActive = false;
+
+        if (visibleDrillTip != null)
+            visibleDrillTip.SetActive(true);
     }
 }

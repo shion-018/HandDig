@@ -22,5 +22,5 @@ MonoBehaviour:
   enableExplosionMode: 1
   explosionDelaySeconds: 1
   explosionRadiusBase: 5
-  explosionRadiusMax: 5
+  explosionRadiusMax: 15
   explosionMarkerPrefab: {fileID: 4625564672555278055, guid: d3122e2f3782e8c4db13e11c0e15e416, type: 3}

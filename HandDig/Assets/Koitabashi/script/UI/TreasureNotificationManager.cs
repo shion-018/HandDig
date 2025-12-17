@@ -34,7 +34,13 @@ public class TreasureNotificationManager : MonoBehaviour
     
     [Tooltip("爆発採掘お宝のメッセージ")]
     public string explosiveMessage = "爆発採掘お宝を取得！";
-    
+
+    [Tooltip("コンパス拡張お宝のメッセージ")]
+    public string compassUnlockMessage = "コンパス拡張お宝を取得！";
+
+    [Tooltip("コンパス本体取得お宝のメッセージ")]
+    public string compassMainMessage = "コンパスを取得！";
+
     [Header("表示設定")]
     [Tooltip("表示時間（秒）")]
     public float displayDuration = 3f;
@@ -349,10 +355,14 @@ public class TreasureNotificationManager : MonoBehaviour
             "DrillHitZone" => drillHitZoneMessage,
             "DrillSpeed" => drillSpeedMessage,
             "Explosive" => explosiveMessage,
+            "CompassUnlock" => compassUnlockMessage,
+            "CompassMain" => compassMainMessage,
             _ => "お宝を取得！"
         };
     }
 }
+
+
 
 
 

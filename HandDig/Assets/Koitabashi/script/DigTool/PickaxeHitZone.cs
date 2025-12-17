@@ -17,10 +17,11 @@ public class PickaxeHitZone : MonoBehaviour
             {
                 bool isSwingReady = masterTool.IsSwingReady();
                 Debug.Log($"[PickaxeHitZone] isSwingReady: {isSwingReady}");
-                
+
                 if (isSwingReady)
                 {
-                    masterTool.OnAnyHit();
+                    // Master側の新しいAPIに合わせて呼び出し
+                    masterTool.OnMainHit(other);
                     Debug.Log("[PickaxeHitZone] 掘り実行！");
                 }
                 else

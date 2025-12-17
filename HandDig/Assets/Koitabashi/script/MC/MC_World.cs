@@ -57,11 +57,14 @@ public class MC_World : MonoBehaviour
 
     async UniTask InitializeWorldAsync(CancellationToken token)
     {
-        // 各TreasureSpawnerにchunkSizeを適用
+        SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
+
+        // 各TreasureSpawnerにchunkSizeとコンテキストを適用
         foreach (var spawner in treasureSpawners)
         {
             if (spawner == null) continue;
             spawner.chunkSize = chunkSize;
+            spawner.InitializeContext(this, spawnManager);
         }
 
         // チャンク生成を非同期で実行
@@ -73,8 +76,10 @@ public class MC_World : MonoBehaviour
             await ApplyDigVolumesAsync();
         }
 
+        // 掘削後の密度を参照してからお宝を生成
+        SpawnTreasuresAcrossWorld();
+
         // スポーンシステムの処理
-        SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
         if (spawnManager == null)
         {
             // 従来の固定スポーン処理（後方互換性のため残す）
@@ -90,7 +95,7 @@ public class MC_World : MonoBehaviour
         }
         else
         {
-            Debug.Log("[MC_World] SpawnManagerが設定されています。ランダムスポーンシステムを使用します。");
+            Debug.Log("[MC_World] SpawnManagerが設定されています。固定スポーンポイントを使用します。");
         }
         
         // プレイヤーを実際のスポーン位置に移動
@@ -145,25 +150,7 @@ public class MC_World : MonoBehaviour
                         Debug.Log($"[MC_World] つるはし専用チャンク生成: {pos}, プレハブ: {prefabToUse.name}, タグ: {obj.tag}");
                     }
 
-                    // 除外チャンクの判定
-                    bool isExcluded = false;
-                    foreach (var spawner in treasureSpawners)
-                    {
-                        if (spawner != null && spawner.IsExcludedChunk(pos))
-                        {
-                            isExcluded = true;
-                            break;
-                        }
-                    }
-                    chunk.isExcluded = isExcluded;
                     chunkMap[pos] = chunk;
-                    
-                    // お宝の生成
-                    foreach (var spawner in treasureSpawners)
-                    {
-                        if (spawner != null)
-                            spawner.TrySpawnTreasureAtChunk(pos, worldPos);
-                    }
                     
                     // 分散処理する場合のみawait
                     if (useAsyncInitialization && (x + y + z) % 2 == 0)
@@ -211,6 +198,27 @@ public class MC_World : MonoBehaviour
         }
 
         Debug.Log("[MC_World] DigVolume処理完了");
+    }
+
+    void SpawnTreasuresAcrossWorld()
+    {
+        if (treasureSpawners == null || treasureSpawners.Count == 0)
+            return;
+
+        foreach (var kvp in chunkMap)
+        {
+            Vector3Int coord = kvp.Key;
+            MC_Chunk chunk = kvp.Value;
+            if (chunk == null) continue;
+
+            foreach (var spawner in treasureSpawners)
+            {
+                if (spawner == null) continue;
+                spawner.TrySpawnTreasureAtChunk(coord, chunk);
+            }
+        }
+
+        Debug.Log("[MC_World] お宝のスポーン処理が完了しました");
     }
 
     /// <summary>
