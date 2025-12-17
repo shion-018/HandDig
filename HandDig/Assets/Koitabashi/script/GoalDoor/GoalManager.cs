@@ -44,6 +44,28 @@ public class GoalManager : MonoBehaviour
     [Tooltip("自動検出するか（DoorControllerを自動で探す）")]
     [SerializeField] private bool autoDetectDoorController = true;
     
+    [Header("鍵とドアの連携設定")]
+    [Tooltip("鍵とドアの自動連携を有効にするか")]
+    [SerializeField] private bool enableKeyDoorLinking = true;
+    
+    [Tooltip("鍵を自動検出するか")]
+    [SerializeField] private bool autoDetectKeys = true;
+    
+    [Tooltip("ドアを自動検出するか")]
+    [SerializeField] private bool autoDetectDoors = true;
+    
+    [Tooltip("鍵のタグ")]
+    [SerializeField] private string keyTag = "Key";
+    
+    [Tooltip("ドアのタグ")]
+    [SerializeField] private string doorTag = "Door";
+    
+    [Tooltip("手動設定された鍵")]
+    [SerializeField] private List<KeyItem> manualKeys = new List<KeyItem>();
+    
+    [Tooltip("手動設定されたドア")]
+    [SerializeField] private List<DoorController> manualDoors = new List<DoorController>();
+    
     [Header("扉オブジェクト")]
     [Tooltip("強調する扉オブジェクト（複数登録可）")]
     [SerializeField] private List<GameObject> goalDoors = new List<GameObject>();
@@ -64,7 +86,19 @@ public class GoalManager : MonoBehaviour
     [Tooltip("テキストのサイズ")]
     [SerializeField] private float keyCollectionTextSize = 46f;
     
+    [Tooltip("表示時間（秒）")]
+    [SerializeField] private float keyCollectionDisplayDuration = 3f;
+    
+    [Tooltip("フェードイン時間（秒）")]
+    [SerializeField] private float keyCollectionFadeInDuration = 0.5f;
+    
+    [Tooltip("フェードアウト時間（秒）")]
+    [SerializeField] private float keyCollectionFadeOutDuration = 0.5f;
+    
     [Header("輪郭強調設定")]
+    [Tooltip("輪郭強調機能を有効にするか")]
+    [SerializeField] private bool enableOutlineEffect = true;
+    
     [Tooltip("輪郭の色")]
     [SerializeField] private Color outlineColor = new Color(1f, 0.8f, 0f, 1f); // オレンジ系
     
@@ -94,6 +128,11 @@ public class GoalManager : MonoBehaviour
     private bool allKeysCollected = false;
     private Dictionary<GameObject, OutlineEffect> outlineEffects = new Dictionary<GameObject, OutlineEffect>();
     private Transform playerTransform;
+    
+    // 鍵とドアの連携関連
+    private List<KeyItem> allKeys = new List<KeyItem>();
+    private List<DoorController> allDoors = new List<DoorController>();
+    private Coroutine keyCollectionUICoroutine;
     
     /// <summary>
     /// シングルトンインスタンス
@@ -166,6 +205,172 @@ public class GoalManager : MonoBehaviour
         {
             InitializeKeyCollection();
         }
+        
+        // 鍵とドアの連携を初期化
+        if (enableKeyDoorLinking)
+        {
+            InitializeKeyDoorLinking();
+        }
+    }
+    
+    /// <summary>
+    /// 鍵とドアの連携を初期化
+    /// </summary>
+    private void InitializeKeyDoorLinking()
+    {
+        if (autoDetectKeys)
+        {
+            DetectKeys();
+        }
+        
+        if (autoDetectDoors)
+        {
+            DetectDoors();
+        }
+        
+        // 手動設定された鍵とドアを追加
+        RegisterManualKeys();
+        RegisterManualDoors();
+        
+        // 鍵とドアを連携
+        ConnectKeysAndDoors();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[GoalManager] 鍵とドアの連携初期化完了。鍵数: {allKeys.Count}, ドア数: {allDoors.Count}");
+        }
+    }
+    
+    /// <summary>
+    /// シーン内の鍵を自動検出
+    /// </summary>
+    private void DetectKeys()
+    {
+        // タグで検出
+        GameObject[] keyObjects = GameObject.FindGameObjectsWithTag(keyTag);
+        foreach (GameObject keyObj in keyObjects)
+        {
+            KeyItem keyItem = keyObj.GetComponent<KeyItem>();
+            if (keyItem != null && !allKeys.Contains(keyItem))
+            {
+                allKeys.Add(keyItem);
+            }
+        }
+        
+        // KeyItemコンポーネントで検出
+        KeyItem[] allKeyItems = FindObjectsOfType<KeyItem>();
+        foreach (KeyItem keyItem in allKeyItems)
+        {
+            if (!allKeys.Contains(keyItem))
+            {
+                allKeys.Add(keyItem);
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[GoalManager] 自動検出で{allKeys.Count}個の鍵を発見しました");
+        }
+    }
+    
+    /// <summary>
+    /// シーン内のドアを自動検出
+    /// </summary>
+    private void DetectDoors()
+    {
+        // タグで検出
+        GameObject[] doorObjects = GameObject.FindGameObjectsWithTag(doorTag);
+        foreach (GameObject doorObj in doorObjects)
+        {
+            DoorController doorController = doorObj.GetComponent<DoorController>();
+            if (doorController != null && !allDoors.Contains(doorController))
+            {
+                allDoors.Add(doorController);
+            }
+        }
+        
+        // DoorControllerコンポーネントで検出
+        DoorController[] allDoorControllers = FindObjectsOfType<DoorController>();
+        foreach (DoorController doorController in allDoorControllers)
+        {
+            if (!allDoors.Contains(doorController))
+            {
+                allDoors.Add(doorController);
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[GoalManager] 自動検出で{allDoors.Count}個のドアを発見しました");
+        }
+    }
+    
+    /// <summary>
+    /// 手動設定された鍵を登録
+    /// </summary>
+    private void RegisterManualKeys()
+    {
+        foreach (KeyItem key in manualKeys)
+        {
+            if (key != null && !allKeys.Contains(key))
+            {
+                allKeys.Add(key);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 手動設定されたドアを登録
+    /// </summary>
+    private void RegisterManualDoors()
+    {
+        foreach (DoorController door in manualDoors)
+        {
+            if (door != null && !allDoors.Contains(door))
+            {
+                allDoors.Add(door);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 鍵とドアを連携
+    /// </summary>
+    private void ConnectKeysAndDoors()
+    {
+        foreach (KeyItem key in allKeys)
+        {
+            if (key != null)
+            {
+                // 鍵が収集された時のイベントを設定
+                key.OnKeyCollected += OnKeyCollectedFromLinking;
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("[GoalManager] 鍵とドアの連携を設定しました");
+        }
+    }
+    
+    /// <summary>
+    /// 鍵が収集された時の処理（鍵とドアの連携用）
+    /// </summary>
+    private void OnKeyCollectedFromLinking(KeyItem collectedKey)
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log($"[GoalManager] 鍵が収集されました（連携）: {collectedKey.name}");
+        }
+        
+        // 全てのドアに鍵収集を通知
+        foreach (DoorController door in allDoors)
+        {
+            if (door != null)
+            {
+                door.CollectKey(collectedKey.gameObject);
+            }
+        }
     }
     
     /// <summary>
@@ -210,11 +415,14 @@ public class GoalManager : MonoBehaviour
         InitializeKeyCollectionUI();
         
         // 扉の輪郭エフェクトを初期化
-        InitializeOutlineEffects();
+        if (enableOutlineEffect)
+        {
+            InitializeOutlineEffects();
+        }
         
         if (enableDebugLog)
         {
-            Debug.Log($"[GoalManager] カギ収集機能初期化完了。扉数: {goalDoors.Count}");
+            Debug.Log($"[GoalManager] カギ収集機能初期化完了。扉数: {goalDoors.Count}, 輪郭強調: {enableOutlineEffect}");
         }
     }
     
@@ -231,8 +439,9 @@ public class GoalManager : MonoBehaviour
         if (keyCollectionText != null)
         {
             keyCollectionText.text = keyCollectionMessage;
-            keyCollectionText.color = keyCollectionTextColor;
             keyCollectionText.fontSize = keyCollectionTextSize;
+            // 初期状態では透明に設定
+            keyCollectionText.color = new Color(keyCollectionTextColor.r, keyCollectionTextColor.g, keyCollectionTextColor.b, 0f);
         }
         
         // 初期状態では非表示
@@ -349,8 +558,11 @@ public class GoalManager : MonoBehaviour
         // UIを表示
         ShowKeyCollectionUI();
         
-        // 扉の輪郭を強調
-        EnableDoorOutlines();
+        // 扉の輪郭を強調（有効な場合のみ）
+        if (enableOutlineEffect)
+        {
+            EnableDoorOutlines();
+        }
     }
     
     /// <summary>
@@ -358,14 +570,104 @@ public class GoalManager : MonoBehaviour
     /// </summary>
     private void ShowKeyCollectionUI()
     {
+        if (keyCollectionUICoroutine != null)
+        {
+            StopCoroutine(keyCollectionUICoroutine);
+        }
+        
+        keyCollectionUICoroutine = StartCoroutine(ShowKeyCollectionUICoroutine());
+    }
+    
+    /// <summary>
+    /// カギ収集UI表示のコルーチン（フェードイン・フェードアウト付き）
+    /// </summary>
+    private IEnumerator ShowKeyCollectionUICoroutine()
+    {
+        // Canvasをアクティブにする
         if (keyCollectionCanvas != null)
         {
             keyCollectionCanvas.gameObject.SetActive(true);
         }
         
+        // テキストを設定
         if (keyCollectionText != null)
         {
             keyCollectionText.text = keyCollectionMessage;
+        }
+        
+        // フェードイン
+        yield return StartCoroutine(FadeInKeyCollectionUI());
+        
+        // 表示時間待機
+        yield return new WaitForSeconds(keyCollectionDisplayDuration);
+        
+        // フェードアウト
+        yield return StartCoroutine(FadeOutKeyCollectionUI());
+        
+        // Canvasを非アクティブにする
+        if (keyCollectionCanvas != null)
+        {
+            keyCollectionCanvas.gameObject.SetActive(false);
+        }
+        
+        keyCollectionUICoroutine = null;
+    }
+    
+    /// <summary>
+    /// カギ収集UIのフェードイン
+    /// </summary>
+    private IEnumerator FadeInKeyCollectionUI()
+    {
+        float elapsed = 0f;
+        Color startTextColor = new Color(keyCollectionTextColor.r, keyCollectionTextColor.g, keyCollectionTextColor.b, 0f);
+        Color endTextColor = keyCollectionTextColor;
+        
+        while (elapsed < keyCollectionFadeInDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / keyCollectionFadeInDuration;
+            
+            if (keyCollectionText != null)
+            {
+                keyCollectionText.color = Color.Lerp(startTextColor, endTextColor, t);
+            }
+            
+            yield return null;
+        }
+        
+        // 最終値を設定
+        if (keyCollectionText != null)
+        {
+            keyCollectionText.color = endTextColor;
+        }
+    }
+    
+    /// <summary>
+    /// カギ収集UIのフェードアウト
+    /// </summary>
+    private IEnumerator FadeOutKeyCollectionUI()
+    {
+        float elapsed = 0f;
+        Color startTextColor = keyCollectionTextColor;
+        Color endTextColor = new Color(keyCollectionTextColor.r, keyCollectionTextColor.g, keyCollectionTextColor.b, 0f);
+        
+        while (elapsed < keyCollectionFadeOutDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / keyCollectionFadeOutDuration;
+            
+            if (keyCollectionText != null)
+            {
+                keyCollectionText.color = Color.Lerp(startTextColor, endTextColor, t);
+            }
+            
+            yield return null;
+        }
+        
+        // 最終値を設定
+        if (keyCollectionText != null)
+        {
+            keyCollectionText.color = endTextColor;
         }
     }
     
@@ -388,8 +690,8 @@ public class GoalManager : MonoBehaviour
     
     private void Update()
     {
-        // カギ収集時の輪郭強度を更新
-        if (enableKeyCollectionFeature && allKeysCollected && playerTransform != null)
+        // カギ収集時の輪郭強度を更新（輪郭強調が有効な場合のみ）
+        if (enableKeyCollectionFeature && enableOutlineEffect && allKeysCollected && playerTransform != null)
         {
             UpdateOutlineIntensity();
         }
@@ -692,6 +994,133 @@ public class GoalManager : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// 鍵を手動で追加
+    /// </summary>
+    public void AddKey(KeyItem key)
+    {
+        if (key != null && !allKeys.Contains(key))
+        {
+            allKeys.Add(key);
+            key.OnKeyCollected += OnKeyCollectedFromLinking;
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"[GoalManager] 鍵を追加しました: {key.name}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// ドアを手動で追加
+    /// </summary>
+    public void AddDoor(DoorController door)
+    {
+        if (door != null && !allDoors.Contains(door))
+        {
+            allDoors.Add(door);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"[GoalManager] ドアを追加しました: {door.name}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 鍵を削除
+    /// </summary>
+    public void RemoveKey(KeyItem key)
+    {
+        if (key != null && allKeys.Contains(key))
+        {
+            allKeys.Remove(key);
+            key.OnKeyCollected -= OnKeyCollectedFromLinking;
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"[GoalManager] 鍵を削除しました: {key.name}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// ドアを削除
+    /// </summary>
+    public void RemoveDoor(DoorController door)
+    {
+        if (door != null && allDoors.Contains(door))
+        {
+            allDoors.Remove(door);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"[GoalManager] ドアを削除しました: {door.name}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 全ての鍵の収集状況をリセット
+    /// </summary>
+    public void ResetAllKeys()
+    {
+        foreach (DoorController door in allDoors)
+        {
+            if (door != null)
+            {
+                door.ResetKeyCollection();
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("[GoalManager] 全ての鍵の収集状況をリセットしました");
+        }
+    }
+    
+    /// <summary>
+    /// 輪郭強調機能のオンオフを設定
+    /// </summary>
+    public void SetOutlineEffectEnabled(bool enabled)
+    {
+        enableOutlineEffect = enabled;
+        
+        if (enabled)
+        {
+            // 有効化：既にカギが集まっている場合は輪郭を表示
+            if (allKeysCollected)
+            {
+                EnableDoorOutlines();
+            }
+        }
+        else
+        {
+            // 無効化：輪郭を非表示
+            DisableDoorOutlines();
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[GoalManager] 輪郭強調機能を{(enabled ? "有効" : "無効")}にしました");
+        }
+    }
+    
+    /// <summary>
+    /// 扉の輪郭を無効化
+    /// </summary>
+    private void DisableDoorOutlines()
+    {
+        foreach (var kvp in outlineEffects)
+        {
+            OutlineEffect effect = kvp.Value;
+            if (effect != null)
+            {
+                effect.enabled = false;
+            }
+        }
+    }
+    
     private void OnDestroy()
     {
         // イベントの購読を解除
@@ -699,6 +1128,15 @@ public class GoalManager : MonoBehaviour
         {
             doorController.OnKeyCollected -= OnKeyCollected;
             doorController.OnDoorOpened -= OnDoorOpened;
+        }
+        
+        // 鍵とドアの連携のイベントを解除
+        foreach (KeyItem key in allKeys)
+        {
+            if (key != null)
+            {
+                key.OnKeyCollected -= OnKeyCollectedFromLinking;
+            }
         }
     }
     
