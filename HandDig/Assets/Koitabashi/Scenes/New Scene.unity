@@ -3664,9 +3664,9 @@ MonoBehaviour:
   treasureCanvas: {fileID: 1205952843}
   normalTreasureText: {fileID: 1284833557}
   drillSpeedText: {fileID: 333746106}
-  explosionSystemPanel: {fileID: 196760662}
-  explosionModeText: {fileID: 179534572}
-  explosionChargesText: {fileID: 842624340}
+  explosionSystemPanel: {fileID: 0}
+  explosionModeText: {fileID: 0}
+  explosionChargesText: {fileID: 0}
   totalTreasureText: {fileID: 1033162002}
   updateInterval: 0.1
   showExplosionSystemAfterFirstGet: 1
