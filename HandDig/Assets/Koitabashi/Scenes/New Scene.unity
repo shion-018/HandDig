@@ -273,8 +273,8 @@ MonoBehaviour:
   playerRoot: {fileID: 1291946209}
   requiredMoveTime: 1
   moveInputThreshold: 0.3
-  requiredLookTime: 0.6
-  lookThreshold: 0.3
+  requiredLookTime: 0.3
+  lookThreshold: 0.15
 --- !u!4 &32823353
 Transform:
   m_ObjectHideFlags: 0
@@ -5506,19 +5506,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57923b2d14a452e43b5781d67b79af2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  autoDetectKeys: 0
-  autoDetectDoors: 0
-  keyTag: Key
-  doorTag: Door
-  manualKeys:
-  - {fileID: 829871435}
-  - {fileID: 990800533}
-  - {fileID: 509309657}
-  manualDoors:
-  - {fileID: 0}
-  showDebugInfo: 1
-  allKeys: []
-  allDoors: []
 --- !u!4 &769697867
 Transform:
   m_ObjectHideFlags: 0
@@ -7736,7 +7723,7 @@ GameObject:
   - component: {fileID: 1127414585}
   - component: {fileID: 1127414584}
   m_Layer: 5
-  m_Name: GoaGOlUI
+  m_Name: GoGoalUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9636,7 +9623,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: {fileID: 2094635214}
-  door: {fileID: 0}
+  door: {fileID: 1785089088}
 --- !u!1001 &1425173968
 PrefabInstance:
   m_ObjectHideFlags: 0
