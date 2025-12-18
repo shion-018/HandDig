@@ -115,6 +115,12 @@ public class TreasureCollector : MonoBehaviour
             {
                 TreasureNotificationManager.Instance.ShowTreasureNotification("CompassUnlock");
             }
+
+            // チュートリアル進行を通知
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.OnCompassUpgradeTreasureCollected();
+            }
         }
 
         // お宝を非表示に

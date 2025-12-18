@@ -269,12 +269,15 @@ MonoBehaviour:
   tutorialCanvas: {fileID: 759026374}
   tutorialText: {fileID: 1873652751}
   tutorialCompassPrefab: {fileID: 6718049075907697980, guid: 2a167d557b5e7dc4782503cf728bad65, type: 3}
+  secondDigTreasurePrefab: {fileID: 1138277148013441916, guid: cfa400b1e2ff57943a0c3cd050485e21, type: 3}
   compassObject: {fileID: 1075797175}
+  compassScript: {fileID: 471018271}
   playerRoot: {fileID: 1291946209}
   requiredMoveTime: 1
   moveInputThreshold: 0.3
   requiredLookTime: 0.3
   lookThreshold: 0.15
+  requiredJumpTime: 1
 --- !u!4 &32823353
 Transform:
   m_ObjectHideFlags: 0
@@ -13769,7 +13772,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u7528"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 511117f1095c8854c8afafc1dceea49d, type: 2}
   m_sharedMaterial: {fileID: -664653956823450381, guid: 511117f1095c8854c8afafc1dceea49d, type: 2}
@@ -13880,7 +13883,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -99.69833}
+  m_AnchoredPosition: {x: 0, y: -77.1}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1873652751

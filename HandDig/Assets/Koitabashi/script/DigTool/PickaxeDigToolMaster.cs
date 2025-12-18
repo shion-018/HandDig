@@ -203,7 +203,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
             dug.Add(digPos);
 
             TutorialManager.Instance?.OnFirstDig(digPos, radius);
-            TutorialManager.Instance?.OnAnyDigSuccess();
+            TutorialManager.Instance?.OnAnyDigSuccess(digPos, radius);
             DigEffectManager.Instance?.CreateDigEffect(digPos, radius);
             DigSoundManager.Instance?.PlayPickaxeDigSound(comboStage, digPos);
         }

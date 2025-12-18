@@ -174,7 +174,7 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
                         // チュートリアル：最初の掘削でお宝出現
                         TutorialManager.Instance?.OnFirstDig(digPosition, radius);
-                        TutorialManager.Instance?.OnAnyDigSuccess();
+                        TutorialManager.Instance?.OnAnyDigSuccess(digPosition, radius);
 
                         soundManager?.PlayDrillDigSound(digPosition);
                         DigEffectManager.Instance?.CreateDigEffect(digPosition, radius);
