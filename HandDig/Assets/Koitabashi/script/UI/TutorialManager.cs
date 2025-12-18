@@ -134,11 +134,11 @@ public class TutorialManager : MonoBehaviour
 
         if (tool is PickaxeDigToolMaster)
         {
-            ShowText("ピッケルを振りかぶって掘ってみよう！");
+            ShowText("トリガーを押しながら\n振りかぶって 振り下ろす");
         }
         else if (tool is DrillDigTool)
         {
-            ShowText("ピッケルを振りかぶって\nドリルを近づけよう！");
+            ShowText("トリガーを押しながら\nドリルを壁に近づける");
         }
     }
 
@@ -169,15 +169,15 @@ public class TutorialManager : MonoBehaviour
         switch (currentStep)
         {
             case TutorialStep.Move:
-                tutorialText.text = "スティックで移動しよう";
+                tutorialText.text = "左スティックで移動";
                 break;
 
             case TutorialStep.Look:
-                tutorialText.text = "右スティックで視点を回転させてみよう";
+                tutorialText.text = "右スティックで視点移動";
                 break;
 
             case TutorialStep.ToolChange:
-                tutorialText.text = "Bボタンで道具を切り替えよう";
+                tutorialText.text = "Bボタンで 道具を持ち替えることができる";
                 break;
 
             case TutorialStep.AnyDig:
@@ -189,7 +189,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.Complete:
-                tutorialText.text = "チュートリアル完了、おめでとう！";
+                tutorialText.text = "チュートリアル完了";
                 Invoke(nameof(HideUI), 2f);
                 break;
         }
