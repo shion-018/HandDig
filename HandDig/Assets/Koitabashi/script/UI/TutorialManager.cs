@@ -252,7 +252,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.GetCompass:
-                tutorialText.text = "お宝は 取ると 強化を得られる";
+                tutorialText.text = "コンパスはお宝の方を指す";
                 break;
 
             case TutorialStep.ToolChange:
@@ -264,7 +264,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.CompassUpgrade:
-                tutorialText.text = "コンパスが強化されたようだ\nYボタンを押す";
+                tutorialText.text = "お宝を取ると強化が得られる\nYボタンを押す";
                 break;
 
             case TutorialStep.CompassButtonPress:

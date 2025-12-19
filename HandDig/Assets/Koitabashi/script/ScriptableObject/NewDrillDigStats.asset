@@ -15,6 +15,6 @@ MonoBehaviour:
   baseRadius: 1
   maxRadius: 3
   upgradeSteps: 10
-  baseDigInterval: 0.25
-  maxDigInterval: 0.05
+  baseDigInterval: 0.5
+  maxDigInterval: 0.1
   speedUpgradeSteps: 5
