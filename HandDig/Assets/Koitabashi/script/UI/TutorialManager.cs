@@ -51,9 +51,10 @@ public class TutorialManager : MonoBehaviour
     private bool moveInputDetected = false;
     private float moveInputTimer = 0f;
 
-    [SerializeField] private float requiredLookTime = 0.6f;
-    [SerializeField] private float lookThreshold = 0.3f;
-    private float lookTimer = 0f;
+    [SerializeField] private int requiredSnapTurnCount = 3; // スナップターンの必要回数
+    [SerializeField] private float snapInputThreshold = 0.8f; // スナップターンの閾値（VRPlayerMovementと同じ）
+    private int snapTurnCount = 0; // スナップターンの回数
+    private bool canSnapTurn = true; // スナップターン可能かどうか（VRPlayerMovementと同じロジック）
 
     [SerializeField] private float requiredJumpTime = 0.5f; // ジャンプ/ジェットパック検知時間
     private float jumpTimer = 0f;
@@ -190,6 +191,10 @@ public class TutorialManager : MonoBehaviour
 
 
 
+    [Header("コンパス強化フェーズ")]
+    [Tooltip("trueの場合、7の掘り後にコンパス強化フェーズ（8,9）に進む。falseの場合、7の掘りでチュートリアル終了")]
+    public bool enableCompassUpgradePhase = false;
+
     public void OnAnyDigSuccess(Vector3 digPos, float radius)
     {
         // SecondDigステップで掘った場合
@@ -197,14 +202,20 @@ public class TutorialManager : MonoBehaviour
         {
             // 二回目の掘りでお宝を生成
             SpawnSecondDigTreasure(digPos, radius);
-            // お宝を取るまで待つ（お宝取得時にCompassUpgradeに進む）
+            
+            // コンパス強化フェーズが有効な場合はお宝を取るまで待つ
+            // 無効な場合は直接完了
+            if (!enableCompassUpgradePhase)
+            {
+                SetStep(TutorialStep.Complete);
+            }
         }
     }
 
     public void OnCompassUpgradeTreasureCollected()
     {
-        // SecondDigステップの後、コンパス強化お宝を取った場合
-        if (currentStep == TutorialStep.SecondDig || currentStep == TutorialStep.CompassUpgrade)
+        // コンパス強化フェーズが有効で、SecondDigステップの後、コンパス強化お宝を取った場合
+        if (enableCompassUpgradePhase && (currentStep == TutorialStep.SecondDig || currentStep == TutorialStep.CompassUpgrade))
         {
             SetStep(TutorialStep.CompassUpgrade);
         }
@@ -244,7 +255,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.Jump:
-                tutorialText.text = "Aボタンでジャンプ、長押しでジェットパック";
+                tutorialText.text = "Aボタンでジェットパック起動\n押している間飛ぶことができる";
                 break;
 
             case TutorialStep.FirstDig:
@@ -252,7 +263,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.GetCompass:
-                tutorialText.text = "コンパスはお宝の方を指す";
+                tutorialText.text = "コンパスが出てきた\nお宝を指してくれる";
                 break;
 
             case TutorialStep.ToolChange:
@@ -260,15 +271,15 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.SecondDig:
-                UpdateSecondDigTextByTool();
+                tutorialText.text = "トリガー押しながら振りかぶって振り下ろす";
                 break;
 
             case TutorialStep.CompassUpgrade:
-                tutorialText.text = "お宝を取ると強化が得られる\nYボタンを押す";
+                tutorialText.text = "コンパスが強化された\nYボタンで扉の解除キーを指す";
                 break;
 
             case TutorialStep.CompassButtonPress:
-                tutorialText.text = "コンパスが指すものが変わったようだ\nもう一度押すとまたお宝を指す";
+                tutorialText.text = "もう一度押すとまたお宝を指す";
                 break;
 
             case TutorialStep.Complete:
@@ -285,25 +296,11 @@ public class TutorialManager : MonoBehaviour
 
         if (tool is PickaxeDigToolMaster)
         {
-            tutorialText.text = "トリガーを押しながら\nピッケルを振りかぶって掘ってみよう";
+            tutorialText.text = "掘るにはトリガーを押しながら\nピッケルを振りかぶって掘ってみよう";
         }
         else if (tool is DrillDigTool)
         {
-            tutorialText.text = "トリガーを押しながら\nドリルを壁に近づける";
-        }
-    }
-
-    private void UpdateSecondDigTextByTool()
-    {
-        var tool = toolManager.GetCurrentTool();
-
-        if (tool is PickaxeDigToolMaster)
-        {
-            tutorialText.text = "トリガーを押しながら\n振りかぶって 振り下ろす";
-        }
-        else if (tool is DrillDigTool)
-        {
-            tutorialText.text = "トリガーを押しながら\n振りかぶって 振り下ろす";
+            tutorialText.text = "掘るにはトリガーを押しながら\nドリルを壁に近づける";
         }
     }
 
@@ -418,23 +415,41 @@ public class TutorialManager : MonoBehaviour
 
     private void CheckLook()
     {
-        // 右スティック
+        // 右スティック（VRPlayerMovementと同じスナップターン方式）
         float rightX = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick).x;
 
-        if (Mathf.Abs(rightX) >= lookThreshold)
+        // VRPlayerMovementと同じロジック
+        if (canSnapTurn)
         {
-            lookTimer += Time.deltaTime;
-
-            if (lookTimer >= requiredLookTime)
+            // 右にスナップターン
+            if (rightX > snapInputThreshold)
             {
-                Debug.Log("[Tutorial] Look Completed");
-                SetStep(TutorialStep.Jump);
+                snapTurnCount++;
+                canSnapTurn = false;
+                Debug.Log($"[Tutorial] スナップターン（右）: {snapTurnCount}/{requiredSnapTurnCount}回");
+            }
+            // 左にスナップターン
+            else if (rightX < -snapInputThreshold)
+            {
+                snapTurnCount++;
+                canSnapTurn = false;
+                Debug.Log($"[Tutorial] スナップターン（左）: {snapTurnCount}/{requiredSnapTurnCount}回");
             }
         }
-        else
+        
+        // スティックが戻ったら次のスナップターンを許可（VRPlayerMovementと同じ）
+        if (Mathf.Abs(rightX) < 0.2f)
         {
-            // 入力が無い場合はリセット
-            lookTimer = 0f;
+            canSnapTurn = true;
+        }
+
+        // 必要な回数に達したら次へ
+        if (snapTurnCount >= requiredSnapTurnCount)
+        {
+            Debug.Log("[Tutorial] Look Completed");
+            SetStep(TutorialStep.Jump);
+            snapTurnCount = 0;
+            canSnapTurn = true;
         }
     }
 

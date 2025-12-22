@@ -220,4 +220,12 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
         if (visibleDrillTip != null)
             visibleDrillTip.SetActive(true);
     }
+
+    /// <summary>
+    /// 射出モードかどうかを取得（DrillControllerから使用）
+    /// </summary>
+    public bool IsShootMode()
+    {
+        return isShootMode;
+    }
 }

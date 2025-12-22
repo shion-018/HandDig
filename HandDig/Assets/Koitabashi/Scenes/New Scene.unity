@@ -275,9 +275,10 @@ MonoBehaviour:
   playerRoot: {fileID: 1291946209}
   requiredMoveTime: 1
   moveInputThreshold: 0.3
-  requiredLookTime: 0.3
-  lookThreshold: 0.15
+  requiredSnapTurnCount: 3
+  snapInputThreshold: 0.8
   requiredJumpTime: 2
+  enableCompassUpgradePhase: 0
 --- !u!4 &32823353
 Transform:
   m_ObjectHideFlags: 0
@@ -786,6 +787,7 @@ MonoBehaviour:
   endSource: {fileID: 981511008}
   enableKeyboardInput: 1
   loopStartDelay: 0.3
+  drillDigTool: {fileID: 0}
 --- !u!1 &120889875
 GameObject:
   m_ObjectHideFlags: 0
@@ -9364,6 +9366,58 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &1370106092
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1370106094}
+  - component: {fileID: 1370106093}
+  m_Layer: 0
+  m_Name: TreasureProximitySoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1370106093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370106092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 799bc77948649404cac40053e556a84c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  treasureTag: Treasure
+  detectionInterval: 0.2
+  detectionMode: 0
+  preciousTreasurePrefabs: []
+  playerTransform: {fileID: 1291946209}
+  soundManager: {fileID: 443673714}
+  soundSettings: {fileID: 11400000, guid: d404b45908b7e7b44b9384a961dae93d, type: 2}
+  enableDebugLog: 0
+--- !u!4 &1370106094
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370106092}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 139.45866, y: -75.66356, z: 202.60313}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1391877343
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15596,6 +15650,7 @@ SceneRoots:
   - {fileID: 228749824}
   - {fileID: 1597683973}
   - {fileID: 443673715}
+  - {fileID: 1370106094}
   - {fileID: 524288563}
   - {fileID: 2011586160}
   - {fileID: 32823353}

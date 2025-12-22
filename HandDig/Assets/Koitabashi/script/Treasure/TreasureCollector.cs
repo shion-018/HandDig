@@ -123,6 +123,12 @@ public class TreasureCollector : MonoBehaviour
             }
         }
 
+        // お宝接近音マネージャーに記録クリアを通知
+        if (TreasureProximitySoundManager.Instance != null)
+        {
+            TreasureProximitySoundManager.Instance.ClearTreasureRecord(other.gameObject);
+        }
+
         // お宝を非表示に
         Destroy(other.gameObject, 0.1f);
         //other.gameObject.SetActive(false);

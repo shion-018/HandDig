@@ -17,7 +17,16 @@ MonoBehaviour:
   pickaxeExplosionMarkerSound: {fileID: 8300000, guid: 726ced6a74e196e49af59496aa704bba, type: 3}
   pickaxeExplosionSound: {fileID: 8300000, guid: d9b17561b0f8ca843a6136222992e6a8, type: 3}
   drillDigSound: {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
+  drillMotorStartSound: {fileID: 8300000, guid: 1752cb2e0555ed04ab466129c28fb992, type: 3}
+  drillMotorLoopSound: {fileID: 8300000, guid: e0e4f30e7fa7dd64790c4d46f01cb3a5, type: 3}
+  drillMotorEndSound: {fileID: 0}
+  drillProjectileSound: {fileID: 8300000, guid: 832e1d9549e7d0e4c97a070ab9545340, type: 3}
   handDigSound: {fileID: 0}
+  treasureProximitySound: {fileID: 8300000, guid: 4b39285ed74786046adb97a95e6313da, type: 3}
+  treasureProximityMaxDistance: 30
+  treasureProximityMinDistance: 5
+  treasureProximityMaxInterval: 2
+  treasureProximityMinInterval: 0.3
   baseVolume: 0.7
   basePitch: 1
   useSpatialBlending: 1
