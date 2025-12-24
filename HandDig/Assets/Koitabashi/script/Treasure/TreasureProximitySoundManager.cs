@@ -18,6 +18,12 @@ public class TreasureProximitySoundManager : MonoBehaviour
     [Range(0.1f, 1f)]
     public float detectionInterval = 0.2f;
     
+    [Tooltip("お宝接近音の最大検出距離")]
+    public float maxDistance = 30f;
+    
+    [Tooltip("お宝接近音の最小検出距離")]
+    public float minDistance = 5f;
+    
     [Header("貴重なお宝の検出方法")]
     [Tooltip("検出方法を選択")]
     public DetectionMode detectionMode = DetectionMode.ComponentOnly;
@@ -36,6 +42,10 @@ public class TreasureProximitySoundManager : MonoBehaviour
     [Header("プレイヤー設定")]
     [Tooltip("プレイヤーのルートオブジェクト（自動検索される）")]
     public Transform playerTransform;
+    
+    [Header("コンパス設定")]
+    [Tooltip("コンパスに付いたオーディオソース（音の再生に使用）")]
+    public AudioSource compassAudioSource;
     
     [Header("音声設定")]
     [Tooltip("音声マネージャー（自動検索される）")]
@@ -121,15 +131,81 @@ public class TreasureProximitySoundManager : MonoBehaviour
             soundSettings = soundManager.soundSettings;
         }
         
+        // コンパスのオーディオソースを自動検索
+        if (compassAudioSource == null)
+        {
+            // CompassScriptを持つオブジェクトを探す
+            CompassScript compassScript = FindObjectOfType<CompassScript>();
+            if (compassScript != null)
+            {
+                compassAudioSource = compassScript.GetComponent<AudioSource>();
+                if (compassAudioSource == null)
+                {
+                    // 子オブジェクトから探す
+                    compassAudioSource = compassScript.GetComponentInChildren<AudioSource>();
+                }
+            }
+            
+            // 見つからない場合は名前で探す
+            if (compassAudioSource == null)
+            {
+                GameObject compassObj = GameObject.Find("Compass");
+                if (compassObj == null)
+                {
+                    compassObj = GameObject.FindGameObjectWithTag("Compass");
+                }
+                if (compassObj != null)
+                {
+                    compassAudioSource = compassObj.GetComponent<AudioSource>();
+                    if (compassAudioSource == null)
+                    {
+                        compassAudioSource = compassObj.GetComponentInChildren<AudioSource>();
+                    }
+                }
+            }
+        }
+        
+        // 設定ファイルから距離を取得（未設定の場合）
+        if (soundSettings != null)
+        {
+            if (maxDistance <= 0)
+            {
+                maxDistance = soundSettings.treasureProximityMaxDistance;
+            }
+            if (minDistance <= 0)
+            {
+                minDistance = soundSettings.treasureProximityMinDistance;
+            }
+        }
+        
         if (enableDebugLog)
         {
-            Debug.Log($"[TreasureProximitySoundManager] 初期化完了 - プレイヤー: {(playerTransform != null ? playerTransform.name : "未検出")}, 音声マネージャー: {(soundManager != null ? "検出" : "未検出")}");
+            Debug.Log($"[TreasureProximitySoundManager] 初期化完了 - プレイヤー: {(playerTransform != null ? playerTransform.name : "未検出")}, 音声マネージャー: {(soundManager != null ? "検出" : "未検出")}, コンパスオーディオソース: {(compassAudioSource != null ? compassAudioSource.name : "未検出")}, 最大距離: {maxDistance}, 最小距離: {minDistance}");
         }
     }
 
     private void Update()
     {
-        if (playerTransform == null || soundSettings == null || soundManager == null)
+        if (playerTransform == null || soundSettings == null || compassAudioSource == null)
+        {
+            return;
+        }
+        
+        // コンパスのオーディオソースが未検出の場合は再検索
+        if (compassAudioSource == null)
+        {
+            CompassScript compassScript = FindObjectOfType<CompassScript>();
+            if (compassScript != null)
+            {
+                compassAudioSource = compassScript.GetComponent<AudioSource>();
+                if (compassAudioSource == null)
+                {
+                    compassAudioSource = compassScript.GetComponentInChildren<AudioSource>();
+                }
+            }
+        }
+        
+        if (compassAudioSource == null)
         {
             return;
         }
@@ -151,8 +227,6 @@ public class TreasureProximitySoundManager : MonoBehaviour
         }
         
         Vector3 playerPosition = playerTransform.position;
-        float maxDistance = soundSettings.treasureProximityMaxDistance;
-        float minDistance = soundSettings.treasureProximityMinDistance;
         
         foreach (GameObject treasure in allTreasures)
         {
@@ -166,11 +240,21 @@ public class TreasureProximitySoundManager : MonoBehaviour
             
             float distance = Vector3.Distance(playerPosition, treasure.transform.position);
             
-            // 検出範囲内かチェック
-            if (distance <= maxDistance && distance >= minDistance)
+            // 検出範囲内かチェック（maxDistanceより遠い場合は音を鳴らさない）
+            if (distance <= maxDistance)
             {
                 // 距離に応じて音の間隔を計算
-                float normalizedDistance = Mathf.InverseLerp(maxDistance, minDistance, distance);
+                // minDistanceより近い場合は最短間隔を使用
+                float normalizedDistance;
+                if (distance <= minDistance)
+                {
+                    normalizedDistance = 1f; // 最短間隔
+                }
+                else
+                {
+                    normalizedDistance = Mathf.InverseLerp(maxDistance, minDistance, distance);
+                }
+                
                 float currentInterval = Mathf.Lerp(
                     soundSettings.treasureProximityMaxInterval,
                     soundSettings.treasureProximityMinInterval,
@@ -187,8 +271,18 @@ public class TreasureProximitySoundManager : MonoBehaviour
                     }
                 }
                 
-                // 音を再生
-                soundManager.PlayTreasureProximitySound(treasure.transform.position);
+                // 音を再生（コンパスのオーディオソースを直接制御）
+                if (soundSettings != null && soundSettings.treasureProximitySound != null)
+                {
+                    // オーディオソースが既に再生中でない場合のみ再生
+                    if (!compassAudioSource.isPlaying)
+                    {
+                        compassAudioSource.clip = soundSettings.treasureProximitySound;
+                        compassAudioSource.volume = soundSettings.baseVolume;
+                        compassAudioSource.pitch = soundSettings.basePitch;
+                        compassAudioSource.Play();
+                    }
+                }
                 treasureLastSoundTime[treasure] = Time.time;
                 
                 if (enableDebugLog)

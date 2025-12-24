@@ -38,6 +38,14 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
     private bool canSwitchMode = true;
 
+    /// <summary>
+    /// 射出モードかどうかを取得
+    /// </summary>
+    public bool IsShootMode()
+    {
+        return isShootMode;
+    }
+
     private void Start()
     {
         UpdateHitZoneVisibility();
@@ -219,13 +227,5 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
         if (visibleDrillTip != null)
             visibleDrillTip.SetActive(true);
-    }
-
-    /// <summary>
-    /// 射出モードかどうかを取得（DrillControllerから使用）
-    /// </summary>
-    public bool IsShootMode()
-    {
-        return isShootMode;
     }
 }

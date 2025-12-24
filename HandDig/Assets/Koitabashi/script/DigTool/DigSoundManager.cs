@@ -190,14 +190,14 @@ public class DigSoundManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 射出ドリル音を再生
+    /// 手掘り音を再生
     /// </summary>
     /// <param name="position">再生位置</param>
-    public void PlayDrillProjectileSound(Vector3 position)
+    public void PlayHandDigSound(Vector3 position)
     {
-        if (soundSettings == null || soundSettings.drillProjectileSound == null) return;
+        if (soundSettings == null || soundSettings.handDigSound == null) return;
         
-        PlaySoundAtPosition(soundSettings.drillProjectileSound, position, "DrillProjectile");
+        PlaySoundAtPosition(soundSettings.handDigSound, position, "HandDig");
     }
 
     /// <summary>
@@ -209,17 +209,6 @@ public class DigSoundManager : MonoBehaviour
         if (soundSettings == null || soundSettings.treasureProximitySound == null) return;
         
         PlaySoundAtPosition(soundSettings.treasureProximitySound, position, "TreasureProximity");
-    }
-
-    /// <summary>
-    /// 手掘り音を再生
-    /// </summary>
-    /// <param name="position">再生位置</param>
-    public void PlayHandDigSound(Vector3 position)
-    {
-        if (soundSettings == null || soundSettings.handDigSound == null) return;
-        
-        PlaySoundAtPosition(soundSettings.handDigSound, position, "HandDig");
     }
 
     /// <summary>

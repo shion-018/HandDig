@@ -16,58 +16,55 @@ public class DrillController : MonoBehaviour
     [Header("Start Sound Delay")]
     [SerializeField] private float loopStartDelay = 0.3f;
 
-    [Header("Tool Reference")]
-    [Tooltip("ドリルツールスクリプト（モード確認用）")]
-    [SerializeField] private DrillDigTool drillDigTool;
+    [Header("ドリルツール参照")]
+    [Tooltip("DrillDigToolへの参照（自動検索される）")]
+    private DrillDigTool drillDigTool;
 
     private bool prevTrigger;
     private bool isDrilling;
 
     private void Start()
     {
-        // DrillDigToolが見つからない場合は自動検索
+        // DrillDigToolを自動検索（親オブジェクトから）
         if (drillDigTool == null)
         {
             drillDigTool = GetComponentInParent<DrillDigTool>();
-            if (drillDigTool == null)
-            {
-                drillDigTool = FindObjectOfType<DrillDigTool>();
-            }
+        }
+        // 見つからない場合はシーン全体から検索
+        if (drillDigTool == null)
+        {
+            drillDigTool = FindObjectOfType<DrillDigTool>();
         }
     }
 
     void Update()
     {
+        // 射出モードの時は通常掘り用の音を鳴らさない
+        if (IsShootMode())
+        {
+            if (isDrilling)
+            {
+                StopDrill();
+            }
+            return;
+        }
+
         bool trigger = GetInput();
 
         animator.SetBool("IsTriggerHeld", trigger);
 
-        // 射出モードの場合は音を鳴らさない
-        bool isShootMode = drillDigTool != null && drillDigTool.IsShootMode();
-        
-        // トリガー開始
+        // �������u��
         if (trigger && !prevTrigger)
         {
             animator.SetTrigger("Start");
-            if (!isShootMode)
-            {
-                StartDrill();
-            }
+            StartDrill();
         }
 
-        // トリガー終了
+        // �������u��
         if (!trigger && prevTrigger)
         {
             animator.SetTrigger("End");
-            if (!isShootMode)
-            {
-                StopDrill();
-            }
-            else
-            {
-                // 射出モード時でも音を停止（念のため）
-                StopDrill();
-            }
+            StopDrill();
         }
 
         prevTrigger = trigger;
@@ -84,7 +81,7 @@ public class DrillController : MonoBehaviour
     {
         isDrilling = true;
 
-        // 前回の音を停止
+        // ���̑��d�Đ��h�~
         if (endSource.isPlaying) endSource.Stop();
         if (startSource.isPlaying) startSource.Stop();
 
@@ -109,5 +106,14 @@ public class DrillController : MonoBehaviour
         if (loopSource.isPlaying) loopSource.Stop();
 
         endSource.Play();
+    }
+
+    /// <summary>
+    /// 射出モードかどうかを判定
+    /// </summary>
+    private bool IsShootMode()
+    {
+        if (drillDigTool == null) return false;
+        return drillDigTool.IsShootMode();
     }
 }

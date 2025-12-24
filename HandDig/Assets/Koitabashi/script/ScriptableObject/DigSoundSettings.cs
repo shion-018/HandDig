@@ -19,36 +19,24 @@ public class DigSoundSettings : ScriptableObject
     [Tooltip("ドリル掘削音")]
     public AudioClip drillDigSound;
     
-    [Tooltip("ドリル長押しモーター音（開始）")]
-    public AudioClip drillMotorStartSound;
-    
-    [Tooltip("ドリル長押しモーター音（ループ）")]
-    public AudioClip drillMotorLoopSound;
-    
-    [Tooltip("ドリル長押しモーター音（終了）")]
-    public AudioClip drillMotorEndSound;
-    
-    [Tooltip("射出ドリル音（発射時）")]
-    public AudioClip drillProjectileSound;
-    
     [Header("手掘り音声設定")]
     [Tooltip("手掘り音")]
     public AudioClip handDigSound;
     
-    [Header("お宝接近音設定")]
+    [Header("お宝接近音声設定")]
     [Tooltip("お宝接近音")]
     public AudioClip treasureProximitySound;
     
-    [Tooltip("お宝接近音の最大距離")]
+    [Tooltip("お宝接近音の最大検出距離")]
     public float treasureProximityMaxDistance = 30f;
     
-    [Tooltip("お宝接近音の最小距離")]
+    [Tooltip("お宝接近音の最小検出距離")]
     public float treasureProximityMinDistance = 5f;
     
-    [Tooltip("お宝接近音の最大間隔（遠い時）")]
+    [Tooltip("お宝接近音の最大再生間隔（遠距離時）")]
     public float treasureProximityMaxInterval = 2f;
     
-    [Tooltip("お宝接近音の最小間隔（近い時）")]
+    [Tooltip("お宝接近音の最小再生間隔（近距離時）")]
     public float treasureProximityMinInterval = 0.3f;
     
     [Header("共通設定")]
