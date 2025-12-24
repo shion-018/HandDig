@@ -186,7 +186,7 @@ public class TreasureProximitySoundManager : MonoBehaviour
 
     private void Update()
     {
-        if (playerTransform == null || soundSettings == null || compassAudioSource == null)
+        if (playerTransform == null || soundSettings == null)
         {
             return;
         }
@@ -201,6 +201,24 @@ public class TreasureProximitySoundManager : MonoBehaviour
                 if (compassAudioSource == null)
                 {
                     compassAudioSource = compassScript.GetComponentInChildren<AudioSource>();
+                }
+            }
+            
+            // 見つからない場合は名前で探す
+            if (compassAudioSource == null)
+            {
+                GameObject compassObj = GameObject.Find("Compass");
+                if (compassObj == null)
+                {
+                    compassObj = GameObject.FindGameObjectWithTag("Compass");
+                }
+                if (compassObj != null)
+                {
+                    compassAudioSource = compassObj.GetComponent<AudioSource>();
+                    if (compassAudioSource == null)
+                    {
+                        compassAudioSource = compassObj.GetComponentInChildren<AudioSource>();
+                    }
                 }
             }
         }

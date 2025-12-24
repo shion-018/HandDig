@@ -19,6 +19,9 @@ public class DigSoundSettings : ScriptableObject
     [Tooltip("ドリル掘削音")]
     public AudioClip drillDigSound;
     
+    [Tooltip("射出ドリル音（発射時）")]
+    public AudioClip drillProjectileSound;
+    
     [Header("手掘り音声設定")]
     [Tooltip("手掘り音")]
     public AudioClip handDigSound;

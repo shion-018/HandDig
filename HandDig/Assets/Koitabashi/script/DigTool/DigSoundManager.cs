@@ -190,6 +190,17 @@ public class DigSoundManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 射出ドリル音を再生
+    /// </summary>
+    /// <param name="position">再生位置</param>
+    public void PlayDrillProjectileSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.drillProjectileSound == null) return;
+        
+        PlaySoundAtPosition(soundSettings.drillProjectileSound, position, "DrillProjectile");
+    }
+
+    /// <summary>
     /// 手掘り音を再生
     /// </summary>
     /// <param name="position">再生位置</param>
