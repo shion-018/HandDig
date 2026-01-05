@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class DrillDigTool : MonoBehaviour, IDigToolWithStats
+public class DrillDigTool : MonoBehaviour, IDigTool
 {
     public VoxelDigManager digManager;
     private DrillDigStats stats;

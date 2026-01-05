@@ -10,3 +10,4 @@ public class PreciousTreasureMarker : MonoBehaviour
     public string treasureName = "貴重なお宝";
 }
 
+

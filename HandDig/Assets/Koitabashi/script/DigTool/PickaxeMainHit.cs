@@ -6,6 +6,10 @@ using UnityEngine;
 /// </summary>
 public class PickaxeMainHit : MonoBehaviour
 {
+    [Header("デバッグ設定")]
+    [Tooltip("デバッグログを表示するか")]
+    public bool enableDebugLog = false;
+
     public PickaxeDigToolMaster masterTool;
 
     private void OnTriggerEnter(Collider other)
@@ -23,7 +27,7 @@ public class PickaxeMainHit : MonoBehaviour
         // SwingReady状態のチェック
         if (!masterTool.IsSwingReady())
         {
-            Debug.Log("[PickaxeMainHit] SwingReady ではないため無効");
+            if (enableDebugLog) Debug.Log("[PickaxeMainHit] SwingReady ではないため無効");
             return;
         }
 
@@ -34,11 +38,11 @@ public class PickaxeMainHit : MonoBehaviour
 
         if (!isTriggerHeld && !isSpaceHeld)
         {
-            Debug.Log("[PickaxeMainHit] トリガーが押されていません");
+            if (enableDebugLog) Debug.Log("[PickaxeMainHit] トリガーが押されていません");
             return;
         }
 
-        Debug.Log($"[PickaxeMainHit] Hit: {other.name} (トリガー押下中)");
+        if (enableDebugLog) Debug.Log($"[PickaxeMainHit] Hit: {other.name} (トリガー押下中)");
         masterTool.OnMainHit(other);
     }
 }

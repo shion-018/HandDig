@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class VRDigTool : MonoBehaviour, IDigToolWithStats
+public class VRDigTool : MonoBehaviour, IDigTool
 {
     public VoxelDigManager digManager;
 

@@ -14,7 +14,7 @@ using UnityEngine;
 /// - IncreaseHitZone() でレベルを1段階アップし、そのレベルの掘りポイントで掘削
 /// - 爆発モード時は掘れた全ポイントに爆発マーカーを設置
 /// </summary>
-public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
+public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
 {
     [Header("Core")]
     public VoxelDigManager digManager;
@@ -35,6 +35,10 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     [Header("爆発設定")]
     [Tooltip("爆発位置計算で使用する地形レイヤー")]
     public LayerMask terrainLayer;
+
+    [Header("デバッグ設定")]
+    [Tooltip("デバッグログを表示するか")]
+    public bool enableDebugLog = false;
 
     // 内部状態
     private VRDigToolManager toolManager;
@@ -72,7 +76,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
                 toolManager.GetPickaxeExplosionCharges() > 0)
             {
                 isExplosionMode = !isExplosionMode;
-                Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} (残り {toolManager.GetPickaxeExplosionCharges()})");
+                if (enableDebugLog) Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} (残り {toolManager.GetPickaxeExplosionCharges()})");
             }
         }
 
@@ -84,7 +88,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
             if (!triggerHeld)
             {
                 isSwingReady = false;
-                Debug.Log("[PickaxeMaster] トリガーが離れたため SwingReady をリセット");
+                if (enableDebugLog) Debug.Log("[PickaxeMaster] トリガーが離れたため SwingReady をリセット");
             }
         }
     }
@@ -99,7 +103,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     {
         stats = newStats;
         upgradeLevel = level;
-        Debug.Log($"[PickaxeMaster] Stats set. level={upgradeLevel}");
+        if (enableDebugLog) Debug.Log($"[PickaxeMaster] Stats set. level={upgradeLevel}");
     }
 
     public void SetHandStats(HandDigStats newStats, int level) { }
@@ -110,16 +114,16 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
     {
         bool triggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger) || Input.GetKey(KeyCode.Space);
         if (triggerHeld)
-    {
+        {
             isSwingReady = true;
-            Debug.Log("[PickaxeMaster] SwingReady = true");
+            if (enableDebugLog) Debug.Log("[PickaxeMaster] SwingReady = true");
         }
     }
 
     public void OnSwingZoneExit()
     {
         isSwingReady = false;
-        Debug.Log("[PickaxeMaster] SwingReady reset");
+        if (enableDebugLog) Debug.Log("[PickaxeMaster] SwingReady reset");
     }
 
     public bool IsSwingReady() => isSwingReady;
@@ -148,7 +152,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         }
 
         CollectCurrentDigPoints();
-        Debug.Log($"[PickaxeMaster] Level {currentLevel} active (points: {currentDigPoints.Count})");
+        if (enableDebugLog) Debug.Log($"[PickaxeMaster] Level {currentLevel} active (points: {currentDigPoints.Count})");
     }
 
     private void CollectCurrentDigPoints()
@@ -173,7 +177,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
         bool triggerHeld = OVRInput.Get(OVRInput.RawButton.RIndexTrigger) || Input.GetKey(KeyCode.Space);
         if (!(isSwingReady && triggerHeld && stats != null))
         {
-            Debug.Log("[PickaxeMaster] Hit無効 (swing/input/stats 不足)");
+            if (enableDebugLog) Debug.Log("[PickaxeMaster] Hit無効 (swing/input/stats 不足)");
             return;
         }
 
@@ -196,7 +200,7 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigToolWithStats
             bool ok = digManager != null && digManager.TryDigAt(digPos, radius);
             if (!ok)
             {
-                Debug.Log($"[PickaxeMaster] Point {i + 1} にボクセルなし");
+                if (enableDebugLog) Debug.Log($"[PickaxeMaster] Point {i + 1} にボクセルなし");
                 continue;
             }
 

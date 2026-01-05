@@ -6,15 +6,15 @@ public class MSupgradeScript : MonoBehaviour
 {
     public bool isGetMStreasure = false;
     public VRPlayerMovement vrPlayerMovement;
-    bool onlyoneTime = false;
+    bool onlyOneTime = false;
 
-    // isGetMStreasure‚ªtrue‚É‚È‚Á‚½‚çVRPlayerMovement‚Ìspeed“ñ”{
+    // isGetMStreasureï¿½ï¿½trueï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½ï¿½VRPlayerMovementï¿½ï¿½speedï¿½ï¿½{
     void Update()
     {
-        if (isGetMStreasure == true&&onlyoneTime==false)
+        if (isGetMStreasure && !onlyOneTime)
         {
             vrPlayerMovement.moveSpeed = vrPlayerMovement.moveSpeed * 2;
-            onlyoneTime = true;
+            onlyOneTime = true;
         }
     }
 }

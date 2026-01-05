@@ -11,6 +11,10 @@ public class DigToolEntry
 
 public class VRDigToolManager : MonoBehaviour
 {
+    [Header("デバッグ設定")]
+    [Tooltip("デバッグログを表示するか")]
+    public bool enableDebugLog = false;
+
     public List<DigToolEntry> tools = new List<DigToolEntry>();
     public List<DigToolData> toolDataList = new List<DigToolData>();
 
@@ -81,33 +85,37 @@ public class VRDigToolManager : MonoBehaviour
             currentToolTransform = entry.toolTransform;
 
             // 各ツールに専用ステータスを設定
-            if (digTool is IDigToolWithStats toolWithStats)
+            var data = toolDataList[index];
+            
+            // 後方互換性のため残す
+            if (data.stats != null)
             {
-                var data = toolDataList[index];
-                
-                // 後方互換性のため残す
-                if (data.stats != null)
+                if (digTool is VRDigTool handTool1)
                 {
-                    toolWithStats.SetStats(data.stats, data.currentUpgradeLevel);
+                    handTool1.SetStats(data.stats, data.currentUpgradeLevel);
                 }
-                
-                // 各ツール専用ScriptableObjectを設定
-                if (digTool is VRDigTool handTool && data.handStats != null)
+                else if (digTool is PickaxeDigToolMaster pickaxeMasterTool1)
                 {
-                    handTool.SetHandStats(data.handStats, data.currentUpgradeLevel);
+                    pickaxeMasterTool1.SetStats(data.stats, data.currentUpgradeLevel);
                 }
-                else if (digTool is PickaxeDigTool pickaxeTool && data.pickaxeStats != null)
+                else if (digTool is DrillDigTool drillToolScript1)
                 {
-                    pickaxeTool.SetPickaxeStats(data.pickaxeStats, data.currentUpgradeLevel);
+                    drillToolScript1.SetStats(data.stats, data.currentUpgradeLevel);
                 }
-                else if (digTool is PickaxeDigToolMaster pickaxeMasterTool && data.pickaxeStats != null)
-                {
-                    pickaxeMasterTool.SetPickaxeStats(data.pickaxeStats, data.currentUpgradeLevel);
-                }
-                else if (digTool is DrillDigTool drillToolScript && data.drillStats != null)
-                {
-                    drillToolScript.SetDrillStats(data.drillStats, data.currentUpgradeLevel);
-                }
+            }
+            
+            // 各ツール専用ScriptableObjectを設定
+            if (digTool is VRDigTool handTool && data.handStats != null)
+            {
+                handTool.SetHandStats(data.handStats, data.currentUpgradeLevel);
+            }
+            else if (digTool is PickaxeDigToolMaster pickaxeMasterTool && data.pickaxeStats != null)
+            {
+                pickaxeMasterTool.SetPickaxeStats(data.pickaxeStats, data.currentUpgradeLevel);
+            }
+            else if (digTool is DrillDigTool drillToolScript && data.drillStats != null)
+            {
+                drillToolScript.SetDrillStats(data.drillStats, data.currentUpgradeLevel);
             }
 
             // つるはしの場合、保存された判定数増加量を適用
@@ -117,7 +125,7 @@ public class VRDigToolManager : MonoBehaviour
                 {
                     pickaxeMasterApply.IncreaseHitZone();
                 }
-                Debug.Log($"[VRDigToolManager] つるはしに切り替え: 判定数増加量 {pickaxeHitZoneBonus} を適用");
+                if (enableDebugLog) Debug.Log($"[VRDigToolManager] つるはしに切り替え: 判定数増加量 {pickaxeHitZoneBonus} を適用");
                 
                 // 適用後はリセット（重複適用を防ぐ）
                 pickaxeHitZoneBonus = 0;
@@ -126,28 +134,28 @@ public class VRDigToolManager : MonoBehaviour
             // ドリルの場合、保存された判定数増加量と速度増加量を適用
             if (digTool is DrillDigTool drillToolApply)
             {
-                Debug.Log($"[VRDigToolManager] ドリルに切り替え: 保存された判定数増加量 {drillHitZoneBonus} を適用開始");
+                if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリルに切り替え: 保存された判定数増加量 {drillHitZoneBonus} を適用開始");
                 for (int i = 0; i < drillHitZoneBonus; i++)
                 {
                     drillToolApply.IncreaseHitZone();
                 }
-                Debug.Log($"[VRDigToolManager] ドリルに切り替え: 判定数増加量 {drillHitZoneBonus} を適用完了");
+                if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリルに切り替え: 判定数増加量 {drillHitZoneBonus} を適用完了");
                 
                 // 速度増加量も適用
-                Debug.Log($"[VRDigToolManager] ドリルに切り替え: 保存された速度増加量 {drillSpeedBonus} を適用開始");
+                if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリルに切り替え: 保存された速度増加量 {drillSpeedBonus} を適用開始");
                 for (int i = 0; i < drillSpeedBonus; i++)
                 {
                     drillToolApply.IncreaseSpeed();
                 }
-                Debug.Log($"[VRDigToolManager] ドリルに切り替え: 速度増加量 {drillSpeedBonus} を適用完了");
+                if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリルに切り替え: 速度増加量 {drillSpeedBonus} を適用完了");
                 
                 // 適用後はリセット（重複適用を防ぐ）
                 drillHitZoneBonus = 0;
                 drillSpeedBonus = 0;
-                Debug.Log($"[VRDigToolManager] ドリル判定数・速度増加量をリセット: {drillHitZoneBonus}, {drillSpeedBonus}");
+                if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリル判定数・速度増加量をリセット: {drillHitZoneBonus}, {drillSpeedBonus}");
             }
 
-            Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
+            if (enableDebugLog) Debug.Log($"ツール切り替え: {entry.toolScript.GetType().Name}");
             TutorialManager.Instance?.OnToolChanged(currentTool, currentIndex);
         }
     }
@@ -170,11 +178,11 @@ public class VRDigToolManager : MonoBehaviour
             {
                 int before = data.currentUpgradeLevel;
                 data.currentUpgradeLevel = Mathf.Min(data.currentUpgradeLevel + amount, max - 1);
-                Debug.Log($"[強化] ツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
+                if (enableDebugLog) Debug.Log($"[強化] ツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
             }
             else
             {
-                Debug.Log($"[強化] ツール{index} はすでに最大強化されています。");
+                if (enableDebugLog) Debug.Log($"[強化] ツール{index} はすでに最大強化されています。");
             }
         }
         
@@ -186,7 +194,7 @@ public class VRDigToolManager : MonoBehaviour
             {
                 int before = data.currentUpgradeLevel;
                 data.currentUpgradeLevel = Mathf.Min(data.currentUpgradeLevel + amount, max - 1);
-                Debug.Log($"[強化] Handツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
+                if (enableDebugLog) Debug.Log($"[強化] Handツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
             }
         }
         else if (data.pickaxeStats != null)
@@ -196,7 +204,7 @@ public class VRDigToolManager : MonoBehaviour
             {
                 int before = data.currentUpgradeLevel;
                 data.currentUpgradeLevel = Mathf.Min(data.currentUpgradeLevel + amount, max - 1);
-                Debug.Log($"[強化] Pickaxeツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
+                if (enableDebugLog) Debug.Log($"[強化] Pickaxeツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
             }
         }
         else if (data.drillStats != null)
@@ -206,38 +214,45 @@ public class VRDigToolManager : MonoBehaviour
             {
                 int before = data.currentUpgradeLevel;
                 data.currentUpgradeLevel = Mathf.Min(data.currentUpgradeLevel + amount, max - 1);
-                Debug.Log($"[強化] Drillツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
+                if (enableDebugLog) Debug.Log($"[強化] Drillツール{index}を Lv.{before} から Lv.{data.currentUpgradeLevel} にアップ！");
             }
         }
 
         // 現在アクティブなツールに即座に適用
-        if (index == currentIndex && currentTool is IDigToolWithStats toolWithStats)
+        if (index == currentIndex)
         {
             var currentData = toolDataList[index];
             
             // 後方互換性のため残す
             if (currentData.stats != null)
             {
-                toolWithStats.SetStats(currentData.stats, currentData.currentUpgradeLevel);
+                if (currentTool is VRDigTool handTool1)
+                {
+                    handTool1.SetStats(currentData.stats, currentData.currentUpgradeLevel);
+                }
+                else if (currentTool is PickaxeDigToolMaster pickaxeMasterTool1)
+                {
+                    pickaxeMasterTool1.SetStats(currentData.stats, currentData.currentUpgradeLevel);
+                }
+                else if (currentTool is DrillDigTool drillToolScript1)
+                {
+                    drillToolScript1.SetStats(currentData.stats, currentData.currentUpgradeLevel);
+                }
             }
             
-                         // 各ツール専用ScriptableObjectを設定
-             if (currentTool is VRDigTool handTool && currentData.handStats != null)
-             {
-                 handTool.SetHandStats(currentData.handStats, currentData.currentUpgradeLevel);
-             }
-             else if (currentTool is PickaxeDigTool pickaxeTool && currentData.pickaxeStats != null)
-             {
-                 pickaxeTool.SetPickaxeStats(currentData.pickaxeStats, currentData.currentUpgradeLevel);
-             }
-             else if (currentTool is PickaxeDigToolMaster pickaxeMasterUpgrade && currentData.pickaxeStats != null)
-             {
-                 pickaxeMasterUpgrade.SetPickaxeStats(currentData.pickaxeStats, currentData.currentUpgradeLevel);
-             }
-             else if (currentTool is DrillDigTool drillToolUpgrade && currentData.drillStats != null)
-             {
-                 drillToolUpgrade.SetDrillStats(currentData.drillStats, currentData.currentUpgradeLevel);
-             }
+            // 各ツール専用ScriptableObjectを設定
+            if (currentTool is VRDigTool handTool && currentData.handStats != null)
+            {
+                handTool.SetHandStats(currentData.handStats, currentData.currentUpgradeLevel);
+            }
+            else if (currentTool is PickaxeDigToolMaster pickaxeMasterUpgrade && currentData.pickaxeStats != null)
+            {
+                pickaxeMasterUpgrade.SetPickaxeStats(currentData.pickaxeStats, currentData.currentUpgradeLevel);
+            }
+            else if (currentTool is DrillDigTool drillToolUpgrade && currentData.drillStats != null)
+            {
+                drillToolUpgrade.SetDrillStats(currentData.drillStats, currentData.currentUpgradeLevel);
+            }
         }
     }
 
@@ -251,13 +266,13 @@ public class VRDigToolManager : MonoBehaviour
             {
                 pickaxeMasterBonus.IncreaseHitZone();
             }
-            Debug.Log($"[VRDigToolManager] つるはし使用中にお宝取得: 判定数を {amount} 増加（即座適用）");
+            if (enableDebugLog) Debug.Log($"[VRDigToolManager] つるはし使用中にお宝取得: 判定数を {amount} 増加（即座適用）");
         }
         else
         {
             // つるはしが非アクティブの場合のみ保存
             pickaxeHitZoneBonus += amount;
-            Debug.Log($"[VRDigToolManager] つるはしの判定数増加量を保存: {pickaxeHitZoneBonus}");
+            if (enableDebugLog) Debug.Log($"[VRDigToolManager] つるはしの判定数増加量を保存: {pickaxeHitZoneBonus}");
         }
     }
 
@@ -271,13 +286,13 @@ public class VRDigToolManager : MonoBehaviour
             {
                 drillToolBonus.IncreaseHitZone();
             }
-            Debug.Log($"[VRDigToolManager] ドリル使用中にお宝取得: 判定数を {amount} 増加（即座適用）");
+            if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリル使用中にお宝取得: 判定数を {amount} 増加（即座適用）");
         }
         else
         {
             // ドリルが非アクティブの場合のみ保存
             drillHitZoneBonus += amount;
-            Debug.Log($"[VRDigToolManager] ドリルの判定数増加量を保存: {drillHitZoneBonus}");
+            if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリルの判定数増加量を保存: {drillHitZoneBonus}");
         }
     }
 
@@ -291,13 +306,13 @@ public class VRDigToolManager : MonoBehaviour
             {
                 drillToolSpeed.IncreaseSpeed();
             }
-            Debug.Log($"[VRDigToolManager] ドリル使用中にお宝取得: 採掘速度を {amount} 段階アップ（即座適用）");
+            if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリル使用中にお宝取得: 採掘速度を {amount} 段階アップ（即座適用）");
         }
         else
         {
             // ドリルが非アクティブの場合のみ保存
             drillSpeedBonus += amount;
-            Debug.Log($"[VRDigToolManager] ドリルの速度増加量を保存: {drillSpeedBonus}");
+            if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリルの速度増加量を保存: {drillSpeedBonus}");
         }
     }
 
@@ -380,7 +395,7 @@ public class VRDigToolManager : MonoBehaviour
     {
         pickaxeExplosionUnlocked = true;
         pickaxeExplosionCharges = Mathf.Max(0, pickaxeExplosionCharges + add);
-        Debug.Log($"[VRDigToolManager] つるはし爆発チャージ +{add} => 残り {pickaxeExplosionCharges}");
+        if (enableDebugLog) Debug.Log($"[VRDigToolManager] つるはし爆発チャージ +{add} => 残り {pickaxeExplosionCharges}");
     }
 
     public bool TryConsumePickaxeExplosionCharge()
@@ -414,7 +429,7 @@ public class VRDigToolManager : MonoBehaviour
                 break;
         }
         
-        Debug.Log($"[VRDigToolManager] お宝取得: {treasureType} +{count} (総数: {totalTreasureCount})");
+        if (enableDebugLog) Debug.Log($"[VRDigToolManager] お宝取得: {treasureType} +{count} (総数: {totalTreasureCount})");
     }
 
     public int GetTotalTreasureCount() => totalTreasureCount;

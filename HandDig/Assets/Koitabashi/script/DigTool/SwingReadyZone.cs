@@ -7,10 +7,11 @@ using UnityEngine;
 /// </summary>
 public class SwingReadyZone : MonoBehaviour
 {
-    [Tooltip("PickaxeDigTool（旧版）用")]
-    public PickaxeDigTool pickaxeTool;
-    
-    [Tooltip("PickaxeDigToolMaster（新版）用")]
+    [Header("デバッグ設定")]
+    [Tooltip("デバッグログを表示するか")]
+    public bool enableDebugLog = false;
+
+    [Tooltip("PickaxeDigToolMaster用")]
     public PickaxeDigToolMaster masterTool;
 
     void OnTriggerEnter(Collider other)
@@ -41,7 +42,7 @@ public class SwingReadyZone : MonoBehaviour
 
         if (isTriggerHeld || isSpaceHeld)
         {
-            Debug.Log("[SwingZone] ゾーンから出ましたが、トリガー押しっぱなしのため SwingReady を維持");
+            if (enableDebugLog) Debug.Log("[SwingZone] ゾーンから出ましたが、トリガー押しっぱなしのため SwingReady を維持");
             return; // SwingReady を維持
         }
 
@@ -49,10 +50,6 @@ public class SwingReadyZone : MonoBehaviour
         if (masterTool != null)
         {
             masterTool.OnSwingZoneExit();
-        }
-        else if (pickaxeTool != null)
-        {
-            pickaxeTool.SetSwingReady(false);
         }
     }
 
@@ -65,15 +62,9 @@ public class SwingReadyZone : MonoBehaviour
         if (!isTriggerHeld && !isSpaceHeld)
             return; // トリガーが押されていない場合は何もしない
 
-        // 新版（Master）を優先
         if (masterTool != null)
         {
             masterTool.OnSwingZoneEntered();
-        }
-        // 旧版（互換性）
-        else if (pickaxeTool != null)
-        {
-            pickaxeTool.SetSwingReady(true);
         }
     }
 }
