@@ -148,7 +148,8 @@ public class DigSoundManager : MonoBehaviour
         
         if (clip != null)
         {
-            PlaySoundAtPosition(clip, position, "PickaxeDig");
+            ReverbSettings reverb = soundSettings != null ? soundSettings.pickaxeDigReverb : null;
+            PlaySoundAtPosition(clip, position, "PickaxeDig", reverb);
         }
         else if (enableDebugLog)
         {
@@ -164,7 +165,9 @@ public class DigSoundManager : MonoBehaviour
     {
         if (soundSettings == null || soundSettings.pickaxeExplosionMarkerSound == null) return;
         
-        PlaySoundAtPosition(soundSettings.pickaxeExplosionMarkerSound, position, "PickaxeExplosionMarker");
+        // マーカー設置音は爆発音と同じリバーブ設定を使用
+        ReverbSettings reverb = soundSettings != null ? soundSettings.pickaxeExplosionReverb : null;
+        PlaySoundAtPosition(soundSettings.pickaxeExplosionMarkerSound, position, "PickaxeExplosionMarker", reverb);
     }
 
     /// <summary>
@@ -175,7 +178,8 @@ public class DigSoundManager : MonoBehaviour
     {
         if (soundSettings == null || soundSettings.pickaxeExplosionSound == null) return;
         
-        PlaySoundAtPosition(soundSettings.pickaxeExplosionSound, position, "PickaxeExplosion");
+        ReverbSettings reverb = soundSettings != null ? soundSettings.pickaxeExplosionReverb : null;
+        PlaySoundAtPosition(soundSettings.pickaxeExplosionSound, position, "PickaxeExplosion", reverb);
     }
 
     /// <summary>
@@ -186,7 +190,8 @@ public class DigSoundManager : MonoBehaviour
     {
         if (soundSettings == null || soundSettings.drillDigSound == null) return;
         
-        PlaySoundAtPosition(soundSettings.drillDigSound, position, "DrillDig");
+        ReverbSettings reverb = soundSettings != null ? soundSettings.drillDigReverb : null;
+        PlaySoundAtPosition(soundSettings.drillDigSound, position, "DrillDig", reverb);
     }
 
     /// <summary>
@@ -197,7 +202,8 @@ public class DigSoundManager : MonoBehaviour
     {
         if (soundSettings == null || soundSettings.drillProjectileSound == null) return;
         
-        PlaySoundAtPosition(soundSettings.drillProjectileSound, position, "DrillProjectile");
+        ReverbSettings reverb = soundSettings != null ? soundSettings.drillProjectileReverb : null;
+        PlaySoundAtPosition(soundSettings.drillProjectileSound, position, "DrillProjectile", reverb);
     }
 
     /// <summary>
@@ -208,7 +214,8 @@ public class DigSoundManager : MonoBehaviour
     {
         if (soundSettings == null || soundSettings.handDigSound == null) return;
         
-        PlaySoundAtPosition(soundSettings.handDigSound, position, "HandDig");
+        ReverbSettings reverb = soundSettings != null ? soundSettings.handDigReverb : null;
+        PlaySoundAtPosition(soundSettings.handDigSound, position, "HandDig", reverb);
     }
 
     /// <summary>
@@ -219,7 +226,64 @@ public class DigSoundManager : MonoBehaviour
     {
         if (soundSettings == null || soundSettings.treasureProximitySound == null) return;
         
-        PlaySoundAtPosition(soundSettings.treasureProximitySound, position, "TreasureProximity");
+        ReverbSettings reverb = soundSettings != null ? soundSettings.treasureProximityReverb : null;
+        PlaySoundAtPosition(soundSettings.treasureProximitySound, position, "TreasureProximity", reverb);
+    }
+
+    /// <summary>
+    /// 足音を再生
+    /// </summary>
+    /// <param name="position">再生位置（プレイヤーの位置）</param>
+    public void PlayFootstepSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.footstepSounds == null || soundSettings.footstepSounds.Length == 0) return;
+        
+        // 有効な音源をフィルタリング
+        List<AudioClip> validClips = new List<AudioClip>();
+        foreach (var clip in soundSettings.footstepSounds)
+        {
+            if (clip != null)
+            {
+                validClips.Add(clip);
+            }
+        }
+        
+        if (validClips.Count == 0) return;
+        
+        // ランダムに音源を選択
+        AudioClip selectedClip = validClips[Random.Range(0, validClips.Count)];
+        
+        AudioSource audioSource = GetAudioSource();
+        if (audioSource == null) return;
+
+        audioSource.clip = selectedClip;
+        audioSource.transform.position = position;
+        
+        // 足音専用の設定を適用
+        audioSource.volume = soundSettings.footstepVolume;
+        
+        // ピッチにランダム性を追加（自然な変化）
+        float pitchVariation = Random.Range(-soundSettings.footstepPitchRandomness, soundSettings.footstepPitchRandomness);
+        audioSource.pitch = soundSettings.basePitch + pitchVariation;
+        
+        audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
+        audioSource.maxDistance = soundSettings.maxDistance;
+
+        // リバーブエフェクトを適用（洞窟の反響効果）
+        if (soundSettings != null && soundSettings.footstepReverb != null && soundSettings.footstepReverb.enabled)
+        {
+            ApplyReverb(audioSource.gameObject, soundSettings.footstepReverb);
+        }
+
+        audioSource.Play();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[DigSoundManager] 足音再生: {selectedClip.name} at {position} (ピッチ: {audioSource.pitch:F2})");
+        }
+
+        // 再生完了後にプールに戻す
+        StartCoroutine(ReturnAudioSourceWhenFinished(audioSource));
     }
 
     /// <summary>
@@ -229,6 +293,18 @@ public class DigSoundManager : MonoBehaviour
     /// <param name="position">再生位置</param>
     /// <param name="soundType">音声タイプ（デバッグ用）</param>
     private void PlaySoundAtPosition(AudioClip clip, Vector3 position, string soundType)
+    {
+        PlaySoundAtPosition(clip, position, soundType, null);
+    }
+    
+    /// <summary>
+    /// 指定位置で音声を再生（リバーブ設定付き）
+    /// </summary>
+    /// <param name="clip">再生する音声クリップ</param>
+    /// <param name="position">再生位置</param>
+    /// <param name="soundType">音声タイプ（デバッグ用）</param>
+    /// <param name="reverbSettings">リバーブ設定（nullの場合は適用しない）</param>
+    private void PlaySoundAtPosition(AudioClip clip, Vector3 position, string soundType, ReverbSettings reverbSettings)
     {
         AudioSource audioSource = GetAudioSource();
         if (audioSource == null) return;
@@ -243,6 +319,12 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
+        }
+
+        // リバーブエフェクトを適用
+        if (reverbSettings != null && reverbSettings.enabled)
+        {
+            ApplyReverb(audioSource.gameObject, reverbSettings);
         }
 
         audioSource.Play();
@@ -277,6 +359,42 @@ public class DigSoundManager : MonoBehaviour
                 audioSource.Stop();
                 ReturnAudioSource(audioSource);
             }
+        }
+    }
+
+    /// <summary>
+    /// リバーブエフェクトを適用
+    /// </summary>
+    /// <param name="audioGameObject">AudioSourceがアタッチされているGameObject</param>
+    /// <param name="reverbSettings">リバーブ設定</param>
+    private void ApplyReverb(GameObject audioGameObject, ReverbSettings reverbSettings)
+    {
+        if (reverbSettings == null || !reverbSettings.enabled) return;
+        
+        // AudioReverbFilterコンポーネントを取得または追加
+        AudioReverbFilter reverbFilter = audioGameObject.GetComponent<AudioReverbFilter>();
+        if (reverbFilter == null)
+        {
+            reverbFilter = audioGameObject.AddComponent<AudioReverbFilter>();
+        }
+        
+        // プリセットを使用する場合
+        if (reverbSettings.preset != AudioReverbPreset.User)
+        {
+            reverbFilter.reverbPreset = reverbSettings.preset;
+        }
+        else
+        {
+            // カスタム設定の場合
+            reverbFilter.reverbPreset = AudioReverbPreset.User;
+            reverbFilter.reverbLevel = Mathf.RoundToInt(reverbSettings.reverbLevel * 1000f); // -10000 to 2000
+            reverbFilter.decayTime = reverbSettings.decayTime;
+            // その他のパラメータはデフォルト値を使用
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[DigSoundManager] リバーブ適用: {reverbSettings.preset}");
         }
     }
 
