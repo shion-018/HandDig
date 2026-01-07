@@ -34,7 +34,7 @@ MonoBehaviour:
     reverbLevel: 0.5
     decayTime: 1.5
   drillProjectileReverb:
-    enabled: 0
+    enabled: 1
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5
@@ -62,7 +62,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5444355b796f45442a2419ef3ff786d2, type: 3}
   - {fileID: 8300000, guid: 95dc27e71fc4a0a45872b76fb8a741ea, type: 3}
   - {fileID: 8300000, guid: 24f370eb02c1fb044918d178297119d3, type: 3}
-  footstepDistance: 1.5
+  footstepDistance: 3
   footstepVolume: 0.5
   footstepPitchRandomness: 0.1
   footstepReverb:

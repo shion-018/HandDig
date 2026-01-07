@@ -92,6 +92,12 @@ public class DigSoundManager : MonoBehaviour
     /// </summary>
     private void CreateAudioSource()
     {
+        // プールが初期化されていない場合は初期化
+        if (audioSourcePool == null)
+        {
+            InitializeAudioSourcePool();
+        }
+        
         GameObject audioObj = new GameObject("AudioSource");
         audioObj.transform.SetParent(transform);
         
@@ -110,9 +116,19 @@ public class DigSoundManager : MonoBehaviour
     /// </summary>
     private AudioSource GetAudioSource()
     {
+        // プールが初期化されていない場合は初期化
+        if (audioSourcePool == null)
+        {
+            InitializeAudioSourcePool();
+        }
+        
         if (audioSourcePool.Count > 0)
         {
             AudioSource audioSource = audioSourcePool.Dequeue();
+            if (activeAudioSources == null)
+            {
+                activeAudioSources = new List<AudioSource>();
+            }
             activeAudioSources.Add(audioSource);
             return audioSource;
         }
@@ -121,6 +137,10 @@ public class DigSoundManager : MonoBehaviour
             // プールが空の場合は新しいものを作成
             CreateAudioSource();
             AudioSource audioSource = audioSourcePool.Dequeue();
+            if (activeAudioSources == null)
+            {
+                activeAudioSources = new List<AudioSource>();
+            }
             activeAudioSources.Add(audioSource);
             return audioSource;
         }
