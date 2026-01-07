@@ -101,6 +101,34 @@ public class DigSoundSettings : ScriptableObject
     [Tooltip("足音のリバーブ設定")]
     public ReverbSettings footstepReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
     
+    [Header("ドリルモーター音声設定")]
+    [Tooltip("ドリル開始音")]
+    public AudioClip drillMotorStartSound;
+    
+    [Tooltip("ドリルループ音")]
+    public AudioClip drillMotorLoopSound;
+    
+    [Tooltip("ドリル終了音")]
+    public AudioClip drillMotorEndSound;
+    
+    [Header("ドリルモーターリバーブ設定")]
+    [Tooltip("ドリル開始音のリバーブ設定")]
+    public ReverbSettings drillMotorStartReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
+    [Tooltip("ドリルループ音のリバーブ設定")]
+    public ReverbSettings drillMotorLoopReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
+    [Tooltip("ドリル終了音のリバーブ設定")]
+    public ReverbSettings drillMotorEndReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
+    [Header("鍵収集音声設定")]
+    [Tooltip("鍵収集音")]
+    public AudioClip keyCollectionSound;
+    
+    [Header("鍵収集音リバーブ設定")]
+    [Tooltip("鍵収集音のリバーブ設定")]
+    public ReverbSettings keyCollectionReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
     [Header("共通設定")]
     [Tooltip("音声の基本ボリューム")]
     [Range(0f, 1f)]

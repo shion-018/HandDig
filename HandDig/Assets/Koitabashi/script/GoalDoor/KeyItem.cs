@@ -13,25 +13,38 @@ public class KeyItem : MonoBehaviour
     
     [Header("エフェクト設定")]
     [SerializeField] private GameObject collectionEffect;
-    [SerializeField] private AudioClip collectionSound;
+    [SerializeField] private AudioClip collectionSound; // 旧方式用（互換性のため残しています）
     [SerializeField] private float effectDuration = 1f;
+    
+    [Header("音声管理")]
+    [Tooltip("サウンドマネージャーを使用するか（true: 新方式、false: 旧方式）")]
+    [SerializeField] private bool useSoundManager = true;
     
     [Header("デバッグ")]
     [SerializeField] private bool showDebugInfo = true;
     
     private bool isCollected = false;
-    private AudioSource audioSource;
+    private AudioSource audioSource; // 旧方式用
+    private DigSoundManager soundManager; // 新方式用
     
     // イベント
     public System.Action<KeyItem> OnKeyCollected;
     
     private void Start()
     {
-        // AudioSourceを取得または追加
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null && collectionSound != null)
+        if (useSoundManager)
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
+            // 新方式：サウンドマネージャーを使用
+            soundManager = DigSoundManager.Instance;
+        }
+        else
+        {
+            // 旧方式：AudioSourceを取得または追加
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null && collectionSound != null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
         }
     }
     
@@ -116,9 +129,18 @@ public class KeyItem : MonoBehaviour
     /// </summary>
     private void PlayCollectionSound()
     {
-        if (collectionSound != null && audioSource != null)
+        if (useSoundManager && soundManager != null)
         {
-            audioSource.PlayOneShot(collectionSound);
+            // 新方式：サウンドマネージャーを使用（Transform追従型）
+            soundManager.PlayKeyCollectionSound(transform);
+        }
+        else
+        {
+            // 旧方式：直接AudioSourceを使用
+            if (collectionSound != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(collectionSound);
+            }
         }
     }
     

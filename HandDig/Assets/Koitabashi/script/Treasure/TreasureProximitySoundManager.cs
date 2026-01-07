@@ -59,6 +59,7 @@ public class TreasureProximitySoundManager : MonoBehaviour
     public bool enableDebugLog = false;
     
     private Dictionary<GameObject, float> treasureLastSoundTime = new Dictionary<GameObject, float>();
+    private Dictionary<GameObject, float> treasureLastInterval = new Dictionary<GameObject, float>(); // 前回の間隔を記録
     private float lastDetectionTime = 0f;
     
     private static TreasureProximitySoundManager instance;
@@ -281,18 +282,57 @@ public class TreasureProximitySoundManager : MonoBehaviour
                 
                 // 前回の音から十分な時間が経過しているかチェック
                 float lastSoundTime = 0f;
-                if (treasureLastSoundTime.TryGetValue(treasure, out lastSoundTime))
+                bool hasPreviousRecord = treasureLastSoundTime.TryGetValue(treasure, out lastSoundTime);
+                float previousInterval = 0f;
+                bool hasPreviousInterval = treasureLastInterval.TryGetValue(treasure, out previousInterval);
+                
+                if (hasPreviousRecord)
                 {
-                    if (Time.time - lastSoundTime < currentInterval)
+                    float timeSinceLastSound = Time.time - lastSoundTime;
+                    
+                    // 距離が近づいた場合（間隔が短くなった場合）は、新しい間隔に合わせて調整
+                    if (hasPreviousInterval && currentInterval < previousInterval)
                     {
-                        continue;
+                        // 距離が近づいた場合、前回の記録から新しい間隔の70%が経過していれば次の音を鳴らす
+                        // これにより、距離が近づいた時に間隔が動的に短くなる
+                        if (timeSinceLastSound < currentInterval * 0.7f)
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // 距離が遠くなった場合や同じ場合は、通常の間隔チェック
+                        if (timeSinceLastSound < currentInterval)
+                        {
+                            continue;
+                        }
                     }
                 }
                 
-                // 音を再生（コンパスのオーディオソースを直接制御）
-                if (soundSettings != null && soundSettings.treasureProximitySound != null)
+                // 音を再生（DigSoundManager経由でリバーブ設定を適用）
+                if (soundManager != null && soundSettings != null && soundSettings.treasureProximitySound != null)
                 {
-                    // オーディオソースが既に再生中でない場合のみ再生
+                    // プレイヤーの位置で音を再生（コンパスに追従）
+                    ReverbSettings reverb = soundSettings.treasureProximityReverb;
+                    Transform targetTransform = playerTransform;
+                    
+                    // コンパスのTransformが取得できる場合はそれを使用
+                    if (compassAudioSource != null && compassAudioSource.transform != null)
+                    {
+                        targetTransform = compassAudioSource.transform;
+                    }
+                    
+                    soundManager.PlaySoundAtTransform(
+                        soundSettings.treasureProximitySound,
+                        targetTransform,
+                        "TreasureProximity",
+                        reverb
+                    );
+                }
+                else if (soundSettings != null && soundSettings.treasureProximitySound != null && compassAudioSource != null)
+                {
+                    // フォールバック：DigSoundManagerが使えない場合は旧方式
                     if (!compassAudioSource.isPlaying)
                     {
                         compassAudioSource.clip = soundSettings.treasureProximitySound;
@@ -302,6 +342,7 @@ public class TreasureProximitySoundManager : MonoBehaviour
                     }
                 }
                 treasureLastSoundTime[treasure] = Time.time;
+                treasureLastInterval[treasure] = currentInterval; // 現在の間隔を記録
                 
                 if (enableDebugLog)
                 {
@@ -312,6 +353,7 @@ public class TreasureProximitySoundManager : MonoBehaviour
             {
                 // 範囲外に出たお宝の記録をクリア（メモリ節約）
                 treasureLastSoundTime.Remove(treasure);
+                treasureLastInterval.Remove(treasure);
             }
         }
     }
@@ -321,9 +363,16 @@ public class TreasureProximitySoundManager : MonoBehaviour
     /// </summary>
     public void ClearTreasureRecord(GameObject treasure)
     {
-        if (treasure != null && treasureLastSoundTime.ContainsKey(treasure))
+        if (treasure != null)
         {
-            treasureLastSoundTime.Remove(treasure);
+            if (treasureLastSoundTime.ContainsKey(treasure))
+            {
+                treasureLastSoundTime.Remove(treasure);
+            }
+            if (treasureLastInterval.ContainsKey(treasure))
+            {
+                treasureLastInterval.Remove(treasure);
+            }
         }
     }
     

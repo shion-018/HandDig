@@ -271,7 +271,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.SecondDig:
-                tutorialText.text = "トリガー押しながら振りかぶって振り下ろす";
+                UpdateSecondDigTextByTool();
                 break;
 
             case TutorialStep.CompassUpgrade:
@@ -301,6 +301,20 @@ public class TutorialManager : MonoBehaviour
         else if (tool is DrillDigTool)
         {
             tutorialText.text = "掘るにはトリガーを押しながら\nドリルを壁に近づける";
+        }
+    }
+
+    private void UpdateSecondDigTextByTool()
+    {
+        var tool = toolManager.GetCurrentTool();
+
+        if (tool is PickaxeDigToolMaster)
+        {
+            tutorialText.text = "トリガー押しながら振りかぶって振り下ろす";
+        }
+        else if (tool is DrillDigTool)
+        {
+            tutorialText.text = "トリガー押しながらドリルを壁に近づける";
         }
     }
 

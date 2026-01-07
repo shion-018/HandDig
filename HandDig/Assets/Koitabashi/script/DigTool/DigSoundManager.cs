@@ -22,6 +22,10 @@ public class DigSoundManager : MonoBehaviour
     private Queue<AudioSource> audioSourcePool;
     private List<AudioSource> activeAudioSources;
     
+    // Transform追従型のAudioSource管理
+    private Dictionary<Transform, AudioSource> attachedAudioSources = new Dictionary<Transform, AudioSource>();
+    private Dictionary<AudioSource, Transform> audioSourceToTransform = new Dictionary<AudioSource, Transform>();
+    
     /// <summary>
     /// シングルトンインスタンス
     /// </summary>
@@ -417,7 +421,288 @@ public class DigSoundManager : MonoBehaviour
             }
         }
         
+        // 追従型のAudioSourceにも設定を適用
+        foreach (var audioSource in attachedAudioSources.Values)
+        {
+            if (audioSource != null && soundSettings != null)
+            {
+                audioSource.volume = soundSettings.baseVolume;
+                audioSource.pitch = soundSettings.basePitch;
+                audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
+                audioSource.maxDistance = soundSettings.maxDistance;
+            }
+        }
+        
         Debug.Log("[DigSoundManager] 音声設定を更新しました。");
+    }
+    
+    /// <summary>
+    /// Transformに追従する音声を再生（位置固定型）
+    /// </summary>
+    /// <param name="clip">再生する音声クリップ</param>
+    /// <param name="targetTransform">追従するTransform</param>
+    /// <param name="soundType">音声タイプ（デバッグ用）</param>
+    /// <param name="reverbSettings">リバーブ設定</param>
+    /// <param name="volume">ボリューム（nullの場合は基本ボリューム）</param>
+    /// <param name="pitch">ピッチ（nullの場合は基本ピッチ）</param>
+    /// <returns>再生中のAudioSource（停止時に使用）</returns>
+    public AudioSource PlaySoundAtTransform(AudioClip clip, Transform targetTransform, string soundType = "Sound", ReverbSettings reverbSettings = null, float? volume = null, float? pitch = null)
+    {
+        if (clip == null || targetTransform == null) return null;
+        
+        // 既にこのTransformにAudioSourceがアタッチされている場合は再利用
+        AudioSource audioSource;
+        if (attachedAudioSources.ContainsKey(targetTransform))
+        {
+            audioSource = attachedAudioSources[targetTransform];
+            // 既に再生中の場合は停止
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
+        }
+        else
+        {
+            // 新しいAudioSourceを作成してTransformにアタッチ
+            GameObject audioObj = new GameObject($"AudioSource_{soundType}");
+            audioObj.transform.SetParent(targetTransform);
+            audioObj.transform.localPosition = Vector3.zero;
+            audioObj.transform.localRotation = Quaternion.identity;
+            
+            audioSource = audioObj.AddComponent<AudioSource>();
+            attachedAudioSources[targetTransform] = audioSource;
+            audioSourceToTransform[audioSource] = targetTransform;
+        }
+        
+        // 設定を適用
+        audioSource.clip = clip;
+        audioSource.playOnAwake = false;
+        audioSource.loop = false;
+        
+        if (soundSettings != null)
+        {
+            audioSource.volume = volume ?? soundSettings.baseVolume;
+            audioSource.pitch = pitch ?? soundSettings.basePitch;
+            audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
+            audioSource.maxDistance = soundSettings.maxDistance;
+        }
+        else
+        {
+            audioSource.volume = volume ?? 0.7f;
+            audioSource.pitch = pitch ?? 1f;
+        }
+        
+        // リバーブエフェクトを適用
+        if (reverbSettings != null && reverbSettings.enabled)
+        {
+            ApplyReverb(audioSource.gameObject, reverbSettings);
+        }
+        
+        audioSource.Play();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[DigSoundManager] {soundType}音声再生（追従型）: {clip.name} at {targetTransform.name}");
+        }
+        
+        // 再生完了後にクリーンアップ
+        StartCoroutine(CleanupAttachedAudioSourceWhenFinished(audioSource, clip.length));
+        
+        return audioSource;
+    }
+    
+    /// <summary>
+    /// Transformに追従するループ音声を再生
+    /// </summary>
+    /// <param name="clip">再生する音声クリップ</param>
+    /// <param name="targetTransform">追従するTransform</param>
+    /// <param name="soundType">音声タイプ（デバッグ用）</param>
+    /// <param name="reverbSettings">リバーブ設定</param>
+    /// <param name="volume">ボリューム（nullの場合は基本ボリューム）</param>
+    /// <param name="pitch">ピッチ（nullの場合は基本ピッチ）</param>
+    /// <returns>再生中のAudioSource（停止時に使用）</returns>
+    public AudioSource PlaySoundAtTransformLoop(AudioClip clip, Transform targetTransform, string soundType = "Sound", ReverbSettings reverbSettings = null, float? volume = null, float? pitch = null)
+    {
+        if (clip == null || targetTransform == null) return null;
+        
+        // 既にこのTransformにAudioSourceがアタッチされている場合は再利用
+        AudioSource audioSource;
+        if (attachedAudioSources.ContainsKey(targetTransform))
+        {
+            audioSource = attachedAudioSources[targetTransform];
+            // 既に再生中の場合は停止
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
+        }
+        else
+        {
+            // 新しいAudioSourceを作成してTransformにアタッチ
+            GameObject audioObj = new GameObject($"AudioSource_{soundType}_Loop");
+            audioObj.transform.SetParent(targetTransform);
+            audioObj.transform.localPosition = Vector3.zero;
+            audioObj.transform.localRotation = Quaternion.identity;
+            
+            audioSource = audioObj.AddComponent<AudioSource>();
+            attachedAudioSources[targetTransform] = audioSource;
+            audioSourceToTransform[audioSource] = targetTransform;
+        }
+        
+        // 設定を適用
+        audioSource.clip = clip;
+        audioSource.playOnAwake = false;
+        audioSource.loop = true; // ループ有効
+        
+        if (soundSettings != null)
+        {
+            audioSource.volume = volume ?? soundSettings.baseVolume;
+            audioSource.pitch = pitch ?? soundSettings.basePitch;
+            audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
+            audioSource.maxDistance = soundSettings.maxDistance;
+        }
+        else
+        {
+            audioSource.volume = volume ?? 0.7f;
+            audioSource.pitch = pitch ?? 1f;
+        }
+        
+        // リバーブエフェクトを適用
+        if (reverbSettings != null && reverbSettings.enabled)
+        {
+            ApplyReverb(audioSource.gameObject, reverbSettings);
+        }
+        
+        audioSource.Play();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[DigSoundManager] {soundType}音声再生（追従型・ループ）: {clip.name} at {targetTransform.name}");
+        }
+        
+        return audioSource;
+    }
+    
+    /// <summary>
+    /// Transformに追従している音声を停止
+    /// </summary>
+    /// <param name="targetTransform">停止するTransform</param>
+    public void StopSoundAtTransform(Transform targetTransform)
+    {
+        if (targetTransform == null || !attachedAudioSources.ContainsKey(targetTransform)) return;
+        
+        AudioSource audioSource = attachedAudioSources[targetTransform];
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+    }
+    
+    /// <summary>
+    /// Transformに追従しているAudioSourceを削除
+    /// </summary>
+    /// <param name="targetTransform">削除するTransform</param>
+    public void RemoveAttachedAudioSource(Transform targetTransform)
+    {
+        if (targetTransform == null || !attachedAudioSources.ContainsKey(targetTransform)) return;
+        
+        AudioSource audioSource = attachedAudioSources[targetTransform];
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+            if (audioSource.gameObject != null)
+            {
+                Destroy(audioSource.gameObject);
+            }
+        }
+        
+        attachedAudioSources.Remove(targetTransform);
+        if (audioSource != null)
+        {
+            audioSourceToTransform.Remove(audioSource);
+        }
+    }
+    
+    /// <summary>
+    /// 追従型AudioSourceの再生完了後にクリーンアップ
+    /// </summary>
+    private IEnumerator CleanupAttachedAudioSourceWhenFinished(AudioSource audioSource, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        
+        if (audioSource != null && !audioSource.loop && !audioSource.isPlaying)
+        {
+            if (audioSourceToTransform.ContainsKey(audioSource))
+            {
+                Transform targetTransform = audioSourceToTransform[audioSource];
+                RemoveAttachedAudioSource(targetTransform);
+            }
+        }
+    }
+    
+    // ========== ドリルモーター音の再生メソッド ==========
+    
+    /// <summary>
+    /// ドリル開始音を再生（Transform追従型）
+    /// </summary>
+    /// <param name="targetTransform">追従するTransform</param>
+    /// <returns>再生中のAudioSource</returns>
+    public AudioSource PlayDrillMotorStartSound(Transform targetTransform)
+    {
+        if (soundSettings == null || soundSettings.drillMotorStartSound == null) return null;
+        
+        ReverbSettings reverb = soundSettings.drillMotorStartReverb;
+        return PlaySoundAtTransform(soundSettings.drillMotorStartSound, targetTransform, "DrillMotorStart", reverb);
+    }
+    
+    /// <summary>
+    /// ドリルループ音を再生（Transform追従型・ループ）
+    /// </summary>
+    /// <param name="targetTransform">追従するTransform</param>
+    /// <returns>再生中のAudioSource</returns>
+    public AudioSource PlayDrillMotorLoopSound(Transform targetTransform)
+    {
+        if (soundSettings == null || soundSettings.drillMotorLoopSound == null) return null;
+        
+        ReverbSettings reverb = soundSettings.drillMotorLoopReverb;
+        return PlaySoundAtTransformLoop(soundSettings.drillMotorLoopSound, targetTransform, "DrillMotorLoop", reverb);
+    }
+    
+    /// <summary>
+    /// ドリル終了音を再生（Transform追従型）
+    /// </summary>
+    /// <param name="targetTransform">追従するTransform</param>
+    /// <returns>再生中のAudioSource</returns>
+    public AudioSource PlayDrillMotorEndSound(Transform targetTransform)
+    {
+        if (soundSettings == null || soundSettings.drillMotorEndSound == null) return null;
+        
+        ReverbSettings reverb = soundSettings.drillMotorEndReverb;
+        return PlaySoundAtTransform(soundSettings.drillMotorEndSound, targetTransform, "DrillMotorEnd", reverb);
+    }
+    
+    /// <summary>
+    /// ドリルモーター音を全て停止
+    /// </summary>
+    /// <param name="targetTransform">停止するTransform</param>
+    public void StopDrillMotorSounds(Transform targetTransform)
+    {
+        StopSoundAtTransform(targetTransform);
+    }
+    
+    // ========== 鍵収集音の再生メソッド ==========
+    
+    /// <summary>
+    /// 鍵収集音を再生（Transform追従型）
+    /// </summary>
+    /// <param name="targetTransform">追従するTransform</param>
+    /// <returns>再生中のAudioSource</returns>
+    public AudioSource PlayKeyCollectionSound(Transform targetTransform)
+    {
+        if (soundSettings == null || soundSettings.keyCollectionSound == null) return null;
+        
+        ReverbSettings reverb = soundSettings.keyCollectionReverb;
+        return PlaySoundAtTransform(soundSettings.keyCollectionSound, targetTransform, "KeyCollection", reverb);
     }
 }
 
