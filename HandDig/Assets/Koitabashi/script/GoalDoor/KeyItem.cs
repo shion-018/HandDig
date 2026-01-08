@@ -22,7 +22,10 @@ public class KeyItem : MonoBehaviour
     
     [Header("デバッグ")]
     [SerializeField] private bool showDebugInfo = true;
-    
+
+    [Header("ゴール位置スポーン")]
+    [SerializeField] private GoalMarkSpawnScript spawner;
+
     private bool isCollected = false;
     private AudioSource audioSource; // 旧方式用
     private DigSoundManager soundManager; // 新方式用
@@ -105,6 +108,9 @@ public class KeyItem : MonoBehaviour
                 DestroyKey();
             }
         }
+
+        //ゴールマーク生成
+        spawner.Spawn();
     }
     
     /// <summary>
