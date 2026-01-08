@@ -296,7 +296,7 @@ public class TutorialManager : MonoBehaviour
 
         if (tool is PickaxeDigToolMaster)
         {
-            tutorialText.text = "掘るにはトリガーを押しながら\nピッケルを振りかぶって掘ってみよう";
+            tutorialText.text = "掘るにはトリガーを押しながら\n振りかぶって 振り下ろす";
         }
         else if (tool is DrillDigTool)
         {
@@ -310,11 +310,11 @@ public class TutorialManager : MonoBehaviour
 
         if (tool is PickaxeDigToolMaster)
         {
-            tutorialText.text = "トリガー押しながら振りかぶって振り下ろす";
+            tutorialText.text = "掘るにはトリガーを押しながら\n振りかぶって 振り下ろす";
         }
         else if (tool is DrillDigTool)
         {
-            tutorialText.text = "トリガー押しながらドリルを壁に近づける";
+            tutorialText.text = "掘るにはトリガーを押しながら\nドリルを壁に近づける";
         }
     }
 
