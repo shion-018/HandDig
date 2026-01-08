@@ -23,7 +23,7 @@ public static class MyMarchingCubes
         {0,4}, {1,5}, {2,6}, {3,7}
     };
 
-    public static void Polygonise(Vector3 position, float[] cube, float surfaceLevel, List<Vector3> vertices, List<int> triangles)
+    public static void Polygonise(Vector3 position, float[] cube, float surfaceLevel, List<Vector3> vertices, List<Vector2> uvs, List<int> triangles, float uvScale = 0.1f)
     {
         int cubeIndex = 0;
 
@@ -58,9 +58,13 @@ public static class MyMarchingCubes
 
         for (int i = 0; MyMarchingTable.TriangleTable[cubeIndex, i] != -1; i += 3)
         {
-            int idx0 = AddVertex(vertList[MyMarchingTable.TriangleTable[cubeIndex, i]], vertices);
-            int idx1 = AddVertex(vertList[MyMarchingTable.TriangleTable[cubeIndex, i + 1]], vertices);
-            int idx2 = AddVertex(vertList[MyMarchingTable.TriangleTable[cubeIndex, i + 2]], vertices);
+            Vector3 v0 = vertList[MyMarchingTable.TriangleTable[cubeIndex, i]];
+            Vector3 v1 = vertList[MyMarchingTable.TriangleTable[cubeIndex, i + 1]];
+            Vector3 v2 = vertList[MyMarchingTable.TriangleTable[cubeIndex, i + 2]];
+
+            int idx0 = AddVertex(v0, vertices, uvs, uvScale);
+            int idx1 = AddVertex(v1, vertices, uvs, uvScale);
+            int idx2 = AddVertex(v2, vertices, uvs, uvScale);
 
             triangles.Add(idx0);
             triangles.Add(idx2);
@@ -74,10 +78,16 @@ public static class MyMarchingCubes
         return Vector3.Lerp(p1, p2, t);
     }
 
-    private static int AddVertex(Vector3 vertex, List<Vector3> vertices)
+    private static int AddVertex(Vector3 vertex, List<Vector3> vertices, List<Vector2> uvs, float uvScale)
     {
         int index = vertices.Count;
         vertices.Add(vertex);
+        
+        // トリプラナーマッピング用のUV生成
+        // シェーダー側でトリプラナーブレンドを行うため、ワールド座標をそのまま使用
+        Vector2 uv = new Vector2(vertex.x * uvScale, vertex.z * uvScale);
+        uvs.Add(uv);
+        
         return index;
     }
 }

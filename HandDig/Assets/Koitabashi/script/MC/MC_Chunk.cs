@@ -7,14 +7,27 @@ public class MC_Chunk : MonoBehaviour
 {
     public MC_ChunkData chunkData;
     public int chunkSize = 32;
-    float baseHeight = 0f; // ‘S‘Ì‚Ìƒx[ƒX‚‚³i’n•\j
-    float variation = 5f;   // ‰š“Ê‚Ì’ö“xi‚±‚ê‚ð0‚É‚·‚é‚ÆŠ®‘S‚É•½‚çj
+    float baseHeight = 0f;
+    float variation = 5f;
+
+    public bool isExcluded=false;
+    [Header("Prebaked Data")]
+    public MC_ChunkDataAsset prebakedData;
 
     public void Initialize(Vector3 position)
     {
-        chunkData = new MC_ChunkData(chunkSize, chunkSize, chunkSize, chunkSize, 1f);
+        // äº‹å‰ç”Ÿæˆãƒ‡ãƒ¼ã‚¿ãŒã‚ã‚Œã°ãã‚Œã‚’ä½¿ç”¨ã€ãªã‘ã‚Œã°ç”Ÿæˆ
+        if (prebakedData != null && prebakedData.HasData)
+        {
+            chunkData = prebakedData.ToRuntimeData();
+            chunkSize = prebakedData.chunkSize;
+        }
+        else
+        {
+            chunkData = new MC_ChunkData(chunkSize, chunkSize, chunkSize, chunkSize, 1f);
+            GenerateDensity();
+        }
         transform.position = position;
-        GenerateDensity();  // ƒeƒXƒg“I‚É’nŒ`ƒf[ƒ^‚ð“ü‚ê‚é
         GenerateMesh();
     }
 
@@ -45,7 +58,7 @@ public class MC_Chunk : MonoBehaviour
         if (!collider)
             collider = gameObject.AddComponent<MeshCollider>();
 
-        collider.sharedMesh = mesh; // XV‚³‚ê‚½ƒƒbƒVƒ…‚É‡‚í‚¹‚ÄƒRƒ‰ƒCƒ_[‚ðXV
+            collider.sharedMesh = mesh;
     }
 
 
@@ -68,5 +81,32 @@ public class MC_Chunk : MonoBehaviour
                     if (diff.magnitude <= radius)
                         chunkData.densityMap[x, y, z] = value;
                 }
+    }
+
+    public bool HasVoxelsInRange(Vector3 worldPos, float radius)
+    {
+        Vector3 localPos = worldPos - transform.position;
+
+        int minX = Mathf.Max(0, Mathf.FloorToInt(localPos.x - radius));
+        int maxX = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.x + radius));
+        int minY = Mathf.Max(0, Mathf.FloorToInt(localPos.y - radius));
+        int maxY = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.y + radius));
+        int minZ = Mathf.Max(0, Mathf.FloorToInt(localPos.z - radius));
+        int maxZ = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.z + radius));
+
+        const float filledThreshold = 0.5f;
+        for (int x = minX; x <= maxX; x++)
+            for (int y = minY; y <= maxY; y++)
+                for (int z = minZ; z <= maxZ; z++)
+                {
+                    Vector3 diff = new Vector3(x, y, z) - localPos;
+                    if (diff.magnitude <= radius)
+                    {
+                        if (chunkData != null && chunkData.densityMap[x, y, z] > filledThreshold)
+                            return true;
+                    }
+                }
+
+        return false;
     }
 }
