@@ -10,9 +10,13 @@ public class TutorialManager : MonoBehaviour
     {
         Move,
         Look,
-        ToolChange,
-        AnyDig,
+        Jump,
+        FirstDig,
         GetCompass,
+        ToolChange,
+        SecondDig,
+        CompassUpgrade,
+        CompassButtonPress,
         Complete
     }
 
@@ -23,7 +27,13 @@ public class TutorialManager : MonoBehaviour
     [Header("コンパス")]
     public GameObject tutorialCompassPrefab;
 
+    [Header("二回目の掘りで出現するお宝")]
+    public GameObject secondDigTreasurePrefab;
+
+    [Header("コンパス設定")]
     public GameObject compassObject;
+    [Tooltip("CompassAbilityTreasureItemに設定するCompassScript（compassObjectから自動取得も可能）")]
+    public CompassScript compassScript;
     private bool compassUnlocked = false;
 
 
@@ -32,6 +42,8 @@ public class TutorialManager : MonoBehaviour
     private TutorialStep currentStep = TutorialStep.Move;
     private bool firstDigDone = false;
     private bool compassSpawned = false;
+    private bool secondDigTreasureSpawned = false;
+    private int firstDigToolIndex = -1; // 最初に掘ったときのツールインデックス
 
     private VRDigToolManager toolManager;
     [SerializeField] private float requiredMoveTime = 1.0f;
@@ -39,9 +51,16 @@ public class TutorialManager : MonoBehaviour
     private bool moveInputDetected = false;
     private float moveInputTimer = 0f;
 
-    [SerializeField] private float requiredLookTime = 0.6f;
-    [SerializeField] private float lookThreshold = 0.3f;
-    private float lookTimer = 0f;
+    [SerializeField] private int requiredSnapTurnCount = 3; // スナップターンの必要回数
+    [SerializeField] private float snapInputThreshold = 0.8f; // スナップターンの閾値（VRPlayerMovementと同じ）
+    private int snapTurnCount = 0; // スナップターンの回数
+    private bool canSnapTurn = true; // スナップターン可能かどうか（VRPlayerMovementと同じロジック）
+
+    [SerializeField] private float requiredJumpTime = 0.5f; // ジャンプ/ジェットパック検知時間
+    private float jumpTimer = 0f;
+    private bool jumpDetected = false;
+
+    private int compassButtonPressCount = 0; // Yボタンを押した回数
 
 
     private void Awake()
@@ -68,6 +87,15 @@ public class TutorialManager : MonoBehaviour
 
             case TutorialStep.Look:
                 CheckLook();
+                break;
+
+            case TutorialStep.Jump:
+                CheckJump();
+                break;
+
+            case TutorialStep.CompassUpgrade:
+            case TutorialStep.CompassButtonPress:
+                CheckCompassButton();
                 break;
         }
     }
@@ -104,9 +132,10 @@ public class TutorialManager : MonoBehaviour
 
     public void OnFirstDig(Vector3 digPos, float radius)
     {
-        if (currentStep != TutorialStep.AnyDig || firstDigDone) return;
+        if (currentStep != TutorialStep.FirstDig || firstDigDone) return;
 
         firstDigDone = true;
+        firstDigToolIndex = toolManager != null ? toolManager.GetCurrentToolIndex() : -1;
 
         SpawnCompass(digPos, radius);
         SetStep(TutorialStep.GetCompass);
@@ -116,40 +145,89 @@ public class TutorialManager : MonoBehaviour
     {
         if (currentStep != TutorialStep.GetCompass) return;
 
-        SetStep(TutorialStep.Complete);
+        SetStep(TutorialStep.ToolChange);
     }
 
     public void OnToolChanged(IDigTool tool, int toolIndex)
     {
-        
-        if (currentStep != TutorialStep.AnyDig &&
-            currentStep != TutorialStep.ToolChange)
-            return;
-
-        // ToolChangeステップの時は、ツール変更を検知したらAnyDigステップに進む
+        // ToolChangeステップ: 前回と違うツールに切り替えたらSecondDigに進む
         if (currentStep == TutorialStep.ToolChange)
         {
-            SetStep(TutorialStep.AnyDig);
+            if (firstDigToolIndex >= 0 && toolIndex != firstDigToolIndex)
+            {
+                SetStep(TutorialStep.SecondDig);
+            }
+            else
+            {
+                // 同じツールに切り替えた場合はメッセージを更新
+                UpdateText();
+            }
+            return;
         }
 
-        if (tool is PickaxeDigToolMaster)
+        // SecondDigステップ: 前回と同じツールに戻したらToolChangeに戻る
+        if (currentStep == TutorialStep.SecondDig)
         {
-            ShowText("トリガーを押しながら\n振りかぶって 振り下ろす");
+            if (firstDigToolIndex >= 0 && toolIndex == firstDigToolIndex)
+            {
+                SetStep(TutorialStep.ToolChange);
+            }
+            else
+            {
+                // 別のツールの場合はメッセージを更新
+                UpdateText();
+            }
+            return;
         }
-        else if (tool is DrillDigTool)
+
+        // FirstDigステップ: ツール変更は無視（掘る動作のみ）
+        if (currentStep == TutorialStep.FirstDig)
         {
-            ShowText("トリガーを押しながら\nドリルを壁に近づける");
+            UpdateText();
+            return;
         }
     }
 
 
 
 
+    [Header("コンパス強化フェーズ")]
+    [Tooltip("trueの場合、7の掘り後にコンパス強化フェーズ（8,9）に進む。falseの場合、7の掘りでチュートリアル終了")]
+    public bool enableCompassUpgradePhase = false;
+
+    public void OnAnyDigSuccess(Vector3 digPos, float radius)
+    {
+        // SecondDigステップで掘った場合
+        if (currentStep == TutorialStep.SecondDig)
+        {
+            // 二回目の掘りでお宝を生成
+            SpawnSecondDigTreasure(digPos, radius);
+            
+            // コンパス強化フェーズが有効な場合はお宝を取るまで待つ
+            // 無効な場合は直接完了
+            if (!enableCompassUpgradePhase)
+            {
+                SetStep(TutorialStep.Complete);
+            }
+        }
+    }
+
+    public void OnCompassUpgradeTreasureCollected()
+    {
+        // コンパス強化フェーズが有効で、SecondDigステップの後、コンパス強化お宝を取った場合
+        if (enableCompassUpgradePhase && (currentStep == TutorialStep.SecondDig || currentStep == TutorialStep.CompassUpgrade))
+        {
+            SetStep(TutorialStep.CompassUpgrade);
+        }
+    }
+
+    // 後方互換性のため、位置情報なしのメソッドも残す
     public void OnAnyDigSuccess()
     {
-        if (currentStep == TutorialStep.AnyDig)
+        // 位置情報が不明な場合は何もしない（SecondDigでは位置情報が必要）
+        if (currentStep == TutorialStep.SecondDig)
         {
-            SetStep(TutorialStep.Complete);
+            Debug.LogWarning("[TutorialManager] OnAnyDigSuccess called without position info in SecondDig step");
         }
     }
 
@@ -176,37 +254,67 @@ public class TutorialManager : MonoBehaviour
                 tutorialText.text = "右スティックで視点移動";
                 break;
 
+            case TutorialStep.Jump:
+                tutorialText.text = "Aボタンでジェットパック起動\n押している間飛ぶことができる";
+                break;
+
+            case TutorialStep.FirstDig:
+                UpdateFirstDigTextByTool();
+                break;
+
+            case TutorialStep.GetCompass:
+                tutorialText.text = "コンパスが出てきた\nお宝を指してくれる";
+                break;
+
             case TutorialStep.ToolChange:
                 tutorialText.text = "Bボタンで 道具を持ち替えることができる";
                 break;
 
-            case TutorialStep.AnyDig:
-                UpdateDigTextByTool();
+            case TutorialStep.SecondDig:
+                UpdateSecondDigTextByTool();
                 break;
 
-            case TutorialStep.GetCompass:
-                tutorialText.text = "出てきたコンパスを拾おう";
+            case TutorialStep.CompassUpgrade:
+                tutorialText.text = "コンパスが強化された\nYボタンで扉の解除キーを指す";
+                break;
+
+            case TutorialStep.CompassButtonPress:
+                tutorialText.text = "もう一度押すとまたお宝を指す";
                 break;
 
             case TutorialStep.Complete:
-                tutorialText.text = "チュートリアル完了";
+                tutorialText.text = "チュートリアル完了、おめでとう！";
                 Invoke(nameof(HideUI), 2f);
                 break;
         }
     }
 
 
-    private void UpdateDigTextByTool()
+    private void UpdateFirstDigTextByTool()
     {
         var tool = toolManager.GetCurrentTool();
 
         if (tool is PickaxeDigToolMaster)
         {
-            tutorialText.text = "トリガーを押しながら\nピッケルを振りかぶって掘ってみよう";
+            tutorialText.text = "掘るにはトリガーを押しながら\n振りかぶって 振り下ろす";
         }
-        else
+        else if (tool is DrillDigTool)
         {
-            tutorialText.text = "トリガーを押しながら\nドリルを近づけよう";
+            tutorialText.text = "掘るにはトリガーを押しながら\nドリルを壁に近づける";
+        }
+    }
+
+    private void UpdateSecondDigTextByTool()
+    {
+        var tool = toolManager.GetCurrentTool();
+
+        if (tool is PickaxeDigToolMaster)
+        {
+            tutorialText.text = "掘るにはトリガーを押しながら\n振りかぶって 振り下ろす";
+        }
+        else if (tool is DrillDigTool)
+        {
+            tutorialText.text = "掘るにはトリガーを押しながら\nドリルを壁に近づける";
         }
     }
 
@@ -215,10 +323,56 @@ public class TutorialManager : MonoBehaviour
         if (compassSpawned) return;
         compassSpawned = true;
 
+        if (tutorialCompassPrefab == null)
+        {
+            Debug.LogWarning("[TutorialManager] tutorialCompassPrefab is not set");
+            return;
+        }
+
         Vector3 spawnPos = digPos;
         spawnPos += toolManager.transform.forward * 0.3f;
 
         Instantiate(tutorialCompassPrefab, spawnPos, Quaternion.identity);
+    }
+
+    private void SpawnSecondDigTreasure(Vector3 digPos, float radius)
+    {
+        if (secondDigTreasureSpawned) return;
+        secondDigTreasureSpawned = true;
+
+        if (secondDigTreasurePrefab == null)
+        {
+            Debug.LogWarning("[TutorialManager] secondDigTreasurePrefab is not set");
+            return;
+        }
+
+        Vector3 spawnPos = digPos;
+        spawnPos += toolManager.transform.forward * 0.3f;
+
+        GameObject treasureInstance = Instantiate(secondDigTreasurePrefab, spawnPos, Quaternion.identity);
+        
+        // CompassAbilityTreasureItemコンポーネントがある場合、compassScriptを設定
+        CompassAbilityTreasureItem compassTreasure = treasureInstance.GetComponent<CompassAbilityTreasureItem>();
+        if (compassTreasure != null)
+        {
+            // compassScriptが直接設定されていない場合、compassObjectから取得を試みる
+            if (compassScript == null && compassObject != null)
+            {
+                compassScript = compassObject.GetComponent<CompassScript>();
+            }
+            
+            if (compassScript != null)
+            {
+                compassTreasure.compassScript = compassScript;
+                Debug.Log($"[TutorialManager] CompassAbilityTreasureItemにcompassScriptを設定しました");
+            }
+            else
+            {
+                Debug.LogWarning("[TutorialManager] compassScriptが設定されていません。CompassAbilityTreasureItemのcompassScriptは空のままです。");
+            }
+        }
+        
+        Debug.Log($"[TutorialManager] 二回目の掘りでお宝を生成: {spawnPos}");
     }
 
     private void SetupTutorialUI()
@@ -275,23 +429,80 @@ public class TutorialManager : MonoBehaviour
 
     private void CheckLook()
     {
-        // 右スティック
+        // 右スティック（VRPlayerMovementと同じスナップターン方式）
         float rightX = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick).x;
 
-        if (Mathf.Abs(rightX) >= lookThreshold)
+        // VRPlayerMovementと同じロジック
+        if (canSnapTurn)
         {
-            lookTimer += Time.deltaTime;
-
-            if (lookTimer >= requiredLookTime)
+            // 右にスナップターン
+            if (rightX > snapInputThreshold)
             {
-                Debug.Log("[Tutorial] Look Completed");
-                SetStep(TutorialStep.ToolChange);
+                snapTurnCount++;
+                canSnapTurn = false;
+                Debug.Log($"[Tutorial] スナップターン（右）: {snapTurnCount}/{requiredSnapTurnCount}回");
+            }
+            // 左にスナップターン
+            else if (rightX < -snapInputThreshold)
+            {
+                snapTurnCount++;
+                canSnapTurn = false;
+                Debug.Log($"[Tutorial] スナップターン（左）: {snapTurnCount}/{requiredSnapTurnCount}回");
             }
         }
-        else
+        
+        // スティックが戻ったら次のスナップターンを許可（VRPlayerMovementと同じ）
+        if (Mathf.Abs(rightX) < 0.2f)
         {
-            // 入力が無い場合はリセット
-            lookTimer = 0f;
+            canSnapTurn = true;
+        }
+
+        // 必要な回数に達したら次へ
+        if (snapTurnCount >= requiredSnapTurnCount)
+        {
+            Debug.Log("[Tutorial] Look Completed");
+            SetStep(TutorialStep.Jump);
+            snapTurnCount = 0;
+            canSnapTurn = true;
+        }
+    }
+
+    private void CheckJump()
+    {
+        // Aボタン（右コントローラーのButton.One）
+        bool isAButtonHeld = OVRInput.Get(OVRInput.Button.One, OVRInput.Controller.RTouch);
+        bool isAButtonDown = OVRInput.GetDown(OVRInput.Button.One, OVRInput.Controller.RTouch);
+
+        // ジャンプ（短押し）またはジェットパック（長押し）を検知
+        if (isAButtonDown || isAButtonHeld)
+        {
+            if (isAButtonDown)
+            {
+                jumpDetected = true;
+                jumpTimer = 0f;
+            }
+
+            if (isAButtonHeld)
+            {
+                jumpTimer += Time.deltaTime;
+
+                // 短押し（ジャンプ）または長押し（ジェットパック）を検知
+                if (jumpTimer >= requiredJumpTime)
+                {
+                    Debug.Log("[Tutorial] Jump/Jetpack Completed");
+                    SetStep(TutorialStep.FirstDig);
+                    jumpDetected = false;
+                    jumpTimer = 0f;
+                }
+            }
+        }
+        else if (jumpDetected && jumpTimer > 0.1f)
+        {
+            // 短押しでジャンプした場合も検知（少し待ってから判定）
+            Debug.Log("[Tutorial] Jump Completed (short press)");
+            SetStep(TutorialStep.FirstDig);
+            jumpDetected = false;
+            jumpTimer = 0f;
         }
     }
 
@@ -307,5 +518,32 @@ public class TutorialManager : MonoBehaviour
 
         // チュートリアルの進行も処理
         OnGetCompass();
+    }
+
+    private void CheckCompassButton()
+    {
+        // Yボタン（左コントローラーのButton.Two）を検知
+        // CompassScriptと同じようにButton.Fourも試す（後方互換性のため）
+        bool yButtonPressed = OVRInput.GetDown(OVRInput.Button.Two, OVRInput.Controller.LTouch) || 
+                              OVRInput.GetDown(OVRInput.Button.Four) || 
+                              Input.GetKeyDown(KeyCode.Space);
+
+        if (yButtonPressed)
+        {
+            compassButtonPressCount++;
+            Debug.Log($"[Tutorial] Yボタンが押されました: {compassButtonPressCount}回目 (現在のステップ: {currentStep})");
+
+            // CompassUpgradeステップ: 1回目でCompassButtonPressに進む
+            if (currentStep == TutorialStep.CompassUpgrade)
+            {
+                SetStep(TutorialStep.CompassButtonPress);
+            }
+            // CompassButtonPressステップ: 2回目で完了
+            else if (currentStep == TutorialStep.CompassButtonPress)
+            {
+                SetStep(TutorialStep.Complete);
+                compassButtonPressCount = 0;
+            }
+        }
     }
 }

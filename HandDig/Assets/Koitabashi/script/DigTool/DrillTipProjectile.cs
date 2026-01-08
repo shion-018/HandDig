@@ -31,6 +31,9 @@ public class DrillTipProjectile : MonoBehaviour
 
         float interval = stats.GetDigInterval(speedLevel);
         moveSpeed = Mathf.Clamp(3f / interval, 2f, 10f);
+        
+        // 発射時の音を再生
+        soundManager?.PlayDrillProjectileSound(transform.position);
     }
 
     private void Update()

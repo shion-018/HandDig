@@ -94,6 +94,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: db1fe32535ece39499e33511bcd5f222, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8167799885740073051}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: db1fe32535ece39499e33511bcd5f222, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -1798911336660517683}
   m_SourcePrefab: {fileID: 100100000, guid: db1fe32535ece39499e33511bcd5f222, type: 3}
 --- !u!1 &3020638012149682057 stripped
 GameObject:
@@ -135,3 +138,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chargesPerPickup: 5
   treasureName: Explosive Pickaxe Treasure
+--- !u!114 &-1798911336660517683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3020638012149682057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6447c80ccc7c57b45908b5d084a905ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  treasureName: "\u8CB4\u91CD\u306A\u304A\u5B9D"

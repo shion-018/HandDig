@@ -16,8 +16,84 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   pickaxeExplosionMarkerSound: {fileID: 8300000, guid: 726ced6a74e196e49af59496aa704bba, type: 3}
   pickaxeExplosionSound: {fileID: 8300000, guid: d9b17561b0f8ca843a6136222992e6a8, type: 3}
+  pickaxeDigReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  pickaxeExplosionReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
   drillDigSound: {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
+  drillProjectileSound: {fileID: 8300000, guid: 832e1d9549e7d0e4c97a070ab9545340, type: 3}
+  drillDigReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  drillProjectileReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
   handDigSound: {fileID: 0}
+  handDigReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  treasureProximitySound: {fileID: 8300000, guid: 4b39285ed74786046adb97a95e6313da, type: 3}
+  treasureProximityMaxDistance: 30
+  treasureProximityMinDistance: 5
+  treasureProximityMaxInterval: 2
+  treasureProximityMinInterval: 0.3
+  treasureProximityReverb:
+    enabled: 0
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  footstepSounds:
+  - {fileID: 8300000, guid: d7a1824eeeed0204e9e564d9340fa5f7, type: 3}
+  - {fileID: 8300000, guid: f2027d54058535344836342d7e44ab4b, type: 3}
+  - {fileID: 8300000, guid: a1355c0ade597964799ccbe4dfa3bbd9, type: 3}
+  - {fileID: 8300000, guid: 58d27410091074443959f8f14798e4b3, type: 3}
+  - {fileID: 8300000, guid: 5444355b796f45442a2419ef3ff786d2, type: 3}
+  - {fileID: 8300000, guid: 95dc27e71fc4a0a45872b76fb8a741ea, type: 3}
+  - {fileID: 8300000, guid: 24f370eb02c1fb044918d178297119d3, type: 3}
+  footstepDistance: 3
+  footstepVolume: 0.5
+  footstepPitchRandomness: 0.1
+  footstepReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  drillMotorStartSound: {fileID: 8300000, guid: 1752cb2e0555ed04ab466129c28fb992, type: 3}
+  drillMotorLoopSound: {fileID: 8300000, guid: e0e4f30e7fa7dd64790c4d46f01cb3a5, type: 3}
+  drillMotorEndSound: {fileID: 0}
+  drillMotorStartReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  drillMotorLoopReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  drillMotorEndReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  keyCollectionSound: {fileID: 0}
+  keyCollectionReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
   baseVolume: 0.7
   basePitch: 1
   useSpatialBlending: 1

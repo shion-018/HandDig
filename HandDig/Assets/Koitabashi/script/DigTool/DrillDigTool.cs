@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class DrillDigTool : MonoBehaviour, IDigToolWithStats
+public class DrillDigTool : MonoBehaviour, IDigTool
 {
     public VoxelDigManager digManager;
     private DrillDigStats stats;
@@ -37,6 +37,14 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
     [SerializeField] private GameObject visibleDrillTip;
 
     private bool canSwitchMode = true;
+
+    /// <summary>
+    /// 射出モードかどうかを取得
+    /// </summary>
+    public bool IsShootMode()
+    {
+        return isShootMode;
+    }
 
     private void Start()
     {
@@ -174,7 +182,7 @@ public class DrillDigTool : MonoBehaviour, IDigToolWithStats
 
                         // チュートリアル：最初の掘削でお宝出現
                         TutorialManager.Instance?.OnFirstDig(digPosition, radius);
-                        TutorialManager.Instance?.OnAnyDigSuccess();
+                        TutorialManager.Instance?.OnAnyDigSuccess(digPosition, radius);
 
                         soundManager?.PlayDrillDigSound(digPosition);
                         DigEffectManager.Instance?.CreateDigEffect(digPosition, radius);
