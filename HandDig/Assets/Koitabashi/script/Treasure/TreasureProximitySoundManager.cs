@@ -330,17 +330,6 @@ public class TreasureProximitySoundManager : MonoBehaviour
                         reverb
                     );
                 }
-                else if (soundSettings != null && soundSettings.treasureProximitySound != null && compassAudioSource != null)
-                {
-                    // フォールバック：DigSoundManagerが使えない場合は旧方式
-                    if (!compassAudioSource.isPlaying)
-                    {
-                        compassAudioSource.clip = soundSettings.treasureProximitySound;
-                        compassAudioSource.volume = soundSettings.baseVolume;
-                        compassAudioSource.pitch = soundSettings.basePitch;
-                        compassAudioSource.Play();
-                    }
-                }
                 treasureLastSoundTime[treasure] = Time.time;
                 treasureLastInterval[treasure] = currentInterval; // 現在の間隔を記録
                 

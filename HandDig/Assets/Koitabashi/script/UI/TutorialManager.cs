@@ -62,6 +62,21 @@ public class TutorialManager : MonoBehaviour
 
     private int compassButtonPressCount = 0; // Yボタンを押した回数
 
+    [Header("コントローラー設定")]
+    [Tooltip("左コントローラーのプレハブ（Inspectorから手動で設定）")]
+    public GameObject leftControllerPrefab;
+    [Tooltip("右コントローラーのプレハブ（Inspectorから手動で設定）")]
+    public GameObject rightControllerPrefab;
+    [Tooltip("チュートリアル中にコントローラーを最前面に表示するか")]
+    public bool enableControllerFrontmost = true;
+    private Renderer[] leftControllerRenderers;
+    private Renderer[] rightControllerRenderers;
+    private Material[] leftOriginalControllerMaterials;
+    private Material[] rightOriginalControllerMaterials;
+    private Shader frontmostShader;
+    private bool isControllerFrontmost = false;
+    private bool leftOriginalControllerActiveState = true; // 左コントローラーの元の表示状態を保存
+    private bool rightOriginalControllerActiveState = true; // 右コントローラーの元の表示状態を保存
 
     private void Awake()
     {
@@ -74,6 +89,22 @@ public class TutorialManager : MonoBehaviour
 
         SetupTutorialUI();
         UpdateText();
+        
+        // コントローラーのRendererを取得
+        SetupControllerRenderers();
+        
+        // 最前面表示シェーダーを読み込む
+        if (enableControllerFrontmost)
+        {
+            frontmostShader = Shader.Find("Custom/ControllerFrontmost");
+            if (frontmostShader == null)
+            {
+                Debug.LogWarning("[TutorialManager] ControllerFrontmostシェーダーが見つかりません。");
+            }
+        }
+        
+        // チュートリアル開始時にコントローラーを表示し、最前面表示を有効化
+        ShowController();
     }
 
 
@@ -408,6 +439,9 @@ public class TutorialManager : MonoBehaviour
     private void HideUI()
     {
         tutorialCanvas.gameObject.SetActive(false);
+        
+        // チュートリアル終了時にコントローラーを非表示にし、最前面表示を無効化
+        HideController();
     }
 
     private void ShowText(string message)
@@ -545,5 +579,189 @@ public class TutorialManager : MonoBehaviour
                 compassButtonPressCount = 0;
             }
         }
+    }
+
+    /// <summary>
+    /// Inspectorで設定されたコントローラーのRendererを取得
+    /// </summary>
+    private void SetupControllerRenderers()
+    {
+        // 左コントローラー
+        if (leftControllerPrefab != null)
+        {
+            leftOriginalControllerActiveState = leftControllerPrefab.activeSelf;
+            leftControllerRenderers = leftControllerPrefab.GetComponentsInChildren<Renderer>(true);
+            
+            if (leftControllerRenderers != null && leftControllerRenderers.Length > 0)
+            {
+                leftOriginalControllerMaterials = new Material[leftControllerRenderers.Length];
+                for (int i = 0; i < leftControllerRenderers.Length; i++)
+                {
+                    if (leftControllerRenderers[i] != null && leftControllerRenderers[i].sharedMaterial != null)
+                    {
+                        leftOriginalControllerMaterials[i] = leftControllerRenderers[i].sharedMaterial;
+                    }
+                }
+                Debug.Log($"[TutorialManager] 左コントローラーのRendererを{leftControllerRenderers.Length}個見つけました");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[TutorialManager] leftControllerPrefabがInspectorで設定されていません。");
+        }
+
+        // 右コントローラー
+        if (rightControllerPrefab != null)
+        {
+            rightOriginalControllerActiveState = rightControllerPrefab.activeSelf;
+            rightControllerRenderers = rightControllerPrefab.GetComponentsInChildren<Renderer>(true);
+            
+            if (rightControllerRenderers != null && rightControllerRenderers.Length > 0)
+            {
+                rightOriginalControllerMaterials = new Material[rightControllerRenderers.Length];
+                for (int i = 0; i < rightControllerRenderers.Length; i++)
+                {
+                    if (rightControllerRenderers[i] != null && rightControllerRenderers[i].sharedMaterial != null)
+                    {
+                        rightOriginalControllerMaterials[i] = rightControllerRenderers[i].sharedMaterial;
+                    }
+                }
+                Debug.Log($"[TutorialManager] 右コントローラーのRendererを{rightControllerRenderers.Length}個見つけました");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[TutorialManager] rightControllerPrefabがInspectorで設定されていません。");
+        }
+    }
+
+    /// <summary>
+    /// チュートリアル開始時にコントローラーを表示
+    /// </summary>
+    private void ShowController()
+    {
+        // 左コントローラーを表示
+        if (leftControllerPrefab != null)
+        {
+            leftControllerPrefab.SetActive(true);
+            Debug.Log("[TutorialManager] 左コントローラーを表示しました");
+        }
+
+        // 右コントローラーを表示
+        if (rightControllerPrefab != null)
+        {
+            rightControllerPrefab.SetActive(true);
+            Debug.Log("[TutorialManager] 右コントローラーを表示しました");
+        }
+
+        // 最前面表示を有効化
+        if (enableControllerFrontmost && frontmostShader != null)
+        {
+            SetControllerFrontmost(true);
+        }
+    }
+
+    /// <summary>
+    /// チュートリアル終了時にコントローラーを非表示
+    /// </summary>
+    private void HideController()
+    {
+        // 最前面表示を無効化
+        if (isControllerFrontmost)
+        {
+            SetControllerFrontmost(false);
+        }
+
+        // 左コントローラーを非表示
+        if (leftControllerPrefab != null)
+        {
+            leftControllerPrefab.SetActive(false);
+            Debug.Log("[TutorialManager] 左コントローラーを非表示にしました");
+        }
+
+        // 右コントローラーを非表示
+        if (rightControllerPrefab != null)
+        {
+            rightControllerPrefab.SetActive(false);
+            Debug.Log("[TutorialManager] 右コントローラーを非表示にしました");
+        }
+    }
+
+    /// <summary>
+    /// コントローラーを最前面表示にする/戻す
+    /// </summary>
+    /// <param name="enable">trueで最前面表示、falseで通常表示に戻す</param>
+    private void SetControllerFrontmost(bool enable)
+    {
+        if (frontmostShader == null && enable)
+        {
+            Debug.LogWarning("[TutorialManager] 最前面表示シェーダーが読み込まれていません。");
+            return;
+        }
+
+        isControllerFrontmost = enable;
+
+        // 左コントローラーの処理
+        SetControllerFrontmostForRenderers(leftControllerRenderers, leftOriginalControllerMaterials, enable, "左");
+
+        // 右コントローラーの処理
+        SetControllerFrontmostForRenderers(rightControllerRenderers, rightOriginalControllerMaterials, enable, "右");
+    }
+
+    /// <summary>
+    /// 指定されたRenderer配列に対して最前面表示を適用/解除
+    /// </summary>
+    private void SetControllerFrontmostForRenderers(Renderer[] renderers, Material[] originalMaterials, bool enable, string sideName)
+    {
+        if (renderers == null || renderers.Length == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] == null) continue;
+
+            if (enable)
+            {
+                // 最前面表示シェーダーに切り替え
+                Material originalMat = originalMaterials[i];
+                if (originalMat != null)
+                {
+                    // 新しいマテリアルを作成（元のマテリアルのプロパティをコピー）
+                    Material frontmostMat = new Material(frontmostShader);
+                    
+                    // テクスチャとプロパティをコピー
+                    if (originalMat.HasProperty("_MainTex"))
+                        frontmostMat.SetTexture("_MainTex", originalMat.GetTexture("_MainTex"));
+                    if (originalMat.HasProperty("_Color"))
+                        frontmostMat.SetColor("_Color", originalMat.GetColor("_Color"));
+                    if (originalMat.HasProperty("_BumpMap") && frontmostMat.HasProperty("_BumpMap"))
+                        frontmostMat.SetTexture("_BumpMap", originalMat.GetTexture("_BumpMap"));
+                    if (originalMat.HasProperty("_BumpScale") && frontmostMat.HasProperty("_BumpScale"))
+                        frontmostMat.SetFloat("_BumpScale", originalMat.GetFloat("_BumpScale"));
+                    if (originalMat.HasProperty("_Glossiness") && frontmostMat.HasProperty("_Glossiness"))
+                        frontmostMat.SetFloat("_Glossiness", originalMat.GetFloat("_Glossiness"));
+                    if (originalMat.HasProperty("_Metallic") && frontmostMat.HasProperty("_Metallic"))
+                        frontmostMat.SetFloat("_Metallic", originalMat.GetFloat("_Metallic"));
+                    if (originalMat.HasProperty("_EmissionMap") && frontmostMat.HasProperty("_EmissionMap"))
+                        frontmostMat.SetTexture("_EmissionMap", originalMat.GetTexture("_EmissionMap"));
+                    if (originalMat.HasProperty("_EmissionColor") && frontmostMat.HasProperty("_EmissionColor"))
+                        frontmostMat.SetColor("_EmissionColor", originalMat.GetColor("_EmissionColor"));
+                    
+                    renderers[i].sharedMaterial = frontmostMat;
+                }
+            }
+            else
+            {
+                // 元のマテリアルに戻す
+                if (originalMaterials[i] != null)
+                {
+                    renderers[i].sharedMaterial = originalMaterials[i];
+                }
+            }
+        }
+
+        Debug.Log($"[TutorialManager] {sideName}コントローラーの最前面表示を{(enable ? "有効" : "無効")}にしました");
     }
 }

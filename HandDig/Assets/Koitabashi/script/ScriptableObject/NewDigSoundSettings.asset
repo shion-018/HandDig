@@ -16,6 +16,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   pickaxeExplosionMarkerSound: {fileID: 8300000, guid: 726ced6a74e196e49af59496aa704bba, type: 3}
   pickaxeExplosionSound: {fileID: 8300000, guid: d9b17561b0f8ca843a6136222992e6a8, type: 3}
+  pickaxeDigVolume: -1
+  pickaxeExplosionVolume: -1
   pickaxeDigReverb:
     enabled: 1
     preset: 9
@@ -28,6 +30,8 @@ MonoBehaviour:
     decayTime: 1.5
   drillDigSound: {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   drillProjectileSound: {fileID: 8300000, guid: 832e1d9549e7d0e4c97a070ab9545340, type: 3}
+  drillDigVolume: -1
+  drillProjectileVolume: -1
   drillDigReverb:
     enabled: 1
     preset: 9
@@ -39,6 +43,7 @@ MonoBehaviour:
     reverbLevel: 0.5
     decayTime: 1.5
   handDigSound: {fileID: 0}
+  handDigVolume: -1
   handDigReverb:
     enabled: 1
     preset: 9
@@ -49,6 +54,7 @@ MonoBehaviour:
   treasureProximityMinDistance: 5
   treasureProximityMaxInterval: 2
   treasureProximityMinInterval: 0.3
+  treasureProximityVolume: 0.265
   treasureProximityReverb:
     enabled: 0
     preset: 9
@@ -63,7 +69,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 95dc27e71fc4a0a45872b76fb8a741ea, type: 3}
   - {fileID: 8300000, guid: 24f370eb02c1fb044918d178297119d3, type: 3}
   footstepDistance: 3
-  footstepVolume: 0.5
+  footstepVolume: 1
   footstepPitchRandomness: 0.1
   footstepReverb:
     enabled: 1
@@ -73,6 +79,9 @@ MonoBehaviour:
   drillMotorStartSound: {fileID: 8300000, guid: 1752cb2e0555ed04ab466129c28fb992, type: 3}
   drillMotorLoopSound: {fileID: 8300000, guid: e0e4f30e7fa7dd64790c4d46f01cb3a5, type: 3}
   drillMotorEndSound: {fileID: 0}
+  drillMotorStartVolume: -1
+  drillMotorLoopVolume: -1
+  drillMotorEndVolume: -1
   drillMotorStartReverb:
     enabled: 1
     preset: 9
@@ -89,6 +98,7 @@ MonoBehaviour:
     reverbLevel: 0.5
     decayTime: 1.5
   keyCollectionSound: {fileID: 0}
+  keyCollectionVolume: -1
   keyCollectionReverb:
     enabled: 1
     preset: 9

@@ -283,8 +283,8 @@ public class DigSoundManager : MonoBehaviour
         audioSource.clip = selectedClip;
         audioSource.transform.position = position;
         
-        // 足音専用の設定を適用
-        audioSource.volume = soundSettings.footstepVolume;
+        // 足音専用の設定を適用（階層化されたボリューム設定を使用）
+        audioSource.volume = soundSettings.GetVolumeForSoundType("Footstep");
         
         // ピッチにランダム性を追加（自然な変化）
         float pitchVariation = Random.Range(-soundSettings.footstepPitchRandomness, soundSettings.footstepPitchRandomness);
@@ -328,7 +328,8 @@ public class DigSoundManager : MonoBehaviour
     /// <param name="position">再生位置</param>
     /// <param name="soundType">音声タイプ（デバッグ用）</param>
     /// <param name="reverbSettings">リバーブ設定（nullの場合は適用しない）</param>
-    private void PlaySoundAtPosition(AudioClip clip, Vector3 position, string soundType, ReverbSettings reverbSettings)
+    /// <param name="fadeInDuration">フェードイン時間（秒、0の場合はフェードインなし）</param>
+    private void PlaySoundAtPosition(AudioClip clip, Vector3 position, string soundType, ReverbSettings reverbSettings, float fadeInDuration = 0f)
     {
         AudioSource audioSource = GetAudioSource();
         if (audioSource == null) return;
@@ -336,10 +337,10 @@ public class DigSoundManager : MonoBehaviour
         audioSource.clip = clip;
         audioSource.transform.position = position;
         
-        // 設定を適用
+        // 設定を適用（階層化されたボリューム設定を使用）
         if (soundSettings != null)
         {
-            audioSource.volume = soundSettings.baseVolume;
+            audioSource.volume = soundSettings.GetVolumeForSoundType(soundType);
             audioSource.pitch = soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
@@ -351,11 +352,22 @@ public class DigSoundManager : MonoBehaviour
             ApplyReverb(audioSource.gameObject, reverbSettings);
         }
 
-        audioSource.Play();
+        // フェードイン処理
+        if (fadeInDuration > 0f)
+        {
+            float targetVolume = audioSource.volume;
+            audioSource.volume = 0f;
+            audioSource.Play();
+            StartCoroutine(FadeInAudioSource(audioSource, targetVolume, fadeInDuration));
+        }
+        else
+        {
+            audioSource.Play();
+        }
         
         if (enableDebugLog)
         {
-            Debug.Log($"[DigSoundManager] {soundType}音声再生: {clip.name} at {position}");
+            Debug.Log($"[DigSoundManager] {soundType}音声再生: {clip.name} at {position} (ボリューム: {audioSource.volume:F2})");
         }
 
         // 再生完了後にプールに戻す
@@ -369,6 +381,67 @@ public class DigSoundManager : MonoBehaviour
     {
         yield return new WaitForSeconds(audioSource.clip.length);
         ReturnAudioSource(audioSource);
+    }
+    
+    /// <summary>
+    /// AudioSourceをフェードイン
+    /// </summary>
+    private IEnumerator FadeInAudioSource(AudioSource audioSource, float targetVolume, float duration)
+    {
+        float elapsed = 0f;
+        float startVolume = 0f;
+        
+        while (elapsed < duration && audioSource != null)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            audioSource.volume = Mathf.Lerp(startVolume, targetVolume, t);
+            yield return null;
+        }
+        
+        if (audioSource != null)
+        {
+            audioSource.volume = targetVolume;
+        }
+    }
+    
+    /// <summary>
+    /// AudioSourceをフェードアウト
+    /// </summary>
+    /// <param name="audioSource">フェードアウトするAudioSource</param>
+    /// <param name="duration">フェードアウト時間（秒）</param>
+    /// <param name="stopAfterFade">フェードアウト後に停止するか</param>
+    public void FadeOutAudioSource(AudioSource audioSource, float duration, bool stopAfterFade = true)
+    {
+        if (audioSource == null || !audioSource.isPlaying) return;
+        
+        StartCoroutine(FadeOutAudioSourceCoroutine(audioSource, duration, stopAfterFade));
+    }
+    
+    /// <summary>
+    /// AudioSourceをフェードアウトするコルーチン
+    /// </summary>
+    private IEnumerator FadeOutAudioSourceCoroutine(AudioSource audioSource, float duration, bool stopAfterFade)
+    {
+        float elapsed = 0f;
+        float startVolume = audioSource.volume;
+        
+        while (elapsed < duration && audioSource != null && audioSource.isPlaying)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            audioSource.volume = Mathf.Lerp(startVolume, 0f, t);
+            yield return null;
+        }
+        
+        if (audioSource != null)
+        {
+            audioSource.volume = 0f;
+            if (stopAfterFade)
+            {
+                audioSource.Stop();
+            }
+        }
     }
 
     /// <summary>
@@ -429,7 +502,7 @@ public class DigSoundManager : MonoBehaviour
     {
         soundSettings = newSettings;
         
-        // 既存の音声ソースに設定を適用
+        // 既存の音声ソースに設定を適用（注意：個別の音源タイプが不明なため、baseVolumeを使用）
         foreach (var audioSource in activeAudioSources)
         {
             if (audioSource != null && soundSettings != null)
@@ -441,7 +514,7 @@ public class DigSoundManager : MonoBehaviour
             }
         }
         
-        // 追従型のAudioSourceにも設定を適用
+        // 追従型のAudioSourceにも設定を適用（注意：個別の音源タイプが不明なため、baseVolumeを使用）
         foreach (var audioSource in attachedAudioSources.Values)
         {
             if (audioSource != null && soundSettings != null)
@@ -494,14 +567,15 @@ public class DigSoundManager : MonoBehaviour
             audioSourceToTransform[audioSource] = targetTransform;
         }
         
-        // 設定を適用
+        // 設定を適用（階層化されたボリューム設定を使用）
         audioSource.clip = clip;
         audioSource.playOnAwake = false;
         audioSource.loop = false;
         
         if (soundSettings != null)
         {
-            audioSource.volume = volume ?? soundSettings.baseVolume;
+            // 個別ボリュームが指定されている場合はそれを使用、そうでなければ階層化された設定を使用
+            audioSource.volume = volume ?? soundSettings.GetVolumeForSoundType(soundType);
             audioSource.pitch = pitch ?? soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
@@ -569,14 +643,15 @@ public class DigSoundManager : MonoBehaviour
             audioSourceToTransform[audioSource] = targetTransform;
         }
         
-        // 設定を適用
+        // 設定を適用（階層化されたボリューム設定を使用）
         audioSource.clip = clip;
         audioSource.playOnAwake = false;
         audioSource.loop = true; // ループ有効
         
         if (soundSettings != null)
         {
-            audioSource.volume = volume ?? soundSettings.baseVolume;
+            // 個別ボリュームが指定されている場合はそれを使用、そうでなければ階層化された設定を使用
+            audioSource.volume = volume ?? soundSettings.GetVolumeForSoundType(soundType);
             audioSource.pitch = pitch ?? soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;

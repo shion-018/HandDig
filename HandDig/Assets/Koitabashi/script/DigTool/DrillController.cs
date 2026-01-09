@@ -5,15 +5,9 @@ public class DrillController : MonoBehaviour
 {
     [Header("Animator")]
     [SerializeField] private Animator animator;
-
-    [Header("Motor Sounds (旧方式 - 互換性のため残しています)")]
-    [SerializeField] private AudioSource startSource;
-    [SerializeField] private AudioSource loopSource;
-    [SerializeField] private AudioSource endSource;
     
     [Header("音声管理")]
-    [Tooltip("サウンドマネージャーを使用するか（true: 新方式、false: 旧方式）")]
-    [SerializeField] private bool useSoundManager = true;
+    private DigSoundManager soundManager;
 
     [Header("Input (Debug)")]
     [SerializeField] private bool enableKeyboardInput = true;
@@ -24,12 +18,6 @@ public class DrillController : MonoBehaviour
     [Header("ドリルツール参照")]
     [Tooltip("DrillDigToolへの参照（自動検索される）")]
     private DrillDigTool drillDigTool;
-    
-    [Header("音声マネージャー参照")]
-    private DigSoundManager soundManager;
-    
-    // 新方式で使用するAudioSourceの参照
-    private AudioSource currentLoopAudioSource;
 
     private bool prevTrigger;
     private bool isDrilling;
@@ -48,10 +36,7 @@ public class DrillController : MonoBehaviour
         }
         
         // サウンドマネージャーを取得
-        if (useSoundManager)
-        {
-            soundManager = DigSoundManager.Instance;
-        }
+        soundManager = DigSoundManager.Instance;
     }
     
     /// <summary>
@@ -70,7 +55,7 @@ public class DrillController : MonoBehaviour
         }
         
         // サウンドマネージャーを取得
-        if (useSoundManager && soundManager == null)
+        if (soundManager == null)
         {
             soundManager = DigSoundManager.Instance;
         }
@@ -204,9 +189,8 @@ public class DrillController : MonoBehaviour
     {
         isDrilling = true;
 
-        if (useSoundManager && soundManager != null)
+        if (soundManager != null)
         {
-            // 新方式：サウンドマネージャーを使用
             // 終了音を停止
             soundManager.StopDrillMotorSounds(transform);
             
@@ -216,38 +200,15 @@ public class DrillController : MonoBehaviour
             // ループ音を遅延再生
             Invoke(nameof(PlayLoop), loopStartDelay);
         }
-        else
-        {
-            // 旧方式：直接AudioSourceを使用
-            if (endSource != null && endSource.isPlaying) endSource.Stop();
-            if (startSource != null && startSource.isPlaying) startSource.Stop();
-
-            if (startSource != null)
-            {
-                startSource.Play();
-            }
-            Invoke(nameof(PlayLoop), loopStartDelay);
-        }
     }
 
     void PlayLoop()
     {
         if (!isDrilling) return;
 
-        if (useSoundManager && soundManager != null)
+        if (soundManager != null)
         {
-            // 新方式：サウンドマネージャーを使用
-            currentLoopAudioSource = soundManager.PlayDrillMotorLoopSound(transform);
-        }
-        else
-        {
-            // 旧方式：直接AudioSourceを使用
-            if (loopSource != null)
-            {
-                loopSource.loop = true;
-                if (!loopSource.isPlaying)
-                    loopSource.Play();
-            }
+            soundManager.PlayDrillMotorLoopSound(transform);
         }
     }
 
@@ -255,25 +216,13 @@ public class DrillController : MonoBehaviour
     {
         isDrilling = false;
 
-        if (useSoundManager && soundManager != null)
+        if (soundManager != null)
         {
-            // 新方式：サウンドマネージャーを使用
             // 開始音とループ音を停止
             soundManager.StopDrillMotorSounds(transform);
             
             // 終了音を再生
             soundManager.PlayDrillMotorEndSound(transform);
-        }
-        else
-        {
-            // 旧方式：直接AudioSourceを使用
-            if (startSource != null && startSource.isPlaying) startSource.Stop();
-            if (loopSource != null && loopSource.isPlaying) loopSource.Stop();
-
-            if (endSource != null)
-            {
-                endSource.Play();
-            }
         }
     }
 
