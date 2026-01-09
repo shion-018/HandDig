@@ -535,9 +535,10 @@ public class GoalManager : MonoBehaviour
     /// </summary>
     private void OnDoorOpened()
     {
-        if (!allKeysCollected && enableKeyCollectionFeature)
+        // テキスト表示は鍵をすべて集めた時のみ行うため、ここでは何もしない
+        if (enableDebugLog)
         {
-            ActivateKeyCollectionGoal();
+            Debug.Log("[GoalManager] ドアが開きました（テキスト表示は鍵収集時にのみ実行）");
         }
     }
     
