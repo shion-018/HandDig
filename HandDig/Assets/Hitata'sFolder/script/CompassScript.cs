@@ -5,37 +5,47 @@ using UnityEngine;
 
 public class CompassScript : MonoBehaviour
 {
-    [SerializeField] private string currentTag = "Target"; // 現在探索しているタグ
+    [Header("探索設定")]
+    [SerializeField] private string currentTag = "Target";
     private List<Transform> targets = new List<Transform>();
     public bool searchCharenge = false;
+
+    [Header("マテリアル切り替え設定")]
+    [SerializeField] private Renderer targetRenderer;   // ← インスペクターで指定
+    [SerializeField] private Material targetMaterial;   // Target 用
+    [SerializeField] private Material keyMaterial;      // Key 用
 
     void Start()
     {
         RefreshTargetList();
+
+        if (targetRenderer == null)
+        {
+            Debug.LogWarning("CompassScript: targetRenderer が設定されていません。");
+        }
     }
 
     void Update()
     {
-        // Yで "Target" ⇄ "Key" 切り替え
-        //デバッグ用としてスペースでも可
+        // Y または Space で "Target" ⇄ "Key" 切り替え
         if (OVRInput.GetDown(OVRInput.Button.Four) || Input.GetKeyDown(KeyCode.Space))
         {
-            if(searchCharenge == true)
+            if (searchCharenge)
             {
                 if (currentTag == "Target")
                 {
                     SetSearchTag("Key");
-                    GetComponent<Renderer>().material.color = Color.red;
+                    ChangeMaterial(keyMaterial);
                 }
                 else
                 {
                     SetSearchTag("Target");
-                    GetComponent<Renderer>().material.color = Color.blue;
+                    ChangeMaterial(targetMaterial);
                 }
             }
         }
 
-        // 最も近い対象を探して向く
+        // 最も近い対象を向く
         Transform nearestTarget = FindNearestTarget();
         if (nearestTarget != null)
         {
@@ -47,7 +57,14 @@ public class CompassScript : MonoBehaviour
         }
     }
 
-    // タグを変更して再探索
+    private void ChangeMaterial(Material mat)
+    {
+        if (targetRenderer != null && mat != null)
+        {
+            targetRenderer.material = mat;
+        }
+    }
+
     private void SetSearchTag(string newTag)
     {
         if (currentTag != newTag)
@@ -58,7 +75,6 @@ public class CompassScript : MonoBehaviour
         }
     }
 
-    // タグに基づいてターゲットリストを更新
     private void RefreshTargetList()
     {
         targets.Clear();
@@ -69,7 +85,6 @@ public class CompassScript : MonoBehaviour
         }
     }
 
-    // 最も近いオブジェクトを探す
     private Transform FindNearestTarget()
     {
         Transform nearest = null;
@@ -79,6 +94,7 @@ public class CompassScript : MonoBehaviour
         foreach (Transform target in targets)
         {
             if (target == null) continue;
+
             float distanceSqr = (target.position - currentPosition).sqrMagnitude;
             if (distanceSqr < minDistanceSqr)
             {
