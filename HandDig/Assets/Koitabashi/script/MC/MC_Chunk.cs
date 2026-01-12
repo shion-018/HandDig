@@ -44,7 +44,11 @@ public class MC_Chunk : MonoBehaviour
     (transform.position.z + z) * 0.05f
 ) * variation;
 
-                    float baseFill = worldY < surfaceHeight || worldY < 20 ? 1f : 0f;
+                    // チャンクサイズに応じて適切な高さまで地形を生成
+                    // 元の設定（チャンクサイズ32で基準高さ20）を基準に、チャンクサイズに比例して調整
+                    // チャンクサイズが小さい場合、基準高さも低くして一番上のチャンク内で地形が生成されるようにする
+                    float baseFillHeight = 20f * (chunkSize / 32f);
+                    float baseFill = worldY < surfaceHeight || worldY < baseFillHeight ? 1f : 0f;
                     chunkData.densityMap[x, y, z] = baseFill;
                 }
     }

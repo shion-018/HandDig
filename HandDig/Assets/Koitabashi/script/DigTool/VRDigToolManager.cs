@@ -15,6 +15,10 @@ public class VRDigToolManager : MonoBehaviour
     [Tooltip("デバッグログを表示するか")]
     public bool enableDebugLog = false;
 
+    [Header("つるはし爆発モード設定")]
+    [Tooltip("無限モード: チャージ関係なしに爆発モードを使用可能にする")]
+    public bool infiniteExplosionMode = false;
+
     public List<DigToolEntry> tools = new List<DigToolEntry>();
     public List<DigToolData> toolDataList = new List<DigToolData>();
 
@@ -35,6 +39,9 @@ public class VRDigToolManager : MonoBehaviour
     private int pickaxeExplosionCharges = 0;
     private bool pickaxeExplosionUnlocked = false;
 
+    // ドリルの射出モード（お宝でアンロック）
+    private bool drillShootModeUnlocked = false;
+
     // お宝取得数の追跡
     private int totalTreasureCount = 0;
     private int normalTreasureCount = 0;
@@ -42,6 +49,7 @@ public class VRDigToolManager : MonoBehaviour
     private int drillHitZoneTreasureCount = 0;
     private int drillSpeedTreasureCount = 0;
     private int explosiveTreasureCount = 0;
+    private int drillShootModeTreasureCount = 0;
 
     void Start()
     {
@@ -61,6 +69,12 @@ public class VRDigToolManager : MonoBehaviour
         if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.T))
         {
             CycleTool();
+        }
+
+        // デバッグ: Uキーで全ての強化を一気に進める
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            DebugUpgradeAll();
         }
     }
 
@@ -148,6 +162,12 @@ public class VRDigToolManager : MonoBehaviour
                     drillToolApply.IncreaseSpeed();
                 }
                 if (enableDebugLog) Debug.Log($"[VRDigToolManager] ドリルに切り替え: 速度増加量 {drillSpeedBonus} を適用完了");
+                
+                // 射出モードが開放されている場合は適用
+                if (drillShootModeUnlocked)
+                {
+                    drillToolApply.UnlockShootMode();
+                }
                 
                 // 適用後はリセット（重複適用を防ぐ）
                 drillHitZoneBonus = 0;
@@ -400,9 +420,36 @@ public class VRDigToolManager : MonoBehaviour
 
     public bool TryConsumePickaxeExplosionCharge()
     {
+        // 無限モードの場合はチャージを消費せずに常にtrueを返す
+        if (infiniteExplosionMode && pickaxeExplosionUnlocked)
+        {
+            return true;
+        }
+        
         if (!pickaxeExplosionUnlocked || pickaxeExplosionCharges <= 0) return false;
         pickaxeExplosionCharges--;
         return true;
+    }
+
+    // ---- Drill Shoot Mode (Treasure) APIs ----
+    public void UnlockDrillShootMode()
+    {
+        drillShootModeUnlocked = true;
+        // 現在ドリルがアクティブなら即座に適用
+        if (currentTool is DrillDigTool drillToolUnlock)
+        {
+            drillToolUnlock.UnlockShootMode();
+            if (enableDebugLog) Debug.Log("[VRDigToolManager] ドリル使用中にお宝取得: 射出モードを開放（即座適用）");
+        }
+        else
+        {
+            if (enableDebugLog) Debug.Log("[VRDigToolManager] ドリル射出モードを開放（次回ドリル使用時に適用）");
+        }
+    }
+
+    public bool IsDrillShootModeUnlocked()
+    {
+        return drillShootModeUnlocked;
     }
 
     // ---- Treasure Count APIs ----
@@ -427,6 +474,9 @@ public class VRDigToolManager : MonoBehaviour
             case "Explosive":
                 explosiveTreasureCount += count;
                 break;
+            case "DrillShootMode":
+                drillShootModeTreasureCount += count;
+                break;
         }
         
         if (enableDebugLog) Debug.Log($"[VRDigToolManager] お宝取得: {treasureType} +{count} (総数: {totalTreasureCount})");
@@ -438,4 +488,104 @@ public class VRDigToolManager : MonoBehaviour
     public int GetDrillHitZoneTreasureCount() => drillHitZoneTreasureCount;
     public int GetDrillSpeedTreasureCount() => drillSpeedTreasureCount;
     public int GetExplosiveTreasureCount() => explosiveTreasureCount;
+    public int GetDrillShootModeTreasureCount() => drillShootModeTreasureCount;
+
+    // ---- Debug Functions ----
+    /// <summary>
+    /// デバッグ用: 全ての強化を一気に最大まで進める（Uキーで呼び出される）
+    /// </summary>
+    private void DebugUpgradeAll()
+    {
+        Debug.Log("[VRDigToolManager] デバッグ: 全強化を実行します...");
+
+        // 1. 全てのツールのレベルを最大まで上げる
+        for (int i = 0; i < toolDataList.Count; i++)
+        {
+            var data = toolDataList[i];
+            int maxLevel = 0;
+
+            if (data.stats != null)
+            {
+                maxLevel = data.stats.GetMaxUpgradeLevel();
+            }
+            else if (data.handStats != null)
+            {
+                maxLevel = data.handStats.GetMaxUpgradeLevel();
+            }
+            else if (data.pickaxeStats != null)
+            {
+                maxLevel = data.pickaxeStats.GetMaxUpgradeLevel();
+            }
+            else if (data.drillStats != null)
+            {
+                maxLevel = data.drillStats.GetMaxUpgradeLevel();
+            }
+
+            if (maxLevel > 0)
+            {
+                int amount = maxLevel - 1 - data.currentUpgradeLevel;
+                if (amount > 0)
+                {
+                    UpgradeTool(i, amount);
+                }
+            }
+        }
+
+        // 2. つるはしの判定数を最大まで上げる
+        var pickaxeTool = tools.Find(entry => entry.toolScript is PickaxeDigToolMaster);
+        if (pickaxeTool != null && pickaxeTool.toolScript is PickaxeDigToolMaster pickaxeMaster)
+        {
+            // digPointGroupsの数が最大レベル
+            int maxHitZones = pickaxeMaster.digPointGroups != null ? pickaxeMaster.digPointGroups.Count : 1;
+            int currentHitZones = 1; // 初期値（IncreaseHitZoneが呼ばれる回数をカウントする必要があるが、とりあえず多めに呼ぶ）
+            for (int i = 0; i < maxHitZones * 2; i++) // 多めに呼んで確実に最大にする
+            {
+                IncreasePickaxeHitZone(1);
+            }
+            Debug.Log($"[VRDigToolManager] デバッグ: つるはしの判定数を最大まで上げました");
+        }
+
+        // 3. ドリルの判定数を最大まで上げる
+        var drillTool = tools.Find(entry => entry.toolScript is DrillDigTool);
+        if (drillTool != null && drillTool.toolScript is DrillDigTool drill)
+        {
+            int maxHitZones = drill.hitZones != null ? drill.hitZones.Count : 1;
+            for (int i = 0; i < maxHitZones * 2; i++) // 多めに呼んで確実に最大にする
+            {
+                IncreaseDrillHitZone(1);
+            }
+            Debug.Log($"[VRDigToolManager] デバッグ: ドリルの判定数を最大まで上げました");
+        }
+
+        // 4. ドリルの速度を最大まで上げる
+        var drillData = toolDataList.Find(data => data.drillStats != null);
+        if (drillData != null && drillData.drillStats != null)
+        {
+            int maxSpeedLevel = drillData.drillStats.GetMaxSpeedUpgradeLevel();
+            int currentSpeedLevel = drillData.currentSpeedUpgradeLevel;
+            int amount = maxSpeedLevel - 1 - currentSpeedLevel;
+            if (amount > 0)
+            {
+                IncreaseDrillSpeed(amount);
+                Debug.Log($"[VRDigToolManager] デバッグ: ドリルの速度を最大まで上げました (Lv.{currentSpeedLevel} → Lv.{maxSpeedLevel - 1})");
+            }
+        }
+
+        // 5. つるはしの爆発モードを開放してチャージを追加
+        if (!pickaxeExplosionUnlocked)
+        {
+            UnlockPickaxeExplosion();
+        }
+        AddPickaxeExplosionCharges(100);
+        Debug.Log("[VRDigToolManager] デバッグ: つるはしの爆発モードを開放し、チャージを100追加しました");
+
+        // 6. ドリルの射出モードを開放
+        if (!drillShootModeUnlocked)
+        {
+            UnlockDrillShootMode();
+            Debug.Log("[VRDigToolManager] デバッグ: ドリルの射出モードを開放しました");
+        }
+
+        Debug.Log("[VRDigToolManager] デバッグ: 全強化完了！");
+    }
 }

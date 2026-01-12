@@ -72,11 +72,16 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
             if (stats != null &&
                 stats.enableExplosionMode &&
                 toolManager != null &&
-                toolManager.IsPickaxeExplosionUnlocked() &&
-                toolManager.GetPickaxeExplosionCharges() > 0)
+                toolManager.IsPickaxeExplosionUnlocked())
             {
-                isExplosionMode = !isExplosionMode;
-                if (enableDebugLog) Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} (残り {toolManager.GetPickaxeExplosionCharges()})");
+                // 無限モードでない場合のみチャージをチェック
+                bool canToggle = toolManager.infiniteExplosionMode || toolManager.GetPickaxeExplosionCharges() > 0;
+                if (canToggle)
+                {
+                    isExplosionMode = !isExplosionMode;
+                    string chargeInfo = toolManager.infiniteExplosionMode ? "無限" : $"残り {toolManager.GetPickaxeExplosionCharges()}";
+                    if (enableDebugLog) Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} ({chargeInfo})");
+                }
             }
         }
 
@@ -216,11 +221,12 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
         if (isExplosionMode &&
             dug.Count > 0 &&
             toolManager != null &&
-            toolManager.GetPickaxeExplosionCharges() > 0 &&
             stats != null &&
             stats.enableExplosionMode)
         {
-            if (toolManager.TryConsumePickaxeExplosionCharge())
+            // 無限モードでない場合のみチャージをチェック
+            bool canUseExplosion = toolManager.infiniteExplosionMode || toolManager.GetPickaxeExplosionCharges() > 0;
+            if (canUseExplosion && toolManager.TryConsumePickaxeExplosionCharge())
             {
                 float expRadius = stats.GetExplosionRadius(upgradeLevel);
                 foreach (var pos in dug)
@@ -229,7 +235,8 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
                     SpawnExplosionMarker(expPos, expRadius, stats.explosionDelaySeconds);
                 }
 
-                if (toolManager.GetPickaxeExplosionCharges() <= 0)
+                // 無限モードでない場合のみ、チャージがなくなったらモードをオフ
+                if (!toolManager.infiniteExplosionMode && toolManager.GetPickaxeExplosionCharges() <= 0)
                     isExplosionMode = false;
             }
         }

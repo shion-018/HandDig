@@ -88,6 +88,20 @@ public class TreasureCollector : MonoBehaviour
             }
         }
 
+        // DrillShootModeTreasureItem（ドリル射出モード開放お宝）を処理
+        DrillShootModeTreasureItem drillShootModeItem = other.GetComponent<DrillShootModeTreasureItem>();
+        if (drillShootModeItem != null)
+        {
+            ProcessDrillShootModeTreasure(drillShootModeItem);
+            if (toolManager != null) toolManager.AddTreasureCount("DrillShootMode", 1);
+            
+            // 通知表示
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("DrillShootMode");
+            }
+        }
+
         CompassMainUnlock compassMainUnlock = other.GetComponent<CompassMainUnlock>();
         if (compassMainUnlock != null)
         {
@@ -193,6 +207,23 @@ public class TreasureCollector : MonoBehaviour
         else
         {
             Debug.LogWarning($"[{explosiveItem.treasureName}] ツールマネージャーが見つかりません。");
+        }
+    }
+
+    // DrillShootModeTreasureItemの処理
+    private void ProcessDrillShootModeTreasure(DrillShootModeTreasureItem drillShootModeItem)
+    {
+        Debug.Log($"[{drillShootModeItem.treasureName}] ドリル射出モード開放お宝を処理中...");
+        
+        if (toolManager != null)
+        {
+            // VRDigToolManagerに射出モード開放を依頼
+            toolManager.UnlockDrillShootMode();
+            Debug.Log($"[{drillShootModeItem.treasureName}] ドリル射出モードを開放しました！");
+        }
+        else
+        {
+            Debug.LogWarning($"[{drillShootModeItem.treasureName}] ツールマネージャーが見つかりません。");
         }
     }
 
