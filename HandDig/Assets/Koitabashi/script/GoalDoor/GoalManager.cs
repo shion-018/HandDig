@@ -786,6 +786,12 @@ public class GoalManager : MonoBehaviour
         if (goalWarpPoint != null && playerRoot != null)
         {
             WarpPlayerToGoal();
+            
+            // ワープ後にファンファーレ音を再生（プレイヤーの位置から）
+            if (DigSoundManager.Instance != null && playerRoot != null)
+            {
+                DigSoundManager.Instance.PlayGoalFanfareSound(playerRoot.transform.position);
+            }
         }
 
         // 3. フェードイン

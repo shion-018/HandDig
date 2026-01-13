@@ -69,7 +69,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 95dc27e71fc4a0a45872b76fb8a741ea, type: 3}
   - {fileID: 8300000, guid: 24f370eb02c1fb044918d178297119d3, type: 3}
   footstepDistance: 3
-  footstepVolume: 1
+  footstepVolume: -1
   footstepPitchRandomness: 0.1
   footstepReverb:
     enabled: 1
@@ -97,14 +97,42 @@ MonoBehaviour:
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5
-  keyCollectionSound: {fileID: 0}
+  keyCollectionSound: {fileID: 8300000, guid: 7e005ec719a96da4ea74a8eaff9206f3, type: 3}
   keyCollectionVolume: -1
   keyCollectionReverb:
     enabled: 1
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5
-  baseVolume: 0.7
+  treasureCollectionSound: {fileID: 8300000, guid: 7e005ec719a96da4ea74a8eaff9206f3, type: 3}
+  treasureCollectionVolume: -1
+  treasureCollectionReverb:
+    enabled: 0
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  trialRoomClearSound: {fileID: 8300000, guid: 6389f654f3d20fe4cb57e7ad12706e86, type: 3}
+  trialRoomClearVolume: -1
+  trialRoomClearReverb:
+    enabled: 0
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  goalDoorOpenSound: {fileID: 8300000, guid: 32887357b48e5b641a08f6faff32bac1, type: 3}
+  goalDoorOpenVolume: -1
+  goalDoorOpenReverb:
+    enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  goalFanfareSound: {fileID: 8300000, guid: 6389f654f3d20fe4cb57e7ad12706e86, type: 3}
+  goalFanfareVolume: -1
+  goalFanfareReverb:
+    enabled: 0
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  baseVolume: 1
   basePitch: 1
   useSpatialBlending: 1
   maxDistance: 50

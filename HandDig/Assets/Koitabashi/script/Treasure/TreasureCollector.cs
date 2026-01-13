@@ -14,6 +14,12 @@ public class TreasureCollector : MonoBehaviour
         if (!other.CompareTag(treasureTag)) return;
 
         Debug.Log($"お宝 [{other.name}] を取得しました");
+        
+        // お宝取得音を再生（お宝の位置から）
+        if (DigSoundManager.Instance != null)
+        {
+            DigSoundManager.Instance.PlayTreasureCollectionSound(other.transform.position);
+        }
 
         // TreasureItem コンポーネントがあれば通常の強化
         TreasureItem item = other.GetComponent<TreasureItem>();

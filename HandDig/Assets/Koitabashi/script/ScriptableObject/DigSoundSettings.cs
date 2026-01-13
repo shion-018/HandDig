@@ -34,12 +34,12 @@ public class DigSoundSettings : ScriptableObject
     public AudioClip pickaxeExplosionSound;
     
     [Header("つるはしボリューム設定")]
-    [Tooltip("つるはし掘削音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("つるはし掘削音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float pickaxeDigVolume = -1f;
     
-    [Tooltip("つるはし爆発音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("つるはし爆発音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float pickaxeExplosionVolume = -1f;
     
     [Header("つるはしリバーブ設定")]
@@ -57,12 +57,12 @@ public class DigSoundSettings : ScriptableObject
     public AudioClip drillProjectileSound;
     
     [Header("ドリルボリューム設定")]
-    [Tooltip("ドリル掘削音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("ドリル掘削音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float drillDigVolume = -1f;
     
-    [Tooltip("射出ドリル音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("射出ドリル音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float drillProjectileVolume = -1f;
     
     [Header("ドリルリバーブ設定")]
@@ -77,8 +77,8 @@ public class DigSoundSettings : ScriptableObject
     public AudioClip handDigSound;
     
     [Header("手掘りボリューム設定")]
-    [Tooltip("手掘り音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("手掘り音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float handDigVolume = -1f;
     
     [Header("手掘りリバーブ設定")]
@@ -102,8 +102,8 @@ public class DigSoundSettings : ScriptableObject
     public float treasureProximityMinInterval = 0.3f;
     
     [Header("お宝接近音ボリューム設定")]
-    [Tooltip("お宝接近音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("お宝接近音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float treasureProximityVolume = -1f;
     
     [Header("お宝接近音リバーブ設定")]
@@ -117,8 +117,8 @@ public class DigSoundSettings : ScriptableObject
     [Tooltip("足音の再生間隔（移動距離ベース）")]
     public float footstepDistance = 1.5f;
     
-    [Tooltip("足音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("足音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float footstepVolume = -1f;
     
     [Tooltip("足音のピッチランダム範囲（±この値でランダムに変化）")]
@@ -140,16 +140,16 @@ public class DigSoundSettings : ScriptableObject
     public AudioClip drillMotorEndSound;
     
     [Header("ドリルモーターボリューム設定")]
-    [Tooltip("ドリル開始音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("ドリル開始音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float drillMotorStartVolume = -1f;
     
-    [Tooltip("ドリルループ音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("ドリルループ音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float drillMotorLoopVolume = -1f;
     
-    [Tooltip("ドリル終了音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("ドリル終了音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float drillMotorEndVolume = -1f;
     
     [Header("ドリルモーターリバーブ設定")]
@@ -167,17 +167,69 @@ public class DigSoundSettings : ScriptableObject
     public AudioClip keyCollectionSound;
     
     [Header("鍵収集音ボリューム設定")]
-    [Tooltip("鍵収集音のボリューム（-1の場合はカテゴリ設定を使用）")]
-    [Range(-1f, 1f)]
+    [Tooltip("鍵収集音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
     public float keyCollectionVolume = -1f;
     
     [Header("鍵収集音リバーブ設定")]
     [Tooltip("鍵収集音のリバーブ設定")]
     public ReverbSettings keyCollectionReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
     
+    [Header("お宝取得音声設定")]
+    [Tooltip("お宝取得音")]
+    public AudioClip treasureCollectionSound;
+    
+    [Header("お宝取得音ボリューム設定")]
+    [Tooltip("お宝取得音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float treasureCollectionVolume = -1f;
+    
+    [Header("お宝取得音リバーブ設定")]
+    [Tooltip("お宝取得音のリバーブ設定")]
+    public ReverbSettings treasureCollectionReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
+    [Header("試練の部屋クリア音声設定")]
+    [Tooltip("試練の部屋クリア音")]
+    public AudioClip trialRoomClearSound;
+    
+    [Header("試練の部屋クリア音ボリューム設定")]
+    [Tooltip("試練の部屋クリア音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float trialRoomClearVolume = -1f;
+    
+    [Header("試練の部屋クリア音リバーブ設定")]
+    [Tooltip("試練の部屋クリア音のリバーブ設定")]
+    public ReverbSettings trialRoomClearReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
+    [Header("ゴールドア開放音声設定")]
+    [Tooltip("ゴールドア開放音")]
+    public AudioClip goalDoorOpenSound;
+    
+    [Header("ゴールドア開放音ボリューム設定")]
+    [Tooltip("ゴールドア開放音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float goalDoorOpenVolume = -1f;
+    
+    [Header("ゴールドア開放音リバーブ設定")]
+    [Tooltip("ゴールドア開放音のリバーブ設定")]
+    public ReverbSettings goalDoorOpenReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
+    [Header("ゴールファンファーレ音声設定")]
+    [Tooltip("ゴールファンファーレ音（ワープ後に再生）")]
+    public AudioClip goalFanfareSound;
+    
+    [Header("ゴールファンファーレ音ボリューム設定")]
+    [Tooltip("ゴールファンファーレ音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float goalFanfareVolume = -1f;
+    
+    [Header("ゴールファンファーレ音リバーブ設定")]
+    [Tooltip("ゴールファンファーレ音のリバーブ設定")]
+    public ReverbSettings goalFanfareReverb = new ReverbSettings { enabled = false, preset = AudioReverbPreset.Cave };
+    
     [Header("共通設定")]
-    [Tooltip("音声の基本ボリューム（全音源のデフォルト、個別設定が-1の場合に使用）")]
-    [Range(0f, 1f)]
+    [Tooltip("音声の基本ボリューム（全音源のデフォルト、個別設定が-1の場合に使用、0-5で設定可能）")]
+    [Range(0f, 5f)]
     public float baseVolume = 0.7f;
     
     [Tooltip("音声の基本ピッチ")]
@@ -235,6 +287,18 @@ public class DigSoundSettings : ScriptableObject
                 break;
             case "DrillMotorEnd":
                 individualVolume = drillMotorEndVolume;
+                break;
+            case "TreasureCollection":
+                individualVolume = treasureCollectionVolume;
+                break;
+            case "TrialRoomClear":
+                individualVolume = trialRoomClearVolume;
+                break;
+            case "GoalDoorOpen":
+                individualVolume = goalDoorOpenVolume;
+                break;
+            case "GoalFanfare":
+                individualVolume = goalFanfareVolume;
                 break;
         }
         
