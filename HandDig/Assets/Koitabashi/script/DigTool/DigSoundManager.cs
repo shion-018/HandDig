@@ -51,12 +51,40 @@ public class DigSoundManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(gameObject);
+            // エディタモードではDontDestroyOnLoadを無効化（シーンを閉じたときにクリーンアップされるように）
+            if (Application.isPlaying)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
             InitializeAudioSourcePool();
         }
         else if (instance != this)
         {
             Destroy(gameObject);
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        // インスタンスが自分自身の場合、クリーンアップ
+        if (instance == this)
+        {
+            // すべての音声を停止
+            StopAllSounds();
+            
+            // 追従型のAudioSourceをクリーンアップ
+            foreach (var audioSource in attachedAudioSources.Values)
+            {
+                if (audioSource != null && audioSource.gameObject != null)
+                {
+                    Destroy(audioSource.gameObject);
+                }
+            }
+            attachedAudioSources.Clear();
+            audioSourceToTransform.Clear();
+            
+            // インスタンスをクリア
+            instance = null;
         }
     }
 
@@ -107,6 +135,7 @@ public class DigSoundManager : MonoBehaviour
         audioSource.maxDistance = soundSettings != null ? soundSettings.maxDistance : 50f;
         audioSource.volume = soundSettings != null ? soundSettings.baseVolume : 0.7f;
         audioSource.pitch = soundSettings != null ? soundSettings.basePitch : 1f;
+        audioSource.dopplerLevel = 0f; // ドップラー効果を無効化
         
         audioSourcePool.Enqueue(audioSource);
     }
@@ -292,6 +321,9 @@ public class DigSoundManager : MonoBehaviour
         
         audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
         audioSource.maxDistance = soundSettings.maxDistance;
+        
+        // ドップラー効果を無効化
+        audioSource.dopplerLevel = 0f;
 
         // リバーブエフェクトを適用（洞窟の反響効果）
         if (soundSettings != null && soundSettings.footstepReverb != null && soundSettings.footstepReverb.enabled)
@@ -345,6 +377,9 @@ public class DigSoundManager : MonoBehaviour
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
         }
+        
+        // ドップラー効果を無効化
+        audioSource.dopplerLevel = 0f;
 
         // リバーブエフェクトを適用
         if (reverbSettings != null && reverbSettings.enabled)
@@ -586,6 +621,9 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = pitch ?? 1f;
         }
         
+        // ドップラー効果を無効化
+        audioSource.dopplerLevel = 0f;
+        
         // リバーブエフェクトを適用
         if (reverbSettings != null && reverbSettings.enabled)
         {
@@ -661,6 +699,9 @@ public class DigSoundManager : MonoBehaviour
             audioSource.volume = volume ?? 0.7f;
             audioSource.pitch = pitch ?? 1f;
         }
+        
+        // ドップラー効果を無効化
+        audioSource.dopplerLevel = 0f;
         
         // リバーブエフェクトを適用
         if (reverbSettings != null && reverbSettings.enabled)
@@ -798,6 +839,62 @@ public class DigSoundManager : MonoBehaviour
         
         ReverbSettings reverb = soundSettings.keyCollectionReverb;
         return PlaySoundAtTransform(soundSettings.keyCollectionSound, targetTransform, "KeyCollection", reverb);
+    }
+    
+    // ========== お宝取得音の再生メソッド ==========
+    
+    /// <summary>
+    /// お宝取得音を再生（位置指定型）
+    /// </summary>
+    /// <param name="position">再生位置（お宝の位置）</param>
+    public void PlayTreasureCollectionSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.treasureCollectionSound == null) return;
+        
+        ReverbSettings reverb = soundSettings.treasureCollectionReverb;
+        PlaySoundAtPosition(soundSettings.treasureCollectionSound, position, "TreasureCollection", reverb);
+    }
+    
+    // ========== 試練の部屋クリア音の再生メソッド ==========
+    
+    /// <summary>
+    /// 試練の部屋クリア音を再生（位置指定型）
+    /// </summary>
+    /// <param name="position">再生位置（ドアの位置）</param>
+    public void PlayTrialRoomClearSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.trialRoomClearSound == null) return;
+        
+        ReverbSettings reverb = soundSettings.trialRoomClearReverb;
+        PlaySoundAtPosition(soundSettings.trialRoomClearSound, position, "TrialRoomClear", reverb);
+    }
+    
+    // ========== ゴールドア開放音の再生メソッド ==========
+    
+    /// <summary>
+    /// ゴールドア開放音を再生（位置指定型）
+    /// </summary>
+    /// <param name="position">再生位置（ドアの位置）</param>
+    public void PlayGoalDoorOpenSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.goalDoorOpenSound == null) return;
+        
+        ReverbSettings reverb = soundSettings.goalDoorOpenReverb;
+        PlaySoundAtPosition(soundSettings.goalDoorOpenSound, position, "GoalDoorOpen", reverb);
+    }
+    
+    // ========== ゴールファンファーレ音の再生メソッド ==========
+    
+    /// <summary>
+    /// ゴールファンファーレ音を再生（位置指定型、ワープ後に再生）
+    /// </summary>
+    /// <param name="position">再生位置（プレイヤーの位置）</param>
+    public void PlayGoalFanfareSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.goalFanfareSound == null) return;
+        
+        ReverbSettings reverb = soundSettings.goalFanfareReverb;
+        PlaySoundAtPosition(soundSettings.goalFanfareSound, position, "GoalFanfare", reverb);
     }
 }
 

@@ -14,6 +14,12 @@ public class TreasureCollector : MonoBehaviour
         if (!other.CompareTag(treasureTag)) return;
 
         Debug.Log($"お宝 [{other.name}] を取得しました");
+        
+        // お宝取得音を再生（お宝の位置から）
+        if (DigSoundManager.Instance != null)
+        {
+            DigSoundManager.Instance.PlayTreasureCollectionSound(other.transform.position);
+        }
 
         // TreasureItem コンポーネントがあれば通常の強化
         TreasureItem item = other.GetComponent<TreasureItem>();
@@ -85,6 +91,20 @@ public class TreasureCollector : MonoBehaviour
             if (TreasureNotificationManager.Instance != null)
             {
                 TreasureNotificationManager.Instance.ShowTreasureNotification("Explosive");
+            }
+        }
+
+        // DrillShootModeTreasureItem（ドリル射出モード開放お宝）を処理
+        DrillShootModeTreasureItem drillShootModeItem = other.GetComponent<DrillShootModeTreasureItem>();
+        if (drillShootModeItem != null)
+        {
+            ProcessDrillShootModeTreasure(drillShootModeItem);
+            if (toolManager != null) toolManager.AddTreasureCount("DrillShootMode", 1);
+            
+            // 通知表示
+            if (TreasureNotificationManager.Instance != null)
+            {
+                TreasureNotificationManager.Instance.ShowTreasureNotification("DrillShootMode");
             }
         }
 
@@ -193,6 +213,23 @@ public class TreasureCollector : MonoBehaviour
         else
         {
             Debug.LogWarning($"[{explosiveItem.treasureName}] ツールマネージャーが見つかりません。");
+        }
+    }
+
+    // DrillShootModeTreasureItemの処理
+    private void ProcessDrillShootModeTreasure(DrillShootModeTreasureItem drillShootModeItem)
+    {
+        Debug.Log($"[{drillShootModeItem.treasureName}] ドリル射出モード開放お宝を処理中...");
+        
+        if (toolManager != null)
+        {
+            // VRDigToolManagerに射出モード開放を依頼
+            toolManager.UnlockDrillShootMode();
+            Debug.Log($"[{drillShootModeItem.treasureName}] ドリル射出モードを開放しました！");
+        }
+        else
+        {
+            Debug.LogWarning($"[{drillShootModeItem.treasureName}] ツールマネージャーが見つかりません。");
         }
     }
 

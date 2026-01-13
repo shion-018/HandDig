@@ -36,7 +36,7 @@ public class DrillDigTool : MonoBehaviour, IDigTool
     [Header("表示用ドリル先端")]
     [SerializeField] private GameObject visibleDrillTip;
 
-    private bool canSwitchMode = true;
+    private bool canSwitchMode = false;
 
     /// <summary>
     /// 射出モードかどうかを取得
@@ -44,6 +44,15 @@ public class DrillDigTool : MonoBehaviour, IDigTool
     public bool IsShootMode()
     {
         return isShootMode;
+    }
+
+    /// <summary>
+    /// 射出モード切替機能を開放（お宝で呼び出される）
+    /// </summary>
+    public void UnlockShootMode()
+    {
+        canSwitchMode = true;
+        Debug.Log("[DrillDigTool] 射出モード切替機能が開放されました！");
     }
 
     private void Start()

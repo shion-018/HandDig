@@ -130,6 +130,9 @@ public class MC_World : MonoBehaviour
                     
                     GameObject obj = Instantiate(prefabToUse, worldPos, Quaternion.identity, transform);
                     MC_Chunk chunk = obj.GetComponent<MC_Chunk>();
+                    
+                    // MC_WorldのchunkSizeを各チャンクに適用
+                    chunk.chunkSize = chunkSize;
 
                     // 事前生成データが有効なら、対応するアセットを割り当て
                     if (usePrebakedData)
@@ -426,6 +429,7 @@ public class MC_World : MonoBehaviour
             for (int i = 0; i < total; i++) prebakedAssets.Add(null);
         }
 
+        int processed = 0;
         for (int x = 0; x < chunkCountX; x++)
         for (int y = 0; y < chunkCountY; y++)
         for (int z = 0; z < chunkCountZ; z++)
@@ -433,7 +437,15 @@ public class MC_World : MonoBehaviour
             int shiftedY = -y;
             Vector3Int key = new Vector3Int(x, shiftedY, z);
             if (!chunkMap.TryGetValue(key, out var chunk) || chunk == null || chunk.chunkData == null)
+            {
+                processed++;
                 continue;
+            }
+
+            // プログレスバーを更新
+            float progress = (float)processed / total;
+            string info = $"チャンクを保存中... ({x}, {y}, {z}) - {processed}/{total}";
+            UnityEditor.EditorUtility.DisplayProgressBar("チャンクデータ保存", info, progress);
 
             string assetPath = System.IO.Path.Combine(folder, $"chunk_x{x}_y{y}_z{z}.asset");
             var existing = UnityEditor.AssetDatabase.LoadAssetAtPath<MC_ChunkDataAsset>(assetPath);
@@ -451,14 +463,22 @@ public class MC_World : MonoBehaviour
 
             chunk.prebakedData = existing;
             UnityEditor.EditorUtility.SetDirty(chunk);
+            
+            processed++;
         }
+
+        // 最後のプログレスバー更新
+        UnityEditor.EditorUtility.DisplayProgressBar("チャンクデータ保存", "アセットを保存中...", 0.95f);
 
         UnityEditor.AssetDatabase.SaveAssets();
         UnityEditor.AssetDatabase.Refresh();
 
+        // プログレスバーをクリア
+        UnityEditor.EditorUtility.ClearProgressBar();
+
         usePrebakedData = true;
         UnityEditor.EditorUtility.SetDirty(this);
-        Debug.Log("[MC_World] 全チャンクをアセットに保存し、prebakedAssetsへ登録しました。");
+        Debug.Log($"[MC_World] 全チャンクをアセットに保存し、prebakedAssetsへ登録しました。 (処理チャンク数: {processed}/{total})");
     }
 
     [ContextMenu("MC/Assign PrebakedAssets From Folder")] 

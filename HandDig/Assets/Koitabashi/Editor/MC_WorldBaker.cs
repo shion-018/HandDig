@@ -28,6 +28,7 @@ namespace Koitabashi.Editor
                 for (int i = 0; i < total; i++) world.prebakedAssets.Add(null);
             }
 
+            int processed = 0;
             for (int x = 0; x < world.chunkCountX; x++)
             for (int y = 0; y < world.chunkCountY; y++)
             for (int z = 0; z < world.chunkCountZ; z++)
@@ -37,7 +38,15 @@ namespace Koitabashi.Editor
                 var chunkMapField = typeof(MC_World).GetField("chunkMap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 var map = (Dictionary<Vector3Int, MC_Chunk>)chunkMapField.GetValue(world);
                 if (!map.TryGetValue(key, out var chunk) || chunk == null || chunk.chunkData == null)
+                {
+                    processed++;
                     continue;
+                }
+
+                // プログレスバーを更新
+                float progress = (float)processed / total;
+                string info = $"チャンクを保存中... ({x}, {y}, {z}) - {processed}/{total}";
+                EditorUtility.DisplayProgressBar("チャンクデータ保存", info, progress);
 
                 string assetPath = System.IO.Path.Combine(folder, $"chunk_x{x}_y{y}_z{z}.asset");
                 var existing = AssetDatabase.LoadAssetAtPath<MC_ChunkDataAsset>(assetPath);
@@ -55,14 +64,22 @@ namespace Koitabashi.Editor
 
                 chunk.prebakedData = existing;
                 EditorUtility.SetDirty(chunk);
+                
+                processed++;
             }
+
+            // 最後のプログレスバー更新
+            EditorUtility.DisplayProgressBar("チャンクデータ保存", "アセットを保存中...", 0.95f);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
+            // プログレスバーをクリア
+            EditorUtility.ClearProgressBar();
+
             world.usePrebakedData = true;
             EditorUtility.SetDirty(world);
-            Debug.Log("[MC_WorldBaker] 全チャンクをアセットに保存しました");
+            Debug.Log($"[MC_WorldBaker] 全チャンクをアセットに保存しました (処理チャンク数: {processed}/{total})");
         }
     }
 }

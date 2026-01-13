@@ -298,6 +298,12 @@ public class DoorController : MonoBehaviour
     {
         if (isDoorOpen) return;
         
+        // ゴールドア開放音を再生（ドアの位置から）
+        if (DigSoundManager.Instance != null)
+        {
+            DigSoundManager.Instance.PlayGoalDoorOpenSound(transform.position);
+        }
+        
         if (useAnimation)
         {
             OpenDoorWithAnimation();
