@@ -46,6 +46,11 @@ public class MC_World : MonoBehaviour
 
     Dictionary<Vector3Int, MC_Chunk> chunkMap = new Dictionary<Vector3Int, MC_Chunk>();
 
+    /// <summary>
+    /// 初期化が完了したかどうか
+    /// </summary>
+    public bool IsInitialized { get; private set; } = false;
+
     void Start()
     {
         Debug.Log("[MC_World] ワールド初期化開始");
@@ -100,6 +105,9 @@ public class MC_World : MonoBehaviour
         
         // プレイヤーを実際のスポーン位置に移動
         SpawnPlayerAtFinalPosition();
+        
+        // 初期化完了フラグを設定
+        IsInitialized = true;
         
         Debug.Log("[MC_World] ワールド初期化完了");
     }
@@ -279,7 +287,7 @@ public class MC_World : MonoBehaviour
             }
         }
     }
-    Vector3Int WorldToChunkCoord(Vector3 worldPos)
+    public Vector3Int WorldToChunkCoord(Vector3 worldPos)
     {
         // ワールド原点ではなく、このMC_Worldの原点（transform.position）を基準にローカル換算
         Vector3 local = worldPos - transform.position;
@@ -289,6 +297,15 @@ public class MC_World : MonoBehaviour
             Mathf.FloorToInt(local.z / chunkSize)
         );
 
+    }
+
+    /// <summary>
+    /// チャンク座標からチャンクを取得
+    /// </summary>
+    public MC_Chunk GetChunk(Vector3Int chunkCoord)
+    {
+        chunkMap.TryGetValue(chunkCoord, out var chunk);
+        return chunk;
     }
     public void Dig(Vector3 worldPos, float radius, float value = 0f)
     {

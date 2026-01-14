@@ -56,6 +56,10 @@ public class DigSoundSettings : ScriptableObject
     [Tooltip("射出ドリル音（発射時）")]
     public AudioClip drillProjectileSound;
     
+    [Tooltip("ドリル掘削音の再生間隔制限（秒、この時間以内の連続再生を防ぐ）")]
+    [Range(0f, 0.2f)]
+    public float drillDigSoundCooldown = 0.05f;
+    
     [Header("ドリルボリューム設定")]
     [Tooltip("ドリル掘削音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
     [Range(-1f, 5f)]

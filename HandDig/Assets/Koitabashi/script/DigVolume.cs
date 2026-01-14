@@ -18,38 +18,81 @@ public class DigVolume : MonoBehaviour
         if (col == null) return;
 
         Bounds bounds = col.bounds;
+        int chunkSize = world.chunkSize;
         
-        Debug.Log($"[DigVolume] 掘削開始: {bounds.size} (コライダータイプ: {col.GetType().Name})");
+        Debug.Log($"[DigVolume] 掘削開始: {bounds.size} (コライダータイプ: {col.GetType().Name}, チャンクサイズ: {chunkSize})");
+
+        // コライダーのboundsから影響範囲のチャンクを特定
+        Vector3Int minChunk = world.WorldToChunkCoord(bounds.min);
+        Vector3Int maxChunk = world.WorldToChunkCoord(bounds.max);
 
         int processedVoxels = 0;
         int totalVoxels = 0;
+        HashSet<MC_Chunk> modifiedChunks = new HashSet<MC_Chunk>();
 
-        // コライダータイプに応じて掘削処理
-        for (float x = bounds.min.x; x <= bounds.max.x; x += 1f)
+        // 各チャンクを処理
+        for (int chunkX = minChunk.x; chunkX <= maxChunk.x; chunkX++)
         {
-            for (float y = bounds.min.y; y <= bounds.max.y; y += 1f)
+            for (int chunkY = minChunk.y; chunkY <= maxChunk.y; chunkY++)
             {
-                for (float z = bounds.min.z; z <= bounds.max.z; z += 1f)
+                for (int chunkZ = minChunk.z; chunkZ <= maxChunk.z; chunkZ++)
                 {
-                    Vector3 worldPos = new Vector3(x, y, z);
+                    Vector3Int chunkCoord = new Vector3Int(chunkX, chunkY, chunkZ);
+                    MC_Chunk chunk = world.GetChunk(chunkCoord);
+                    if (chunk == null || chunk.chunkData == null) continue;
+
+                    // チャンクの実際のtransform.positionを使用（計算ではなく実際の位置）
+                    Vector3 chunkWorldPos = chunk.transform.position;
                     
-                    // コライダータイプに応じた判定
-                    if (IsPointInsideCollider(col, worldPos))
+                    // チャンクのワールド座標範囲を計算（浮動小数点誤差を考慮して少し余裕を持たせる）
+                    Vector3 chunkMin = chunkWorldPos;
+                    Vector3 chunkMax = chunkWorldPos + new Vector3(chunkSize, chunkSize, chunkSize);
+                    
+                    // チャンクとコライダーのboundsが重なっているかチェック
+                    if (bounds.max.x < chunkMin.x - 0.5f || bounds.min.x > chunkMax.x + 0.5f ||
+                        bounds.max.y < chunkMin.y - 0.5f || bounds.min.y > chunkMax.y + 0.5f ||
+                        bounds.max.z < chunkMin.z - 0.5f || bounds.min.z > chunkMax.z + 0.5f)
                     {
-                        world.Dig(worldPos, 0.5f, digValue);
-                        processedVoxels++;
-                        totalVoxels++;
-                        if (processedVoxels >= voxelsPerFrame)
+                        continue; // チャンクとコライダーが重なっていない
+                    }
+                    
+                    // チャンク内のボクセルを処理（整数座標で）
+                    for (int x = 0; x <= chunkSize; x++)
+                    {
+                        for (int y = 0; y <= chunkSize; y++)
                         {
-                            processedVoxels = 0;
-                            await UniTask.Yield();
+                            for (int z = 0; z <= chunkSize; z++)
+                            {
+                                Vector3 voxelWorldPos = chunkWorldPos + new Vector3(x, y, z);
+                                
+                                // コライダータイプに応じた詳細判定（bounds.Contains()は使わず直接判定）
+                                if (IsPointInsideCollider(col, voxelWorldPos))
+                                {
+                                    chunk.chunkData.densityMap[x, y, z] = digValue;
+                                    totalVoxels++;
+                                    modifiedChunks.Add(chunk);
+                                    
+                                    processedVoxels++;
+                                    if (processedVoxels >= voxelsPerFrame)
+                                    {
+                                        processedVoxels = 0;
+                                        await UniTask.Yield();
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        Debug.Log($"[DigVolume] 掘削完了: {totalVoxels}個のボクセルを処理");
+        // 変更されたチャンクのメッシュを再生成
+        foreach (var chunk in modifiedChunks)
+        {
+            chunk.GenerateMesh();
+        }
+
+        Debug.Log($"[DigVolume] 掘削完了: {totalVoxels}個のボクセルを処理 ({modifiedChunks.Count}個のチャンクを更新)");
         // SpawnPointMarkerが付いている場合は消さない
         if (GetComponent<SpawnPointMarker>() == null)
         {
@@ -64,31 +107,73 @@ public class DigVolume : MonoBehaviour
         if (col == null) return;
 
         Bounds bounds = col.bounds;
+        int chunkSize = world.chunkSize;
         
-        Debug.Log($"[DigVolume] 掘削開始: {bounds.size} (同期, コライダータイプ: {col.GetType().Name})");
+        Debug.Log($"[DigVolume] 掘削開始: {bounds.size} (同期, コライダータイプ: {col.GetType().Name}, チャンクサイズ: {chunkSize})");
+
+        // コライダーのboundsから影響範囲のチャンクを特定
+        Vector3Int minChunk = world.WorldToChunkCoord(bounds.min);
+        Vector3Int maxChunk = world.WorldToChunkCoord(bounds.max);
 
         int totalVoxels = 0;
+        HashSet<MC_Chunk> modifiedChunks = new HashSet<MC_Chunk>();
 
-        // コライダータイプに応じて掘削処理
-        for (float x = bounds.min.x; x <= bounds.max.x; x += 1f)
+        // 各チャンクを処理
+        for (int chunkX = minChunk.x; chunkX <= maxChunk.x; chunkX++)
         {
-            for (float y = bounds.min.y; y <= bounds.max.y; y += 1f)
+            for (int chunkY = minChunk.y; chunkY <= maxChunk.y; chunkY++)
             {
-                for (float z = bounds.min.z; z <= bounds.max.z; z += 1f)
+                for (int chunkZ = minChunk.z; chunkZ <= maxChunk.z; chunkZ++)
                 {
-                    Vector3 worldPos = new Vector3(x, y, z);
+                    Vector3Int chunkCoord = new Vector3Int(chunkX, chunkY, chunkZ);
+                    MC_Chunk chunk = world.GetChunk(chunkCoord);
+                    if (chunk == null || chunk.chunkData == null) continue;
+
+                    // チャンクの実際のtransform.positionを使用（計算ではなく実際の位置）
+                    Vector3 chunkWorldPos = chunk.transform.position;
                     
-                    // コライダータイプに応じた判定
-                    if (IsPointInsideCollider(col, worldPos))
+                    // チャンクのワールド座標範囲を計算（浮動小数点誤差を考慮して少し余裕を持たせる）
+                    Vector3 chunkMin = chunkWorldPos;
+                    Vector3 chunkMax = chunkWorldPos + new Vector3(chunkSize, chunkSize, chunkSize);
+                    
+                    // チャンクとコライダーのboundsが重なっているかチェック
+                    if (bounds.max.x < chunkMin.x - 0.5f || bounds.min.x > chunkMax.x + 0.5f ||
+                        bounds.max.y < chunkMin.y - 0.5f || bounds.min.y > chunkMax.y + 0.5f ||
+                        bounds.max.z < chunkMin.z - 0.5f || bounds.min.z > chunkMax.z + 0.5f)
                     {
-                        world.Dig(worldPos, 0.5f, digValue);
-                        totalVoxels++;
+                        continue; // チャンクとコライダーが重なっていない
+                    }
+                    
+                    // チャンク内のボクセルを処理（整数座標で）
+                    for (int x = 0; x <= chunkSize; x++)
+                    {
+                        for (int y = 0; y <= chunkSize; y++)
+                        {
+                            for (int z = 0; z <= chunkSize; z++)
+                            {
+                                Vector3 voxelWorldPos = chunkWorldPos + new Vector3(x, y, z);
+                                
+                                // コライダータイプに応じた詳細判定（bounds.Contains()は使わず直接判定）
+                                if (IsPointInsideCollider(col, voxelWorldPos))
+                                {
+                                    chunk.chunkData.densityMap[x, y, z] = digValue;
+                                    totalVoxels++;
+                                    modifiedChunks.Add(chunk);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
-        Debug.Log($"[DigVolume] 掘削完了: {totalVoxels}個のボクセルを処理 (同期)");
+        // 変更されたチャンクのメッシュを再生成
+        foreach (var chunk in modifiedChunks)
+        {
+            chunk.GenerateMesh();
+        }
+
+        Debug.Log($"[DigVolume] 掘削完了: {totalVoxels}個のボクセルを処理 ({modifiedChunks.Count}個のチャンクを更新, 同期)");
         // SpawnPointMarkerが付いている場合は消さない
         if (GetComponent<SpawnPointMarker>() == null)
         {

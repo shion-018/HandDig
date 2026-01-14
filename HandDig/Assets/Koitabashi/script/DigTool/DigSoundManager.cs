@@ -26,6 +26,9 @@ public class DigSoundManager : MonoBehaviour
     private Dictionary<Transform, AudioSource> attachedAudioSources = new Dictionary<Transform, AudioSource>();
     private Dictionary<AudioSource, Transform> audioSourceToTransform = new Dictionary<AudioSource, Transform>();
     
+    // ドリル掘削音の再生間隔制限
+    private float lastDrillDigSoundTime = 0f;
+    
     /// <summary>
     /// シングルトンインスタンス
     /// </summary>
@@ -236,12 +239,22 @@ public class DigSoundManager : MonoBehaviour
     }
 
     /// <summary>
-    /// ドリル掘削音を再生
+    /// ドリル掘削音を再生（再生間隔制限付き）
     /// </summary>
     /// <param name="position">再生位置</param>
     public void PlayDrillDigSound(Vector3 position)
     {
         if (soundSettings == null || soundSettings.drillDigSound == null) return;
+        
+        // 再生間隔制限：一定時間以内の連続再生を防ぐ
+        float cooldown = soundSettings.drillDigSoundCooldown;
+        float currentTime = Time.time;
+        if (currentTime - lastDrillDigSoundTime < cooldown)
+        {
+            return; // クールダウン中は再生しない
+        }
+        
+        lastDrillDigSoundTime = currentTime;
         
         ReverbSettings reverb = soundSettings != null ? soundSettings.drillDigReverb : null;
         PlaySoundAtPosition(soundSettings.drillDigSound, position, "DrillDig", reverb);

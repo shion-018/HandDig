@@ -72,6 +72,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: jewelry2 (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6122c7bfc3a488c47bd60c781f05c1b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
