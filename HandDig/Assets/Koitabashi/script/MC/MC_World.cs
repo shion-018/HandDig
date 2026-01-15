@@ -44,6 +44,10 @@ public class MC_World : MonoBehaviour
     [Tooltip("チャンク座標→事前生成データの対応（サイズはchunkCountX*chunkCountY*chunkCountZ）")]
     public List<MC_ChunkDataAsset> prebakedAssets = new List<MC_ChunkDataAsset>();
 
+    [Header("地形生成完了後に重力を有効化するオブジェクト")]
+    [Tooltip("地形生成が完了したタイミングで重力を有効化するオブジェクトのリスト")]
+    public List<GameObject> objectsToEnableGravity = new List<GameObject>();
+
     Dictionary<Vector3Int, MC_Chunk> chunkMap = new Dictionary<Vector3Int, MC_Chunk>();
 
     /// <summary>
@@ -54,6 +58,20 @@ public class MC_World : MonoBehaviour
     void Start()
     {
         Debug.Log("[MC_World] ワールド初期化開始");
+        
+        // 指定されたオブジェクトの重力を無効化
+        foreach (var obj in objectsToEnableGravity)
+        {
+            if (obj != null)
+            {
+                Rigidbody rb = obj.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.useGravity = false;
+                }
+            }
+        }
+        
         // 非同期初期化のみ実行
         //InitializeWorldAsync().Forget();
         cancellationTokenSource = new CancellationTokenSource();
@@ -108,6 +126,19 @@ public class MC_World : MonoBehaviour
         
         // 初期化完了フラグを設定
         IsInitialized = true;
+        
+        // 指定されたオブジェクトの重力を有効化
+        foreach (var obj in objectsToEnableGravity)
+        {
+            if (obj != null)
+            {
+                Rigidbody rb = obj.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.useGravity = true;
+                }
+            }
+        }
         
         Debug.Log("[MC_World] ワールド初期化完了");
     }
