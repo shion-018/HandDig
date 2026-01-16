@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -35,6 +36,12 @@ public class TutorialManager : MonoBehaviour
     [Tooltip("CompassAbilityTreasureItemに設定するCompassScript（compassObjectから自動取得も可能）")]
     public CompassScript compassScript;
     private bool compassUnlocked = false;
+
+    [Header("コンパスメッシュ表示設定")]
+    [Tooltip("コンパス本体のメッシュ（チュートリアル時にコンパス本体を取った時に表示）")]
+    public List<GameObject> compassMainMeshes = new List<GameObject>();
+    [Tooltip("コンパス強化パーツのメッシュ（チュートリアル時にコンパス強化お宝を取った時に表示）")]
+    public List<GameObject> compassUpgradeMeshes = new List<GameObject>();
 
 
     [Header("プレイヤー")]
@@ -105,6 +112,22 @@ public class TutorialManager : MonoBehaviour
         
         // チュートリアル開始時にコントローラーを表示し、最前面表示を有効化
         ShowController();
+
+        // 初期状態ではコンパスのメッシュを非表示
+        foreach (var mesh in compassMainMeshes)
+        {
+            if (mesh != null)
+            {
+                mesh.SetActive(false);
+            }
+        }
+        foreach (var mesh in compassUpgradeMeshes)
+        {
+            if (mesh != null)
+            {
+                mesh.SetActive(false);
+            }
+        }
     }
 
 
@@ -550,8 +573,39 @@ public class TutorialManager : MonoBehaviour
 
         Debug.Log("[TutorialManager] コンパスが解放されました！");
 
+        // コンパス本体のメッシュを表示
+        foreach (var mesh in compassMainMeshes)
+        {
+            if (mesh != null)
+            {
+                mesh.SetActive(true);
+            }
+        }
+        if (compassMainMeshes.Count > 0)
+        {
+            Debug.Log($"[TutorialManager] コンパス本体のメッシュを{compassMainMeshes.Count}個表示しました");
+        }
+
         // チュートリアルの進行も処理
         OnGetCompass();
+    }
+
+    /// <summary>
+    /// コンパス強化パーツのメッシュを表示する（チュートリアル時にコンパス強化お宝を取った時に呼ばれる）
+    /// </summary>
+    public void ShowCompassUpgradeMesh()
+    {
+        foreach (var mesh in compassUpgradeMeshes)
+        {
+            if (mesh != null)
+            {
+                mesh.SetActive(true);
+            }
+        }
+        if (compassUpgradeMeshes.Count > 0)
+        {
+            Debug.Log($"[TutorialManager] コンパス強化パーツのメッシュを{compassUpgradeMeshes.Count}個表示しました");
+        }
     }
 
     private void CheckCompassButton()

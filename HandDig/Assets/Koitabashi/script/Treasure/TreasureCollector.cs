@@ -240,6 +240,12 @@ public class TreasureCollector : MonoBehaviour
         {
             item.compassScript.searchCharenge = true;
             Debug.Log($"[{item.treasureName}] コンパス機能が解放されました！");
+            
+            // チュートリアル中の場合、コンパス強化パーツのメッシュを表示
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.ShowCompassUpgradeMesh();
+            }
         }
         else
         {

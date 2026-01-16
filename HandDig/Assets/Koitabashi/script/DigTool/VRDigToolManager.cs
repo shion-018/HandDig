@@ -53,6 +53,13 @@ public class VRDigToolManager : MonoBehaviour
 
     void Start()
     {
+        // 地形生成中はツールを非アクティブにする
+        if (IsTerrainGenerating())
+        {
+            DeactivateAllTools();
+            return;
+        }
+
         if (tools.Count > 0)
         {
             ActivateTool(currentIndex);
@@ -61,6 +68,23 @@ public class VRDigToolManager : MonoBehaviour
 
     void Update()
     {
+        // 地形生成中は操作を無効化
+        if (IsTerrainGenerating())
+        {
+            // ツールがアクティブになっている場合は非アクティブにする
+            if (currentTool != null)
+            {
+                DeactivateAllTools();
+            }
+            return;
+        }
+
+        // 地形生成が完了したタイミングでツールをアクティブ化
+        if (currentTool == null && tools.Count > 0)
+        {
+            ActivateTool(currentIndex);
+        }
+
         if (currentTool != null && currentToolTransform != null)
         {
             currentTool.UpdateDig(currentToolTransform.position);
@@ -76,6 +100,35 @@ public class VRDigToolManager : MonoBehaviour
         {
             DebugUpgradeAll();
         }
+    }
+
+    /// <summary>
+    /// 地形生成中かどうかを判定
+    /// </summary>
+    private bool IsTerrainGenerating()
+    {
+        MC_World world = FindObjectOfType<MC_World>();
+        if (world != null)
+        {
+            return !world.IsInitialized;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 全てのツールを非アクティブにする
+    /// </summary>
+    private void DeactivateAllTools()
+    {
+        for (int i = 0; i < tools.Count; i++)
+        {
+            if (tools[i].toolObject != null)
+            {
+                tools[i].toolObject.SetActive(false);
+            }
+        }
+        currentTool = null;
+        currentToolTransform = null;
     }
 
     void CycleTool()

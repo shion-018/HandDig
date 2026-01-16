@@ -30,6 +30,7 @@ MonoBehaviour:
     decayTime: 1.5
   drillDigSound: {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   drillProjectileSound: {fileID: 8300000, guid: 832e1d9549e7d0e4c97a070ab9545340, type: 3}
+  drillDigSoundCooldown: 0.05
   drillDigVolume: -1
   drillProjectileVolume: -1
   drillDigReverb:
@@ -129,6 +130,14 @@ MonoBehaviour:
   goalFanfareVolume: -1
   goalFanfareReverb:
     enabled: 0
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  jetpackSound: {fileID: 8300000, guid: 39a215134a2d53b48a4b3689ed3abb4c, type: 3}
+  jetpackIdleVolume: 0.1
+  jetpackActiveVolume: 0.5
+  jetpackReverb:
+    enabled: 1
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5

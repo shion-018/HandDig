@@ -31,19 +31,88 @@ public class VRPlayerMovement : MonoBehaviour
     [Tooltip("足音の最小移動速度（これ以下では足音を再生しない）")]
     public float minMoveSpeedForFootsteps = 0.1f;
     
+    [Header("Locomotion Tunneling設定")]
+    [Tooltip("LocomotionTunnelingコンポーネント（自動検索も可能）")]
+    [SerializeField] private LocomotionTunneling locomotionTunneling;
+    
+    [Header("ジェットパック音設定")]
+    [Tooltip("ジェットパック音の再生位置（nullの場合はこのTransformを使用）")]
+    [SerializeField] private Transform jetpackSoundPosition;
+    
+    [Tooltip("ジェットパック音量のフェード時間（秒）")]
+    [Range(0.1f, 2f)]
+    [SerializeField] private float jetpackVolumeFadeDuration = 0.3f;
+    
     private Vector3 lastPosition;
     private float distanceTraveled = 0f;
+    
+    // 移動速度を外部から取得できるようにする
+    private float currentMoveSpeed = 0f;
+    
+    // ジェットパック音の管理
+    private AudioSource jetpackAudioSource;
+    private bool wasJetpackActive = false;
+    private bool jetpackSoundStarted = false;
 
     void Start()
     {
         characterController = GetComponent<CharacterController>();
         lastPosition = transform.position;
+        
+        // LocomotionTunnelingを自動検索
+        if (locomotionTunneling == null)
+        {
+            locomotionTunneling = FindObjectOfType<LocomotionTunneling>();
+        }
+        
+        // ジェットパック音の再生位置を設定
+        if (jetpackSoundPosition == null)
+        {
+            jetpackSoundPosition = transform;
+        }
+        
+        // ジェットパック音は地形生成完了後に開始（Updateでチェック）
+    }
+    
+    private void OnDestroy()
+    {
+        // ジェットパック音を停止
+        if (DigSoundManager.Instance != null && jetpackSoundPosition != null)
+        {
+            DigSoundManager.Instance.StopJetpackSound(jetpackSoundPosition);
+        }
     }
 
     void Update()
     {
+        // 地形生成中は操作を無効化
+        if (IsTerrainGenerating())
+        {
+            return;
+        }
+
+        // 地形生成が完了したらジェットパック音を開始（一度だけ）
+        if (!jetpackSoundStarted)
+        {
+            StartJetpackSound();
+            jetpackSoundStarted = true;
+        }
+
         HandleMovement();
         HandleTurning();
+    }
+
+    /// <summary>
+    /// 地形生成中かどうかを判定
+    /// </summary>
+    private bool IsTerrainGenerating()
+    {
+        MC_World world = FindObjectOfType<MC_World>();
+        if (world != null)
+        {
+            return !world.IsInitialized;
+        }
+        return false;
     }
     void HandleMovement()//�z��������
     {
@@ -87,6 +156,40 @@ public class VRPlayerMovement : MonoBehaviour
         {
             HandleFootsteps(move.magnitude);
         }
+        
+        // ジェットパック音の処理
+        HandleJetpackSound(isAButtonHeld);
+    }
+    
+    /// <summary>
+    /// ジェットパック音を開始
+    /// </summary>
+    private void StartJetpackSound()
+    {
+        if (DigSoundManager.Instance != null && jetpackSoundPosition != null)
+        {
+            jetpackAudioSource = DigSoundManager.Instance.PlayJetpackSound(jetpackSoundPosition, false);
+            wasJetpackActive = false;
+        }
+    }
+    
+    /// <summary>
+    /// ジェットパック音を処理
+    /// </summary>
+    private void HandleJetpackSound(bool isActive)
+    {
+        // ジェットパック音がまだ開始されていない場合は開始
+        if (jetpackAudioSource == null && DigSoundManager.Instance != null && jetpackSoundPosition != null)
+        {
+            StartJetpackSound();
+        }
+        
+        // 状態が変わった場合のみ更新
+        if (isActive != wasJetpackActive && jetpackAudioSource != null && DigSoundManager.Instance != null)
+        {
+            DigSoundManager.Instance.UpdateJetpackVolume(jetpackAudioSource, isActive, jetpackVolumeFadeDuration);
+            wasJetpackActive = isActive;
+        }
     }
     
     /// <summary>
@@ -105,6 +208,9 @@ public class VRPlayerMovement : MonoBehaviour
         // 移動距離を累積
         float distanceThisFrame = Vector3.Distance(transform.position, lastPosition);
         distanceTraveled += distanceThisFrame;
+        
+        // 現在の移動速度を記録（LocomotionTunneling用）
+        currentMoveSpeed = distanceThisFrame / Time.deltaTime;
         
         // 足音設定を取得
         var soundManager = DigSoundManager.Instance;
