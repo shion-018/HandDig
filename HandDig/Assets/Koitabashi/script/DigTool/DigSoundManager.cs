@@ -67,24 +67,52 @@ public class DigSoundManager : MonoBehaviour
         }
     }
     
+    private void OnDisable()
+    {
+        // エディタモードでのシーン終了時にもクリーンアップを確実に実行
+        CleanupResources();
+    }
+    
     private void OnDestroy()
+    {
+        // クリーンアップを実行
+        CleanupResources();
+    }
+    
+    /// <summary>
+    /// リソースをクリーンアップ（OnDisableとOnDestroyの両方から呼ばれる）
+    /// </summary>
+    private void CleanupResources()
     {
         // インスタンスが自分自身の場合、クリーンアップ
         if (instance == this)
         {
             // すべての音声を停止
-            StopAllSounds();
+            if (activeAudioSources != null)
+            {
+                StopAllSounds();
+            }
             
             // 追従型のAudioSourceをクリーンアップ
-            foreach (var audioSource in attachedAudioSources.Values)
+            if (attachedAudioSources != null)
             {
-                if (audioSource != null && audioSource.gameObject != null)
+                // OnDestroy内でのDestroy呼び出しは避ける（エディタモードで問題を引き起こす可能性がある）
+                // 代わりに、親オブジェクトが破棄されるときに自動的に破棄される
+                foreach (var audioSource in attachedAudioSources.Values)
                 {
-                    Destroy(audioSource.gameObject);
+                    if (audioSource != null && audioSource.gameObject != null)
+                    {
+                        // 音声を停止
+                        audioSource.Stop();
+                    }
                 }
+                attachedAudioSources.Clear();
             }
-            attachedAudioSources.Clear();
-            audioSourceToTransform.Clear();
+            
+            if (audioSourceToTransform != null)
+            {
+                audioSourceToTransform.Clear();
+            }
             
             // インスタンスをクリア
             instance = null;

@@ -66,13 +66,18 @@ public class MC_Chunk : MonoBehaviour
     }
 
 
+    [Header("掘削範囲設定")]
+    [Tooltip("下方向の掘削範囲の縮小倍率（0.0～1.0）")]
+    [Range(0.0f, 1.0f)]
+    public float lowerRadiusRatio = 0.3f;
+
     public void ModifyDensity(Vector3 worldPos, float radius, float value)
     {
         Vector3 localPos = worldPos - transform.position;
 
         int minX = Mathf.Max(0, Mathf.FloorToInt(localPos.x - radius));
         int maxX = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.x + radius));
-        int minY = Mathf.Max(0, Mathf.FloorToInt(localPos.y - radius));
+        int minY = Mathf.Max(0, Mathf.FloorToInt(localPos.y - radius * lowerRadiusRatio));
         int maxY = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.y + radius));
         int minZ = Mathf.Max(0, Mathf.FloorToInt(localPos.z - radius));
         int maxZ = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.z + radius));
@@ -82,8 +87,33 @@ public class MC_Chunk : MonoBehaviour
                 for (int z = minZ; z <= maxZ; z++)
                 {
                     Vector3 diff = new Vector3(x, y, z) - localPos;
-                    if (diff.magnitude <= radius)
-                        chunkData.densityMap[x, y, z] = value;
+                    
+                    // 下方向の範囲を縮小
+                    float effectiveRadius = diff.y < 0 ? radius * lowerRadiusRatio : radius;
+                    
+                    // 水平方向（x-z平面）の距離とY方向の距離を個別にチェック
+                    float horizontalDist = Mathf.Sqrt(diff.x * diff.x + diff.z * diff.z);
+                    float verticalDist = Mathf.Abs(diff.y);
+                    
+                    // 楕円形の判定：水平方向はradius、Y方向はeffectiveRadius
+                    if (diff.y < 0)
+                    {
+                        // 下方向：楕円形判定
+                        float normalizedH = horizontalDist / radius;
+                        float normalizedV = verticalDist / effectiveRadius;
+                        if (normalizedH * normalizedH + normalizedV * normalizedV <= 1.0f)
+                        {
+                            chunkData.densityMap[x, y, z] = value;
+                        }
+                    }
+                    else
+                    {
+                        // 上方向：通常の球形判定
+                        if (diff.magnitude <= radius)
+                        {
+                            chunkData.densityMap[x, y, z] = value;
+                        }
+                    }
                 }
     }
 
@@ -93,7 +123,7 @@ public class MC_Chunk : MonoBehaviour
 
         int minX = Mathf.Max(0, Mathf.FloorToInt(localPos.x - radius));
         int maxX = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.x + radius));
-        int minY = Mathf.Max(0, Mathf.FloorToInt(localPos.y - radius));
+        int minY = Mathf.Max(0, Mathf.FloorToInt(localPos.y - radius * lowerRadiusRatio));
         int maxY = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.y + radius));
         int minZ = Mathf.Max(0, Mathf.FloorToInt(localPos.z - radius));
         int maxZ = Mathf.Min(chunkSize, Mathf.CeilToInt(localPos.z + radius));
@@ -104,10 +134,27 @@ public class MC_Chunk : MonoBehaviour
                 for (int z = minZ; z <= maxZ; z++)
                 {
                     Vector3 diff = new Vector3(x, y, z) - localPos;
-                    if (diff.magnitude <= radius)
+                    
+                    bool isInRange = false;
+                    if (diff.y < 0)
                     {
-                        if (chunkData != null && chunkData.densityMap[x, y, z] > filledThreshold)
-                            return true;
+                        // 下方向：楕円形判定
+                        float effectiveRadius = radius * lowerRadiusRatio;
+                        float horizontalDist = Mathf.Sqrt(diff.x * diff.x + diff.z * diff.z);
+                        float verticalDist = Mathf.Abs(diff.y);
+                        float normalizedH = horizontalDist / radius;
+                        float normalizedV = verticalDist / effectiveRadius;
+                        isInRange = (normalizedH * normalizedH + normalizedV * normalizedV <= 1.0f);
+                    }
+                    else
+                    {
+                        // 上方向：通常の球形判定
+                        isInRange = (diff.magnitude <= radius);
+                    }
+                    
+                    if (isInRange && chunkData != null && chunkData.densityMap[x, y, z] > filledThreshold)
+                    {
+                        return true;
                     }
                 }
 

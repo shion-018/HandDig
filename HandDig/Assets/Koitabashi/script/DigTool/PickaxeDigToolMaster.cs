@@ -36,6 +36,13 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
     [Tooltip("爆発位置計算で使用する地形レイヤー")]
     public LayerMask terrainLayer;
 
+    [Header("掘削形状設定")]
+    [Tooltip("段階に応じた中心位置の奥方向オフセット倍率")]
+    public float depthOffsetMultiplier = 0.3f;
+    
+    [Tooltip("段階に応じた中心位置の上方向オフセット倍率")]
+    public float upwardOffsetMultiplier = 0.2f;
+
     [Header("デバッグ設定")]
     [Tooltip("デバッグログを表示するか")]
     public bool enableDebugLog = false;
@@ -201,7 +208,19 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
             Transform p = currentDigPoints[i];
             if (p == null) continue;
 
+            // 段階に応じて中心位置を奥の方に斜め上にオフセット
+            float depthOffset = upgradeLevel * depthOffsetMultiplier;
+            float upwardOffset = upgradeLevel * upwardOffsetMultiplier;
+
+            // 掘削方向はdigPointのforward方向を使用
+            Vector3 digDirection = p.forward.normalized;
             Vector3 digPos = p.position + p.up * (radius * 0.3f);
+            
+            // オフセットを適用（前方向と上方向）
+            digPos += digDirection * depthOffset;
+            digPos += p.up * upwardOffset;
+
+            // 掘削実行
             bool ok = digManager != null && digManager.TryDigAt(digPos, radius);
             if (!ok)
             {

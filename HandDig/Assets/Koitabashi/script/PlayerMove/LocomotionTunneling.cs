@@ -148,25 +148,21 @@ public class LocomotionTunneling : MonoBehaviour
     }
     
     /// <summary>
-    /// 目標Vignette強度を計算
+    /// 目標Vignette強度を計算（スティック入力のみ）
     /// </summary>
     private float CalculateTargetVignette()
     {
-        // スティック入力による移動を検知（ユーザー提供コードのパターン）
+        // スティック入力による移動を検知（左スティックのみ）
         Vector2 stickL = OVRInput.Get(OVRInput.RawAxis2D.LThumbstick);
-        bool isMovingByStick = stickL.magnitude > moveSpeedThreshold;
+        float stickMagnitude = stickL.magnitude;
+        bool isMovingByStick = stickMagnitude > moveSpeedThreshold;
         
-        // 移動によるVignette（スティック入力または実際の移動速度）
-        if (isMovingByStick || currentMoveSpeed > moveSpeedThreshold)
+        // スティック入力のみでVignetteを適用
+        if (isMovingByStick)
         {
-            // スティック入力の強度を使用
-            float stickIntensity = isMovingByStick ? Mathf.Clamp01((stickL.magnitude - moveSpeedThreshold) / (1f - moveSpeedThreshold)) : 0f;
-            // 実際の移動速度の強度
-            float speedIntensity = currentMoveSpeed > moveSpeedThreshold ? 
-                Mathf.Clamp01((currentMoveSpeed - moveSpeedThreshold) / (moveSpeedThreshold * 5f)) : 0f;
-            // より強い方を採用
-            float normalizedMoveSpeed = Mathf.Max(stickIntensity, speedIntensity);
-            return normalizedMoveSpeed * maxMoveVignette;
+            // スティック入力の強度を正規化（0-1）
+            float normalizedStickIntensity = Mathf.Clamp01((stickMagnitude - moveSpeedThreshold) / (1f - moveSpeedThreshold));
+            return normalizedStickIntensity * maxMoveVignette;
         }
         
         return 0f;
