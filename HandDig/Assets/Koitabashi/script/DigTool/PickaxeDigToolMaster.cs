@@ -47,6 +47,31 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
     [Tooltip("デバッグログを表示するか")]
     public bool enableDebugLog = false;
 
+    [Header("マテリアル設定")]
+    [Tooltip("マテリアルを変更するMeshRenderer（未設定の場合は自動検索）")]
+    public MeshRenderer[] targetRenderers;
+    
+    [Tooltip("通常モード用のマテリアル（1つ目）")]
+    public Material normalModeMaterial1;
+    
+    [Tooltip("通常モード用のマテリアル（2つ目）")]
+    public Material normalModeMaterial2;
+    
+    [Tooltip("爆発モード用のマテリアル（1つ目）")]
+    public Material explosionModeMaterial1;
+    
+    [Tooltip("爆発モード用のマテリアル（2つ目）")]
+    public Material explosionModeMaterial2;
+    
+    // 後方互換性のための古いフィールド（非推奨）
+    [System.Obsolete("normalModeMaterialは非推奨です。normalModeMaterial1とnormalModeMaterial2を使用してください。")]
+    [Tooltip("通常モード用のマテリアル（非推奨：normalModeMaterial1とnormalModeMaterial2を使用）")]
+    public Material normalModeMaterial;
+    
+    [System.Obsolete("explosionModeMaterialは非推奨です。explosionModeMaterial1とexplosionModeMaterial2を使用してください。")]
+    [Tooltip("爆発モード用のマテリアル（非推奨：explosionModeMaterial1とexplosionModeMaterial2を使用）")]
+    public Material explosionModeMaterial;
+
     // 内部状態
     private VRDigToolManager toolManager;
     private PickaxeDigStats stats;
@@ -69,6 +94,15 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
     private void Start()
     {
         SetLevel(currentLevel);
+        
+        // マテリアル変更対象のRendererを自動検索（未設定の場合）
+        if (targetRenderers == null || targetRenderers.Length == 0)
+        {
+            targetRenderers = GetComponentsInChildren<MeshRenderer>();
+        }
+        
+        // 初期マテリアルを設定
+        UpdateMaterial();
     }
 
     private void Update()
@@ -88,6 +122,21 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
                     isExplosionMode = !isExplosionMode;
                     string chargeInfo = toolManager.infiniteExplosionMode ? "無限" : $"残り {toolManager.GetPickaxeExplosionCharges()}";
                     if (enableDebugLog) Debug.Log($"[PickaxeMaster] 爆発モード: {isExplosionMode} ({chargeInfo})");
+                    
+                    // マテリアルを更新
+                    UpdateMaterial();
+                    
+                    // モード切り替え音を再生
+                    if (DigSoundManager.Instance != null)
+                    {
+                        DigSoundManager.Instance.PlayPickaxeModeSwitchSound(transform.position);
+                    }
+                    
+                    // モード切り替えテキストを消す
+                    if (TutorialManager.Instance != null)
+                    {
+                        TutorialManager.Instance.HideModeSwitchText();
+                    }
                 }
             }
         }
@@ -256,7 +305,10 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
 
                 // 無限モードでない場合のみ、チャージがなくなったらモードをオフ
                 if (!toolManager.infiniteExplosionMode && toolManager.GetPickaxeExplosionCharges() <= 0)
+                {
                     isExplosionMode = false;
+                    UpdateMaterial();
+                }
             }
         }
     }
@@ -317,4 +369,52 @@ public class PickaxeDigToolMaster : MonoBehaviour, IDigTool
 
     // ===== 状態参照 =====
     public bool IsExplosionMode() => isExplosionMode;
+
+    /// <summary>
+    /// マテリアルを更新（モードに応じて）
+    /// </summary>
+    private void UpdateMaterial()
+    {
+        if (targetRenderers == null || targetRenderers.Length == 0) return;
+
+        Material mat1, mat2;
+        
+        if (isExplosionMode)
+        {
+            // 爆発モード用のマテリアルを取得（後方互換性対応）
+            mat1 = explosionModeMaterial1 != null ? explosionModeMaterial1 : explosionModeMaterial;
+            mat2 = explosionModeMaterial2;
+        }
+        else
+        {
+            // 通常モード用のマテリアルを取得（後方互換性対応）
+            mat1 = normalModeMaterial1 != null ? normalModeMaterial1 : normalModeMaterial;
+            mat2 = normalModeMaterial2;
+        }
+
+        // nullチェック
+        if (mat1 == null && mat2 == null)
+        {
+            if (enableDebugLog) Debug.LogWarning("[PickaxeMaster] マテリアルが設定されていません");
+            return;
+        }
+
+        // マテリアル配列を作成（nullでないもののみ）
+        List<Material> materialsList = new List<Material>();
+        if (mat1 != null) materialsList.Add(mat1);
+        if (mat2 != null) materialsList.Add(mat2);
+        
+        Material[] targetMaterials = materialsList.ToArray();
+
+        foreach (var renderer in targetRenderers)
+        {
+            if (renderer != null)
+            {
+                // マテリアル配列を設定（2つのスロットに対応）
+                renderer.materials = targetMaterials;
+            }
+        }
+
+        if (enableDebugLog) Debug.Log($"[PickaxeMaster] マテリアルを更新: {(isExplosionMode ? "爆発モード" : "通常モード")}");
+    }
 }

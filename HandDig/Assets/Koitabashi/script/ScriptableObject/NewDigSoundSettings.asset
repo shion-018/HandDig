@@ -18,6 +18,8 @@ MonoBehaviour:
   pickaxeExplosionSound: {fileID: 8300000, guid: d9b17561b0f8ca843a6136222992e6a8, type: 3}
   pickaxeDigVolume: -1
   pickaxeExplosionVolume: -1
+  pickaxeModeSwitchVolume: -1
+  pickaxeModeSwitchSound: {fileID: 8300000, guid: ad1fb3bdd6e85dd41b65176b66bdbcf6, type: 3}
   pickaxeDigReverb:
     enabled: 1
     preset: 9
@@ -28,11 +30,18 @@ MonoBehaviour:
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5
+  pickaxeModeSwitchReverb:
+    enabled: 0
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
   drillDigSound: {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   drillProjectileSound: {fileID: 8300000, guid: 832e1d9549e7d0e4c97a070ab9545340, type: 3}
   drillDigSoundCooldown: 0.05
   drillDigVolume: -1
   drillProjectileVolume: -1
+  drillModeSwitchVolume: -1
+  drillModeSwitchSound: {fileID: 8300000, guid: ad1fb3bdd6e85dd41b65176b66bdbcf6, type: 3}
   drillDigReverb:
     enabled: 1
     preset: 9
@@ -40,6 +49,11 @@ MonoBehaviour:
     decayTime: 1.5
   drillProjectileReverb:
     enabled: 1
+    preset: 9
+    reverbLevel: 0.5
+    decayTime: 1.5
+  drillModeSwitchReverb:
+    enabled: 0
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5

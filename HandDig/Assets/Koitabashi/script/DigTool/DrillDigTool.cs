@@ -53,6 +53,16 @@ public class DrillDigTool : MonoBehaviour, IDigTool
     [Header("表示用ドリル先端")]
     [SerializeField] private GameObject visibleDrillTip;
 
+    [Header("マテリアル設定")]
+    [Tooltip("マテリアルを変更するMeshRenderer（未設定の場合は自動検索）")]
+    public MeshRenderer[] targetRenderers;
+    
+    [Tooltip("通常モード用のマテリアル")]
+    public Material normalModeMaterial;
+    
+    [Tooltip("射出モード用のマテリアル")]
+    public Material shootModeMaterial;
+
     private bool canSwitchMode = false;
 
     /// <summary>
@@ -78,6 +88,15 @@ public class DrillDigTool : MonoBehaviour, IDigTool
         soundManager = FindObjectOfType<DigSoundManager>();
         if (visibleDrillTip != null)
             visibleDrillTip.SetActive(true);
+        
+        // マテリアル変更対象のRendererを自動検索（未設定の場合）
+        if (targetRenderers == null || targetRenderers.Length == 0)
+        {
+            targetRenderers = GetComponentsInChildren<MeshRenderer>();
+        }
+        
+        // 初期マテリアルを設定
+        UpdateMaterial();
         
         // ドリルのコライダーを取得
         if (drillCollider != null)
@@ -146,6 +165,21 @@ public class DrillDigTool : MonoBehaviour, IDigTool
         {
             isShootMode = !isShootMode;
             Debug.Log($"[DrillDigTool] モード切替: {(isShootMode ? "射出モード" : "通常モード")}");
+            
+            // マテリアルを更新
+            UpdateMaterial();
+            
+            // モード切り替え音を再生
+            if (DigSoundManager.Instance != null)
+            {
+                DigSoundManager.Instance.PlayDrillModeSwitchSound(transform.position);
+            }
+            
+            // モード切り替えテキストを消す
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.HideModeSwitchText();
+            }
         }
     }
 
@@ -391,5 +425,31 @@ public class DrillDigTool : MonoBehaviour, IDigTool
 
         if (visibleDrillTip != null)
             visibleDrillTip.SetActive(true);
+    }
+
+    /// <summary>
+    /// マテリアルを更新（モードに応じて）
+    /// </summary>
+    private void UpdateMaterial()
+    {
+        if (targetRenderers == null || targetRenderers.Length == 0) return;
+
+        Material targetMaterial = isShootMode ? shootModeMaterial : normalModeMaterial;
+        
+        if (targetMaterial == null)
+        {
+            if (enableDebugLog) Debug.LogWarning("[DrillDigTool] マテリアルが設定されていません");
+            return;
+        }
+
+        foreach (var renderer in targetRenderers)
+        {
+            if (renderer != null)
+            {
+                renderer.material = targetMaterial;
+            }
+        }
+
+        if (enableDebugLog) Debug.Log($"[DrillDigTool] マテリアルを更新: {(isShootMode ? "射出モード" : "通常モード")}");
     }
 }

@@ -301,6 +301,30 @@ public class DigSoundManager : MonoBehaviour
     }
 
     /// <summary>
+    /// つるはしモード切替音を再生
+    /// </summary>
+    /// <param name="position">再生位置</param>
+    public void PlayPickaxeModeSwitchSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.pickaxeModeSwitchSound == null) return;
+        
+        ReverbSettings reverb = soundSettings != null ? soundSettings.pickaxeModeSwitchReverb : null;
+        PlaySoundAtPosition(soundSettings.pickaxeModeSwitchSound, position, "PickaxeModeSwitch", reverb);
+    }
+
+    /// <summary>
+    /// ドリルモード切替音を再生
+    /// </summary>
+    /// <param name="position">再生位置</param>
+    public void PlayDrillModeSwitchSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.drillModeSwitchSound == null) return;
+        
+        ReverbSettings reverb = soundSettings != null ? soundSettings.drillModeSwitchReverb : null;
+        PlaySoundAtPosition(soundSettings.drillModeSwitchSound, position, "DrillModeSwitch", reverb);
+    }
+
+    /// <summary>
     /// 手掘り音を再生
     /// </summary>
     /// <param name="position">再生位置</param>

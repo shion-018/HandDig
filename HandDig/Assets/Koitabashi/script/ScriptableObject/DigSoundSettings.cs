@@ -42,12 +42,22 @@ public class DigSoundSettings : ScriptableObject
     [Range(-1f, 5f)]
     public float pickaxeExplosionVolume = -1f;
     
+    [Tooltip("つるはしモード切替音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float pickaxeModeSwitchVolume = -1f;
+    
+    [Tooltip("つるはしモード切替音")]
+    public AudioClip pickaxeModeSwitchSound;
+    
     [Header("つるはしリバーブ設定")]
     [Tooltip("つるはし掘削音のリバーブ設定")]
     public ReverbSettings pickaxeDigReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
     
     [Tooltip("つるはし爆発音のリバーブ設定")]
     public ReverbSettings pickaxeExplosionReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
+    
+    [Tooltip("つるはしモード切替音のリバーブ設定")]
+    public ReverbSettings pickaxeModeSwitchReverb = new ReverbSettings { enabled = false, preset = AudioReverbPreset.Cave };
     
     [Header("ドリル音声設定")]
     [Tooltip("ドリル掘削音")]
@@ -69,12 +79,22 @@ public class DigSoundSettings : ScriptableObject
     [Range(-1f, 5f)]
     public float drillProjectileVolume = -1f;
     
+    [Tooltip("ドリルモード切替音のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float drillModeSwitchVolume = -1f;
+    
+    [Tooltip("ドリルモード切替音")]
+    public AudioClip drillModeSwitchSound;
+    
     [Header("ドリルリバーブ設定")]
     [Tooltip("ドリル掘削音のリバーブ設定")]
     public ReverbSettings drillDigReverb = new ReverbSettings { enabled = true, preset = AudioReverbPreset.Cave };
     
     [Tooltip("射出ドリル音のリバーブ設定")]
     public ReverbSettings drillProjectileReverb = new ReverbSettings { enabled = false, preset = AudioReverbPreset.Cave };
+    
+    [Tooltip("ドリルモード切替音のリバーブ設定")]
+    public ReverbSettings drillModeSwitchReverb = new ReverbSettings { enabled = false, preset = AudioReverbPreset.Cave };
     
     [Header("手掘り音声設定")]
     [Tooltip("手掘り音")]
@@ -282,11 +302,17 @@ public class DigSoundSettings : ScriptableObject
             case "PickaxeExplosionMarker":
                 individualVolume = pickaxeExplosionVolume;
                 break;
+            case "PickaxeModeSwitch":
+                individualVolume = pickaxeModeSwitchVolume;
+                break;
             case "DrillDig":
                 individualVolume = drillDigVolume;
                 break;
             case "DrillProjectile":
                 individualVolume = drillProjectileVolume;
+                break;
+            case "DrillModeSwitch":
+                individualVolume = drillModeSwitchVolume;
                 break;
             case "HandDig":
                 individualVolume = handDigVolume;

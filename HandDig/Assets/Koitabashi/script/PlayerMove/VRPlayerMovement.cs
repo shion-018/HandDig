@@ -118,7 +118,7 @@ public class VRPlayerMovement : MonoBehaviour
     {
         isGrounded = characterController.isGrounded;
 
-        // �㏸����
+        // 移動入力�㏸����
         bool isAButtonHeld = OVRInput.Get(OVRInput.Button.One, OVRInput.Controller.RTouch);
 
         float maxAscendSpeed = 5f;
@@ -127,27 +127,27 @@ public class VRPlayerMovement : MonoBehaviour
 
         if (isAButtonHeld)
         {
-            // �����㏸
+            // 移動入力�����㏸
             verticalVelocity += ascendAcceleration * Time.deltaTime;
             verticalVelocity = Mathf.Clamp(verticalVelocity, 0f, maxAscendSpeed);
         }
         else
         {
-            // �d�͉��Z�i�~���j
+            // 移動入力�d�͉��Z�i�~���j
             verticalVelocity += gravity * descendAcceleration * Time.deltaTime;
         }
 
-        // �n�ʂɂ����Ԃŗ������x�����Z�b�g
+        // 移動入力�n�ʂɂ����Ԃŗ������x�����Z�b�g
         if (isGrounded && verticalVelocity < 0f)
             verticalVelocity = -1f;
 
-        // �ړ�����
+        // 移動入力�ړ�����
         Vector2 input = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
         Vector3 move = cameraTransform.forward * input.y + cameraTransform.right * input.x;
         move.y = 0f;
         move.Normalize();
 
-        // �����ړ�
+        // 移動入力�����ړ�
         Vector3 finalMove = move * moveSpeed + Vector3.up * verticalVelocity;
         characterController.Move(finalMove * Time.deltaTime);
         

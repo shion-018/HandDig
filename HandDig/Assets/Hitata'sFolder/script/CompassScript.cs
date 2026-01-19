@@ -15,6 +15,10 @@ public class CompassScript : MonoBehaviour
     [SerializeField] private Material targetMaterial;   // Target 用
     [SerializeField] private Material keyMaterial;      // Key 用
 
+    [Header("サーチ先の目印オブジェクト")]
+    [SerializeField] private GameObject star;
+    [SerializeField] private GameObject key;
+
     void Start()
     {
         RefreshTargetList();
@@ -27,7 +31,7 @@ public class CompassScript : MonoBehaviour
 
     void Update()
     {
-        // Y または Space で "Target" ⇄ "Key" 切り替え
+        // YかSpaceで"Target""Key"切り替え
         if (OVRInput.GetDown(OVRInput.Button.Four) || Input.GetKeyDown(KeyCode.Space))
         {
             if (searchCharenge)
@@ -36,16 +40,21 @@ public class CompassScript : MonoBehaviour
                 {
                     SetSearchTag("Key");
                     ChangeMaterial(keyMaterial);
+                    star.SetActive(false);
+                    key.SetActive(true);
+
                 }
                 else
                 {
                     SetSearchTag("Target");
                     ChangeMaterial(targetMaterial);
+                    star.SetActive(true);
+                    key.SetActive(false);
                 }
             }
         }
 
-        // 最も近い対象を向く
+        // 最も近い対象を向かせる
         Transform nearestTarget = FindNearestTarget();
         if (nearestTarget != null)
         {
