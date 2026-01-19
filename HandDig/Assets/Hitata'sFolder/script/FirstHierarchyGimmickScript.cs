@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class FirstHierarchyGimmickScript : MonoBehaviour
 {
-    [Header("è¡çªã—ã¦åå¿œã™ã‚‹å¯¾è±¡ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
+    [Header("Õ“Ë‚ğŒŸo‚·‚é‘ÎÛƒIƒuƒWƒFƒNƒg")]
     public GameObject key;
     public GameObject door;
 
-    [Header("ãƒ‰ã‚¢ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³è¨­å®š")]
-    public string openAnimationTrigger = "Open";
 
     private Renderer rend;
     // Start is called before the first frame update
@@ -28,26 +26,13 @@ public class FirstHierarchyGimmickScript : MonoBehaviour
     {
         if (collision.gameObject == key)
         {
-            Debug.Log("OnCollisionæ¤œå‡º");
-            
+            Debug.Log("OnCollision”½‰");
+            // Rigidbody‚ğ‚Á‚Ä‚¢‚½‚ç‘SŒÅ’è
             Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
             if (rb != null)
             {
                 rb.constraints = RigidbodyConstraints.FreezeAll;
-                
-                if (door != null)
-                {
-                    Animator doorAnimator = door.GetComponent<Animator>();
-                    if (doorAnimator != null && !string.IsNullOrEmpty(openAnimationTrigger))
-                    {
-                        doorAnimator.SetTrigger(openAnimationTrigger);
-                    }
-                    
-                    if (DigSoundManager.Instance != null)
-                    {
-                        DigSoundManager.Instance.PlayGoalDoorOpenSound(door.transform.position);
-                    }
-                }
+                Destroy(door);
             }
 
             Rigidbody myRb = GetComponent<Rigidbody>();

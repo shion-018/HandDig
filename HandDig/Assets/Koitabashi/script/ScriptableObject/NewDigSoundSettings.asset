@@ -134,7 +134,7 @@ MonoBehaviour:
     reverbLevel: 0.5
     decayTime: 1.5
   jetpackSound: {fileID: 8300000, guid: 39a215134a2d53b48a4b3689ed3abb4c, type: 3}
-  jetpackIdleVolume: 0.1
+  jetpackIdleVolume: 0.05
   jetpackActiveVolume: 0.5
   jetpackReverb:
     enabled: 1
