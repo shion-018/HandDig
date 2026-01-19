@@ -11,6 +11,23 @@ public class DigToolEntry
 
 public class VRDigToolManager : MonoBehaviour
 {
+    private static VRDigToolManager instance;
+
+    /// <summary>
+    /// シングルトンインスタンス
+    /// </summary>
+    public static VRDigToolManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<VRDigToolManager>();
+            }
+            return instance;
+        }
+    }
+
     [Header("デバッグ設定")]
     [Tooltip("デバッグログを表示するか")]
     public bool enableDebugLog = false;
@@ -50,6 +67,21 @@ public class VRDigToolManager : MonoBehaviour
     private int drillSpeedTreasureCount = 0;
     private int explosiveTreasureCount = 0;
     private int drillShootModeTreasureCount = 0;
+    private int compassMainTreasureCount = 0;
+    private int compassUnlockTreasureCount = 0;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
 
     void Start()
     {
@@ -530,6 +562,12 @@ public class VRDigToolManager : MonoBehaviour
             case "DrillShootMode":
                 drillShootModeTreasureCount += count;
                 break;
+            case "CompassMain":
+                compassMainTreasureCount += count;
+                break;
+            case "CompassUnlock":
+                compassUnlockTreasureCount += count;
+                break;
         }
         
         if (enableDebugLog) Debug.Log($"[VRDigToolManager] お宝取得: {treasureType} +{count} (総数: {totalTreasureCount})");
@@ -542,6 +580,32 @@ public class VRDigToolManager : MonoBehaviour
     public int GetDrillSpeedTreasureCount() => drillSpeedTreasureCount;
     public int GetExplosiveTreasureCount() => explosiveTreasureCount;
     public int GetDrillShootModeTreasureCount() => drillShootModeTreasureCount;
+    public int GetCompassMainTreasureCount() => compassMainTreasureCount;
+    public int GetCompassUnlockTreasureCount() => compassUnlockTreasureCount;
+
+    /// <summary>
+    /// リザルト用: お宝の総数を取得
+    /// </summary>
+    public int GetResultTotalTreasureCount() => totalTreasureCount;
+
+    /// <summary>
+    /// リザルト用: 掘削範囲増加以外の特殊なお宝の総数を取得
+    /// </summary>
+    public int GetResultSpecialTreasureCount()
+    {
+        return pickaxeHitZoneTreasureCount +
+               drillHitZoneTreasureCount +
+               drillSpeedTreasureCount +
+               explosiveTreasureCount +
+               drillShootModeTreasureCount +
+               compassMainTreasureCount +
+               compassUnlockTreasureCount;
+    }
+
+    /// <summary>
+    /// リザルト用: 現在の掘る力（掘削範囲増加お宝の総数）を取得
+    /// </summary>
+    public int GetResultDigPower() => normalTreasureCount;
 
     // ---- Debug Functions ----
     /// <summary>

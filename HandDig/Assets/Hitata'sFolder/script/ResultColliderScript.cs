@@ -8,10 +8,12 @@ public class ResultColliderScript : MonoBehaviour
     int _getAllJewels;
     int _getUniqueJewels;
     int _digPower;
+    bool result = false;
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && result == false)
         {
+            result = true;
             scoreScript.SetValue(0, _getAllJewels);
             scoreScript.SetValue(1, _getUniqueJewels);
             scoreScript.SetValue(2, _digPower);
