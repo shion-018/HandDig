@@ -785,6 +785,9 @@ public class GoalManager : MonoBehaviour
         // 2. プレイヤーをワープ
         if (goalWarpPoint != null && playerRoot != null)
         {
+            // リザルト用スクリプトにお宝データを設定
+            SetTreasureDataToResultScript();
+            
             WarpPlayerToGoal();
             
             // ワープ後にファンファーレ音を再生（プレイヤーの位置から）
@@ -857,6 +860,66 @@ public class GoalManager : MonoBehaviour
 
         hasReachedGoal = true;
         StartCoroutine(HandleGoalSequence());
+    }
+
+    /// <summary>
+    /// リザルト用スクリプトにお宝データを設定（リフレクション使用）
+    /// </summary>
+    private void SetTreasureDataToResultScript()
+    {
+        // ResultColliderScriptを探す
+        ResultColliderScript resultScript = FindObjectOfType<ResultColliderScript>();
+        if (resultScript == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("[GoalManager] ResultColliderScriptが見つかりませんでした");
+            }
+            return;
+        }
+
+        // VRDigToolManagerからお宝データを取得
+        if (VRDigToolManager.Instance != null)
+        {
+            int totalTreasure = VRDigToolManager.Instance.GetResultTotalTreasureCount();
+            int specialTreasure = VRDigToolManager.Instance.GetResultSpecialTreasureCount();
+            int digPower = VRDigToolManager.Instance.GetResultDigPower();
+
+            // リフレクションを使ってResultColliderScriptのprivate変数に直接アクセス
+            System.Type type = typeof(ResultColliderScript);
+            System.Reflection.FieldInfo getAllJewelsField = type.GetField("_getAllJewels", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            System.Reflection.FieldInfo getUniqueJewelsField = type.GetField("_getUniqueJewels", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            System.Reflection.FieldInfo digPowerField = type.GetField("_digPower", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            if (getAllJewelsField != null && getUniqueJewelsField != null && digPowerField != null)
+            {
+                getAllJewelsField.SetValue(resultScript, totalTreasure);
+                getUniqueJewelsField.SetValue(resultScript, specialTreasure);
+                digPowerField.SetValue(resultScript, digPower);
+
+                if (enableDebugLog)
+                {
+                    Debug.Log($"[GoalManager] リザルトデータを設定: 総数={totalTreasure}, 特殊={specialTreasure}, 掘る力={digPower}");
+                }
+            }
+            else
+            {
+                if (enableDebugLog)
+                {
+                    Debug.LogWarning("[GoalManager] ResultColliderScriptの変数にアクセスできませんでした");
+                }
+            }
+        }
+        else
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("[GoalManager] VRDigToolManager.Instanceが見つかりませんでした");
+            }
+        }
     }
 
     /// <summary>

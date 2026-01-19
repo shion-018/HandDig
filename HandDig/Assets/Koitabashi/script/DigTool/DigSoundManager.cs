@@ -67,24 +67,52 @@ public class DigSoundManager : MonoBehaviour
         }
     }
     
+    private void OnDisable()
+    {
+        // エディタモードでのシーン終了時にもクリーンアップを確実に実行
+        CleanupResources();
+    }
+    
     private void OnDestroy()
+    {
+        // クリーンアップを実行
+        CleanupResources();
+    }
+    
+    /// <summary>
+    /// リソースをクリーンアップ（OnDisableとOnDestroyの両方から呼ばれる）
+    /// </summary>
+    private void CleanupResources()
     {
         // インスタンスが自分自身の場合、クリーンアップ
         if (instance == this)
         {
             // すべての音声を停止
-            StopAllSounds();
+            if (activeAudioSources != null)
+            {
+                StopAllSounds();
+            }
             
             // 追従型のAudioSourceをクリーンアップ
-            foreach (var audioSource in attachedAudioSources.Values)
+            if (attachedAudioSources != null)
             {
-                if (audioSource != null && audioSource.gameObject != null)
+                // OnDestroy内でのDestroy呼び出しは避ける（エディタモードで問題を引き起こす可能性がある）
+                // 代わりに、親オブジェクトが破棄されるときに自動的に破棄される
+                foreach (var audioSource in attachedAudioSources.Values)
                 {
-                    Destroy(audioSource.gameObject);
+                    if (audioSource != null && audioSource.gameObject != null)
+                    {
+                        // 音声を停止
+                        audioSource.Stop();
+                    }
                 }
+                attachedAudioSources.Clear();
             }
-            attachedAudioSources.Clear();
-            audioSourceToTransform.Clear();
+            
+            if (audioSourceToTransform != null)
+            {
+                audioSourceToTransform.Clear();
+            }
             
             // インスタンスをクリア
             instance = null;
@@ -908,6 +936,138 @@ public class DigSoundManager : MonoBehaviour
         
         ReverbSettings reverb = soundSettings.goalFanfareReverb;
         PlaySoundAtPosition(soundSettings.goalFanfareSound, position, "GoalFanfare", reverb);
+    }
+    
+    // ========== ジェットパック音の再生メソッド ==========
+    
+    /// <summary>
+    /// ジェットパック音を再生（Transform追従型・ループ）
+    /// </summary>
+    /// <param name="targetTransform">追従するTransform</param>
+    /// <param name="isActive">ジェットパック起動中かどうか（trueで音量を上げる）</param>
+    /// <returns>再生中のAudioSource（音量変更時に使用）</returns>
+    public AudioSource PlayJetpackSound(Transform targetTransform, bool isActive = false)
+    {
+        if (soundSettings == null || soundSettings.jetpackSound == null) return null;
+        
+        // 既にこのTransformにAudioSourceがアタッチされている場合は再利用
+        AudioSource audioSource;
+        if (attachedAudioSources.ContainsKey(targetTransform))
+        {
+            audioSource = attachedAudioSources[targetTransform];
+        }
+        else
+        {
+            // 新しいAudioSourceを作成してTransformにアタッチ
+            GameObject audioObj = new GameObject("AudioSource_Jetpack_Loop");
+            audioObj.transform.SetParent(targetTransform);
+            audioObj.transform.localPosition = Vector3.zero;
+            audioObj.transform.localRotation = Quaternion.identity;
+            
+            audioSource = audioObj.AddComponent<AudioSource>();
+            attachedAudioSources[targetTransform] = audioSource;
+            audioSourceToTransform[audioSource] = targetTransform;
+            
+            // 設定を適用
+            audioSource.clip = soundSettings.jetpackSound;
+            audioSource.playOnAwake = false;
+            audioSource.loop = true; // ループ有効
+            
+            if (soundSettings != null)
+            {
+                audioSource.pitch = soundSettings.basePitch;
+                audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
+                audioSource.maxDistance = soundSettings.maxDistance;
+            }
+            
+            // ドップラー効果を無効化
+            audioSource.dopplerLevel = 0f;
+            
+            // リバーブエフェクトを適用
+            ReverbSettings reverb = soundSettings.jetpackReverb;
+            if (reverb != null && reverb.enabled)
+            {
+                ApplyReverb(audioSource.gameObject, reverb);
+            }
+            
+            audioSource.Play();
+        }
+        
+        // 音量を設定（起動中かどうかで切り替え）
+        UpdateJetpackVolume(audioSource, isActive);
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[DigSoundManager] ジェットパック音声再生（追従型・ループ）: {soundSettings.jetpackSound.name} at {targetTransform.name} (Active: {isActive})");
+        }
+        
+        return audioSource;
+    }
+    
+    /// <summary>
+    /// ジェットパック音の音量を更新（滑らかにフェード）
+    /// </summary>
+    /// <param name="audioSource">更新するAudioSource</param>
+    /// <param name="isActive">ジェットパック起動中かどうか</param>
+    /// <param name="fadeDuration">フェード時間（秒）</param>
+    public void UpdateJetpackVolume(AudioSource audioSource, bool isActive, float fadeDuration = 0.3f)
+    {
+        if (audioSource == null || soundSettings == null) return;
+        
+        string soundType = isActive ? "JetpackActive" : "JetpackIdle";
+        float targetVolume = soundSettings.GetVolumeForSoundType(soundType);
+        
+        // 既にフェード中の場合は停止
+        if (jetpackFadeCoroutine != null)
+        {
+            StopCoroutine(jetpackFadeCoroutine);
+        }
+        
+        // フェードコルーチンを開始
+        jetpackFadeCoroutine = StartCoroutine(FadeJetpackVolume(audioSource, targetVolume, fadeDuration));
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"[DigSoundManager] ジェットパック音量更新開始: {soundType} = {targetVolume:F2} (フェード時間: {fadeDuration}秒)");
+        }
+    }
+    
+    // ジェットパック音量フェード用のコルーチン参照
+    private Coroutine jetpackFadeCoroutine;
+    
+    /// <summary>
+    /// ジェットパック音量を滑らかにフェード
+    /// </summary>
+    private IEnumerator FadeJetpackVolume(AudioSource audioSource, float targetVolume, float duration)
+    {
+        if (audioSource == null) yield break;
+        
+        float startVolume = audioSource.volume;
+        float elapsed = 0f;
+        
+        while (elapsed < duration && audioSource != null)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            audioSource.volume = Mathf.Lerp(startVolume, targetVolume, t);
+            yield return null;
+        }
+        
+        if (audioSource != null)
+        {
+            audioSource.volume = targetVolume;
+        }
+        
+        jetpackFadeCoroutine = null;
+    }
+    
+    /// <summary>
+    /// ジェットパック音を停止
+    /// </summary>
+    /// <param name="targetTransform">停止するTransform</param>
+    public void StopJetpackSound(Transform targetTransform)
+    {
+        StopSoundAtTransform(targetTransform);
     }
 }
 

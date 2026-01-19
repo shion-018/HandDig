@@ -231,6 +231,23 @@ public class DigSoundSettings : ScriptableObject
     [Tooltip("ゴールファンファーレ音のリバーブ設定")]
     public ReverbSettings goalFanfareReverb = new ReverbSettings { enabled = false, preset = AudioReverbPreset.Cave };
     
+    [Header("ジェットパック音声設定")]
+    [Tooltip("ジェットパック音（ループ）")]
+    public AudioClip jetpackSound;
+    
+    [Header("ジェットパックボリューム設定")]
+    [Tooltip("ジェットパック通常時のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float jetpackIdleVolume = -1f;
+    
+    [Tooltip("ジェットパック起動時のボリューム（-1の場合はカテゴリ設定を使用、0-5で設定可能）")]
+    [Range(-1f, 5f)]
+    public float jetpackActiveVolume = -1f;
+    
+    [Header("ジェットパックリバーブ設定")]
+    [Tooltip("ジェットパック音のリバーブ設定")]
+    public ReverbSettings jetpackReverb = new ReverbSettings { enabled = false, preset = AudioReverbPreset.Cave };
+    
     [Header("共通設定")]
     [Tooltip("音声の基本ボリューム（全音源のデフォルト、個別設定が-1の場合に使用、0-5で設定可能）")]
     [Range(0f, 5f)]
@@ -303,6 +320,12 @@ public class DigSoundSettings : ScriptableObject
                 break;
             case "GoalFanfare":
                 individualVolume = goalFanfareVolume;
+                break;
+            case "JetpackIdle":
+                individualVolume = jetpackIdleVolume;
+                break;
+            case "JetpackActive":
+                individualVolume = jetpackActiveVolume;
                 break;
         }
         
