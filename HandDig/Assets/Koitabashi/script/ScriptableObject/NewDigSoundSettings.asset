@@ -16,7 +16,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   pickaxeExplosionMarkerSound: {fileID: 8300000, guid: 726ced6a74e196e49af59496aa704bba, type: 3}
   pickaxeExplosionSound: {fileID: 8300000, guid: d9b17561b0f8ca843a6136222992e6a8, type: 3}
-  pickaxeDigVolume: -1
+  pickaxeDigVolume: 0.5
   pickaxeExplosionVolume: -1
   pickaxeModeSwitchVolume: -1
   pickaxeModeSwitchSound: {fileID: 8300000, guid: ad1fb3bdd6e85dd41b65176b66bdbcf6, type: 3}
@@ -38,7 +38,7 @@ MonoBehaviour:
   drillDigSound: {fileID: 8300000, guid: 1e71a22afd5198f449393e85dec53482, type: 3}
   drillProjectileSound: {fileID: 8300000, guid: 832e1d9549e7d0e4c97a070ab9545340, type: 3}
   drillDigSoundCooldown: 0.05
-  drillDigVolume: -1
+  drillDigVolume: 0.5
   drillProjectileVolume: -1
   drillModeSwitchVolume: -1
   drillModeSwitchSound: {fileID: 8300000, guid: ad1fb3bdd6e85dd41b65176b66bdbcf6, type: 3}
@@ -120,7 +120,7 @@ MonoBehaviour:
     reverbLevel: 0.5
     decayTime: 1.5
   treasureCollectionSound: {fileID: 8300000, guid: 7e005ec719a96da4ea74a8eaff9206f3, type: 3}
-  treasureCollectionVolume: -1
+  treasureCollectionVolume: 0.5
   treasureCollectionReverb:
     enabled: 0
     preset: 9
@@ -134,13 +134,13 @@ MonoBehaviour:
     reverbLevel: 0.5
     decayTime: 1.5
   goalDoorOpenSound: {fileID: 8300000, guid: 32887357b48e5b641a08f6faff32bac1, type: 3}
-  goalDoorOpenVolume: -1
+  goalDoorOpenVolume: 1
   goalDoorOpenReverb:
     enabled: 1
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5
-  goalFanfareSound: {fileID: 8300000, guid: 6389f654f3d20fe4cb57e7ad12706e86, type: 3}
+  goalFanfareSound: {fileID: 8300000, guid: 8260d008d0be4ab45a6b579c04ec1740, type: 3}
   goalFanfareVolume: -1
   goalFanfareReverb:
     enabled: 0
@@ -149,13 +149,14 @@ MonoBehaviour:
     decayTime: 1.5
   jetpackSound: {fileID: 8300000, guid: 39a215134a2d53b48a4b3689ed3abb4c, type: 3}
   jetpackIdleVolume: 0.05
-  jetpackActiveVolume: 0.5
+  jetpackActiveVolume: 0.2
   jetpackReverb:
     enabled: 1
     preset: 9
     reverbLevel: 0.5
     decayTime: 1.5
-  baseVolume: 1
+  baseVolume: 0.7
   basePitch: 1
   useSpatialBlending: 1
   maxDistance: 50
+  minDistance: 20

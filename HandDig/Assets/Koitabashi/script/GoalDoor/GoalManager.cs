@@ -785,9 +785,6 @@ public class GoalManager : MonoBehaviour
         // 2. プレイヤーをワープ
         if (goalWarpPoint != null && playerRoot != null)
         {
-            // リザルト用スクリプトにお宝データを設定
-            SetTreasureDataToResultScript();
-            
             WarpPlayerToGoal();
             
             // ワープ後にファンファーレ音を再生（プレイヤーの位置から）
@@ -867,58 +864,83 @@ public class GoalManager : MonoBehaviour
     /// </summary>
     private void SetTreasureDataToResultScript()
     {
-        // ResultColliderScriptを探す
-        ResultColliderScript resultScript = FindObjectOfType<ResultColliderScript>();
-        if (resultScript == null)
+        // VRDigToolManagerからお宝データを取得
+        if (VRDigToolManager.Instance == null)
         {
-            if (enableDebugLog)
-            {
-                Debug.LogWarning("[GoalManager] ResultColliderScriptが見つかりませんでした");
-            }
+            Debug.LogError("[GoalManager] VRDigToolManager.Instanceが見つかりませんでした");
             return;
         }
 
-        // VRDigToolManagerからお宝データを取得
-        if (VRDigToolManager.Instance != null)
+        int totalTreasure = VRDigToolManager.Instance.GetResultTotalTreasureCount();
+        int specialTreasure = VRDigToolManager.Instance.GetResultSpecialTreasureCount();
+        int digPower = VRDigToolManager.Instance.GetResultDigPower();
+
+        Debug.Log($"[GoalManager] お宝データ取得: 総数={totalTreasure}, 特殊={specialTreasure}, 掘る力={digPower}");
+
+        // ResultColliderScriptを探す（非アクティブも含む）
+        ResultColliderScript resultScript = FindObjectOfType<ResultColliderScript>(true);
+        if (resultScript == null)
         {
-            int totalTreasure = VRDigToolManager.Instance.GetResultTotalTreasureCount();
-            int specialTreasure = VRDigToolManager.Instance.GetResultSpecialTreasureCount();
-            int digPower = VRDigToolManager.Instance.GetResultDigPower();
+            Debug.LogError("[GoalManager] ResultColliderScriptが見つかりませんでした");
+            return;
+        }
 
-            // リフレクションを使ってResultColliderScriptのprivate変数に直接アクセス
-            System.Type type = typeof(ResultColliderScript);
-            System.Reflection.FieldInfo getAllJewelsField = type.GetField("_getAllJewels", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            System.Reflection.FieldInfo getUniqueJewelsField = type.GetField("_getUniqueJewels", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            System.Reflection.FieldInfo digPowerField = type.GetField("_digPower", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Debug.Log($"[GoalManager] ResultColliderScriptを発見: {resultScript.gameObject.name}");
 
-            if (getAllJewelsField != null && getUniqueJewelsField != null && digPowerField != null)
+        // リフレクションを使ってResultColliderScriptのprivate変数に直接アクセス
+        System.Type type = typeof(ResultColliderScript);
+        System.Reflection.FieldInfo getAllJewelsField = type.GetField("_getAllJewels", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        System.Reflection.FieldInfo getUniqueJewelsField = type.GetField("_getUniqueJewels", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        System.Reflection.FieldInfo digPowerField = type.GetField("_digPower", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        if (getAllJewelsField == null)
+        {
+            Debug.LogError("[GoalManager] _getAllJewelsフィールドが見つかりませんでした");
+        }
+        if (getUniqueJewelsField == null)
+        {
+            Debug.LogError("[GoalManager] _getUniqueJewelsフィールドが見つかりませんでした");
+        }
+        if (digPowerField == null)
+        {
+            Debug.LogError("[GoalManager] _digPowerフィールドが見つかりませんでした");
+        }
+
+        if (getAllJewelsField != null && getUniqueJewelsField != null && digPowerField != null)
+        {
+            Debug.Log($"[GoalManager] リフレクションで値を設定開始: 総数={totalTreasure}, 特殊={specialTreasure}, 掘る力={digPower}");
+            
+            // 設定前の値を確認
+            int beforeAll = (int)getAllJewelsField.GetValue(resultScript);
+            int beforeUnique = (int)getUniqueJewelsField.GetValue(resultScript);
+            int beforePower = (int)digPowerField.GetValue(resultScript);
+            Debug.Log($"[GoalManager] 設定前の値: 総数={beforeAll}, 特殊={beforeUnique}, 掘る力={beforePower}");
+
+            getAllJewelsField.SetValue(resultScript, totalTreasure);
+            getUniqueJewelsField.SetValue(resultScript, specialTreasure);
+            digPowerField.SetValue(resultScript, digPower);
+
+            // 設定後の値を確認
+            int checkAll = (int)getAllJewelsField.GetValue(resultScript);
+            int checkUnique = (int)getUniqueJewelsField.GetValue(resultScript);
+            int checkPower = (int)digPowerField.GetValue(resultScript);
+
+            Debug.Log($"[GoalManager] リザルトデータを設定完了: 総数={checkAll}, 特殊={checkUnique}, 掘る力={checkPower}");
+            
+            if (checkAll != totalTreasure || checkUnique != specialTreasure || checkPower != digPower)
             {
-                getAllJewelsField.SetValue(resultScript, totalTreasure);
-                getUniqueJewelsField.SetValue(resultScript, specialTreasure);
-                digPowerField.SetValue(resultScript, digPower);
-
-                if (enableDebugLog)
-                {
-                    Debug.Log($"[GoalManager] リザルトデータを設定: 総数={totalTreasure}, 特殊={specialTreasure}, 掘る力={digPower}");
-                }
-            }
-            else
-            {
-                if (enableDebugLog)
-                {
-                    Debug.LogWarning("[GoalManager] ResultColliderScriptの変数にアクセスできませんでした");
-                }
+                Debug.LogError($"[GoalManager] 値の設定に失敗しました！期待値: 総数={totalTreasure}, 特殊={specialTreasure}, 掘る力={digPower}");
             }
         }
         else
         {
-            if (enableDebugLog)
-            {
-                Debug.LogWarning("[GoalManager] VRDigToolManager.Instanceが見つかりませんでした");
-            }
+            Debug.LogError("[GoalManager] ResultColliderScriptの変数にアクセスできませんでした");
+            if (getAllJewelsField == null) Debug.LogError("[GoalManager] _getAllJewelsフィールドが見つかりません");
+            if (getUniqueJewelsField == null) Debug.LogError("[GoalManager] _getUniqueJewelsフィールドが見つかりません");
+            if (digPowerField == null) Debug.LogError("[GoalManager] _digPowerフィールドが見つかりません");
         }
     }
 
@@ -930,7 +952,9 @@ public class GoalManager : MonoBehaviour
         if (playerRoot == null || goalWarpPoint == null) return;
 
         Vector3 warpPosition = goalWarpPoint.position;
+        Quaternion warpRotation = goalWarpPoint.rotation;
         Vector3 oldPosition = playerRoot.transform.position;
+        Quaternion oldRotation = playerRoot.transform.rotation;
 
         // CharacterControllerがある場合は特別な処理
         CharacterController controller = playerRoot.GetComponent<CharacterController>();
@@ -939,25 +963,27 @@ public class GoalManager : MonoBehaviour
             // CharacterControllerを一時的に無効化
             controller.enabled = false;
             
-            // 位置を設定
+            // 位置と向きを設定
             playerRoot.transform.position = warpPosition;
+            playerRoot.transform.rotation = warpRotation;
             
             // CharacterControllerを再度有効化
             controller.enabled = true;
             
             if (enableDebugLog)
             {
-                Debug.Log($"[GoalManager] CharacterController付きプレイヤーをワープ: {oldPosition} → {warpPosition}");
+                Debug.Log($"[GoalManager] CharacterController付きプレイヤーをワープ: {oldPosition} → {warpPosition}, 向きも変更: {oldRotation.eulerAngles} → {warpRotation.eulerAngles}");
             }
         }
         else
         {
-            // 通常の位置設定
+            // 通常の位置と向きの設定
             playerRoot.transform.position = warpPosition;
+            playerRoot.transform.rotation = warpRotation;
             
             if (enableDebugLog)
             {
-                Debug.Log($"[GoalManager] プレイヤーをワープ: {oldPosition} → {warpPosition}");
+                Debug.Log($"[GoalManager] プレイヤーをワープ: {oldPosition} → {warpPosition}, 向きも変更: {oldRotation.eulerAngles} → {warpRotation.eulerAngles}");
             }
         }
     }
@@ -972,6 +998,23 @@ public class GoalManager : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log("[GoalManager] ゴール状態をリセットしました");
+        }
+    }
+
+    /// <summary>
+    /// 全てのゴール関連の状態をリセット（シーンリロード時用）
+    /// </summary>
+    public void ResetAllGoalState()
+    {
+        hasReachedGoal = false;
+        allKeysCollected = false;
+        
+        // 鍵の収集状況もリセット
+        ResetAllKeys();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("[GoalManager] 全てのゴール関連の状態をリセットしました");
         }
     }
 

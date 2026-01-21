@@ -9,9 +9,50 @@ public class TreasureCollector : MonoBehaviour
 
     public VRDigToolManager toolManager;
 
+    private void Awake()
+    {
+        // toolManagerが設定されていない場合、自動的に取得
+        if (toolManager == null)
+        {
+            toolManager = VRDigToolManager.Instance;
+            if (toolManager == null)
+            {
+                toolManager = FindObjectOfType<VRDigToolManager>();
+            }
+        }
+    }
+
+    private void Start()
+    {
+        // Startでも確認（シーンリロード後にVRDigToolManagerが作成される場合に備えて）
+        if (toolManager == null)
+        {
+            toolManager = VRDigToolManager.Instance;
+            if (toolManager == null)
+            {
+                toolManager = FindObjectOfType<VRDigToolManager>();
+            }
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(treasureTag)) return;
+
+        // toolManagerがnullの場合、再度取得を試みる（シーンリロード後など）
+        if (toolManager == null)
+        {
+            toolManager = VRDigToolManager.Instance;
+            if (toolManager == null)
+            {
+                toolManager = FindObjectOfType<VRDigToolManager>();
+            }
+            
+            if (toolManager == null)
+            {
+                Debug.LogWarning("[TreasureCollector] VRDigToolManagerが見つかりません。お宝の数が記録されません。");
+            }
+        }
 
         Debug.Log($"お宝 [{other.name}] を取得しました");
         

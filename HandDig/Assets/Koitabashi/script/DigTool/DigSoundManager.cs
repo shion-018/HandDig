@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 /// <summary>
 /// 掘削音声を管理するマネージャークラス
@@ -164,6 +167,7 @@ public class DigSoundManager : MonoBehaviour
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = soundSettings != null && soundSettings.useSpatialBlending ? 1f : 0f;
         audioSource.maxDistance = soundSettings != null ? soundSettings.maxDistance : 50f;
+        audioSource.minDistance = soundSettings != null ? soundSettings.minDistance : 1f;
         audioSource.volume = soundSettings != null ? soundSettings.baseVolume : 0.7f;
         audioSource.pitch = soundSettings != null ? soundSettings.basePitch : 1f;
         audioSource.dopplerLevel = 0f; // ドップラー効果を無効化
@@ -386,6 +390,7 @@ public class DigSoundManager : MonoBehaviour
         
         audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
         audioSource.maxDistance = soundSettings.maxDistance;
+        audioSource.minDistance = soundSettings.minDistance;
         
         // ドップラー効果を無効化
         audioSource.dopplerLevel = 0f;
@@ -441,6 +446,7 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
+            audioSource.minDistance = soundSettings.minDistance;
         }
         
         // ドップラー効果を無効化
@@ -549,11 +555,16 @@ public class DigSoundManager : MonoBehaviour
     /// </summary>
     public void StopAllSounds()
     {
-        foreach (var audioSource in activeAudioSources)
+        // リストのコピーを作成してから列挙（列挙中にリストが変更されるのを防ぐ）
+        if (activeAudioSources == null || activeAudioSources.Count == 0) return;
+        
+        var audioSourcesCopy = new List<AudioSource>(activeAudioSources);
+        foreach (var audioSource in audioSourcesCopy)
         {
             if (audioSource != null)
             {
                 audioSource.Stop();
+                // ReturnAudioSourceはリストから削除するので、コピーに対して実行しても問題ない
                 ReturnAudioSource(audioSource);
             }
         }
@@ -611,6 +622,7 @@ public class DigSoundManager : MonoBehaviour
                 audioSource.pitch = soundSettings.basePitch;
                 audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
                 audioSource.maxDistance = soundSettings.maxDistance;
+                audioSource.minDistance = soundSettings.minDistance;
             }
         }
         
@@ -623,6 +635,7 @@ public class DigSoundManager : MonoBehaviour
                 audioSource.pitch = soundSettings.basePitch;
                 audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
                 audioSource.maxDistance = soundSettings.maxDistance;
+                audioSource.minDistance = soundSettings.minDistance;
             }
         }
         
@@ -679,6 +692,7 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = pitch ?? soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
+            audioSource.minDistance = soundSettings.minDistance;
         }
         else
         {
@@ -758,6 +772,7 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = pitch ?? soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
+            audioSource.minDistance = soundSettings.minDistance;
         }
         else
         {
@@ -1002,6 +1017,7 @@ public class DigSoundManager : MonoBehaviour
                 audioSource.pitch = soundSettings.basePitch;
                 audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
                 audioSource.maxDistance = soundSettings.maxDistance;
+                audioSource.minDistance = soundSettings.minDistance;
             }
             
             // ドップラー効果を無効化

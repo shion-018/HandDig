@@ -283,6 +283,9 @@ public class DigSoundSettings : ScriptableObject
     [Tooltip("音声の最大距離")]
     public float maxDistance = 50f;
     
+    [Tooltip("音声の最小距離")]
+    public float minDistance = 1f;
+    
     /// <summary>
     /// 音源タイプに応じたボリュームを取得（階層化：個別設定 → 共通設定）
     /// 個別設定が-1の場合はbaseVolumeをそのまま使用
