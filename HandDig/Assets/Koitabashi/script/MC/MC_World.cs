@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using System.IO;
@@ -78,13 +79,55 @@ public class MC_World : MonoBehaviour
         InitializeWorldAsync(cancellationTokenSource.Token).Forget();
     }
 
+    void Update()
+    {
+        // Rキーでシーンをリロード
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ReloadScene();
+        }
+    }
+
+    /// <summary>
+    /// 現在のシーンをリロードして最初から遊べるようにする
+    /// シーンリロードにより、以下のデータが初期化されます：
+    /// - お宝の取得数（VRDigToolManagerの状態）
+    /// - 地形の状態（MC_Worldのチャンクデータ）
+    /// - プレイヤーの位置
+    /// - ゴール到達状態（GoalManagerの状態）
+    /// - その他すべてのシーン内オブジェクトの状態
+    /// 
+    /// 注意: DontDestroyOnLoadで保持されているオブジェクト（SceneLoader、DigSoundManagerなど）は
+    /// シーンリロード後も残りますが、これらは主にシステム管理用なので問題ありません。
+    /// </summary>
+    private void ReloadScene()
+    {
+        Debug.Log("[MC_World] Rキーが押されました。シーンをリロードします。");
+        Debug.Log("[MC_World] お宝の数や地形の状態など、すべてのデータが初期化されます。");
+        
+        // GoalManagerの状態をリセット（DontDestroyOnLoadで保持されている場合に備えて）
+        if (GoalManager.Instance != null)
+        {
+            GoalManager.Instance.ResetAllGoalState();
+        }
+        
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     async UniTask InitializeWorldAsync(CancellationToken token)
     {
+        // キャンセルチェック
+        token.ThrowIfCancellationRequested();
+        
+        // transform.positionを事前にキャッシュ（オブジェクトが破棄される前に取得）
+        Vector3 worldOrigin = transform.position;
+        
         SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
 
         // 各TreasureSpawnerにchunkSizeとコンテキストを適用
         foreach (var spawner in treasureSpawners)
         {
+            token.ThrowIfCancellationRequested();
             if (spawner == null) continue;
             spawner.chunkSize = chunkSize;
             spawner.InitializeContext(this, spawnManager);
@@ -93,11 +136,17 @@ public class MC_World : MonoBehaviour
         // チャンク生成を非同期で実行
         await GenerateChunksAsync(token);
 
+        // キャンセルチェック
+        token.ThrowIfCancellationRequested();
+
         // 事前生成データを使わない場合のみ掘削ボリュームを適用
         if (!usePrebakedData)
         {
-            await ApplyDigVolumesAsync();
+            await ApplyDigVolumesAsync(token);
         }
+
+        // キャンセルチェック
+        token.ThrowIfCancellationRequested();
 
         // 掘削後の密度を参照してからお宝を生成
         SpawnTreasuresAcrossWorld();
@@ -111,7 +160,7 @@ public class MC_World : MonoBehaviour
                 -chunkSize * 2,
                 chunkSize * chunkCountZ / 2f
             );
-            Vector3 startDigPos = transform.position + startDigLocal;
+            Vector3 startDigPos = worldOrigin + startDigLocal;
             Dig(startDigPos, 10f);
             
             Debug.Log("[MC_World] SpawnManagerが見つかりません。固定スポーンを使用します。");
@@ -122,7 +171,7 @@ public class MC_World : MonoBehaviour
         }
         
         // プレイヤーを実際のスポーン位置に移動
-        SpawnPlayerAtFinalPosition();
+        SpawnPlayerAtFinalPosition(worldOrigin);
         
         // 初期化完了フラグを設定
         IsInitialized = true;
@@ -130,6 +179,7 @@ public class MC_World : MonoBehaviour
         // 指定されたオブジェクトの重力を有効化
         foreach (var obj in objectsToEnableGravity)
         {
+            token.ThrowIfCancellationRequested();
             if (obj != null)
             {
                 Rigidbody rb = obj.GetComponent<Rigidbody>();
@@ -147,12 +197,19 @@ public class MC_World : MonoBehaviour
     {
         Debug.Log("[MC_World] チャンク生成開始");
         
+        // transform.positionとtransformを事前にキャッシュ（オブジェクトが破棄される前に取得）
+        Vector3 worldOrigin = transform.position;
+        Transform worldTransform = transform;
+        
         for (int x = 0; x < chunkCountX; x++)
         {
             for (int y = 0; y < chunkCountY; y++)
             {
                 for (int z = 0; z < chunkCountZ; z++)
                 {
+                    // キャンセルチェック
+                    token.ThrowIfCancellationRequested();
+                    
                     int shiftedY = -y;
 
                     Vector3Int pos = new Vector3Int(x, shiftedY, z);
@@ -161,13 +218,20 @@ public class MC_World : MonoBehaviour
                         shiftedY * chunkSize,
                         z * chunkSize
                     );
-                    Vector3 worldPos = transform.position + localPos;
+                    Vector3 worldPos = worldOrigin + localPos;
 
-                    // つるはし専用エリアかどうかを判定
-                    bool isPickaxeOnly = IsPickaxeOnlyChunk(pos);
+                    // つるはし専用エリアかどうかを判定（worldOriginを使用）
+                    bool isPickaxeOnly = IsPickaxeOnlyChunk(pos, worldOrigin);
                     GameObject prefabToUse = isPickaxeOnly ? pickaxeChunkPrefab : chunkPrefab;
                     
-                    GameObject obj = Instantiate(prefabToUse, worldPos, Quaternion.identity, transform);
+                    // worldTransformが破棄されていないかチェック
+                    if (worldTransform == null)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        return;
+                    }
+                    
+                    GameObject obj = Instantiate(prefabToUse, worldPos, Quaternion.identity, worldTransform);
                     MC_Chunk chunk = obj.GetComponent<MC_Chunk>();
                     
                     // MC_WorldのchunkSizeを各チャンクに適用
@@ -206,9 +270,12 @@ public class MC_World : MonoBehaviour
         Debug.Log("[MC_World] チャンク生成完了");
     }
 
-    async UniTask ApplyDigVolumesAsync()
+    async UniTask ApplyDigVolumesAsync(CancellationToken token)
     {
         Debug.Log("[MC_World] DigVolume処理開始");
+
+        // キャンセルチェック
+        token.ThrowIfCancellationRequested();
 
         // スポーンポイントのDigVolumeを最初に処理
         DigVolume spawnDigVolume = null;
@@ -221,6 +288,7 @@ public class MC_World : MonoBehaviour
 
         if (spawnDigVolume != null)
         {
+            token.ThrowIfCancellationRequested();
             if (useAsyncInitialization)
                 await spawnDigVolume.ApplyDigAsync(this);
             else
@@ -230,6 +298,7 @@ public class MC_World : MonoBehaviour
         // 残りのDigVolumeを順番に処理（スポーンポイントのものは除外）
         foreach (var vol in digVolumesToApply)
         {
+            token.ThrowIfCancellationRequested();
             if (vol != null && vol != spawnDigVolume)
             {
                 if (useAsyncInitialization)
@@ -291,9 +360,38 @@ public class MC_World : MonoBehaviour
         
         return false;
     }
+
+    /// <summary>
+    /// 指定チャンクがつるはし専用エリアかどうかを判定（worldOriginを指定するバージョン）
+    /// </summary>
+    private bool IsPickaxeOnlyChunk(Vector3Int chunkCoord, Vector3 worldOrigin)
+    {
+        if (pickaxeChunkPrefab == null || pickaxeTerrainCenters.Count == 0)
+            return false;
+        
+        for (int i = 0; i < pickaxeTerrainCenters.Count; i++)
+        {
+            if (pickaxeTerrainCenters[i] == null) continue;
+            
+            Vector3 centerPos = pickaxeTerrainCenters[i].position;
+            Vector3Int centerChunk = WorldToChunkCoord(centerPos, worldOrigin);
+            int radius = (i < pickaxeTerrainRadii.Count) ? pickaxeTerrainRadii[i] : 2;
+            
+            int distanceX = Mathf.Abs(chunkCoord.x - centerChunk.x);
+            int distanceY = Mathf.Abs(chunkCoord.y - centerChunk.y);
+            int distanceZ = Mathf.Abs(chunkCoord.z - centerChunk.z);
+            
+            if (distanceX <= radius && distanceY <= radius && distanceZ <= radius)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
     
 
-    void SpawnPlayerAtFinalPosition()
+    void SpawnPlayerAtFinalPosition(Vector3 worldOrigin)
     {
         // SpawnManagerがある場合はそちらでスポーン
         SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
@@ -312,7 +410,7 @@ public class MC_World : MonoBehaviour
                     10f, // 少し上に配置
                     chunkSize * chunkCountZ / 2f
                 );
-                Vector3 spawnPos = transform.position + spawnLocal;
+                Vector3 spawnPos = worldOrigin + spawnLocal;
                 player.transform.position = spawnPos;
                 Debug.Log($"[MC_World] プレイヤーを固定位置にスポーン: {spawnPos}");
             }
@@ -327,7 +425,20 @@ public class MC_World : MonoBehaviour
             Mathf.FloorToInt(local.y / chunkSize),
             Mathf.FloorToInt(local.z / chunkSize)
         );
+    }
 
+    /// <summary>
+    /// ワールド座標をチャンク座標に変換（worldOriginを指定するバージョン）
+    /// </summary>
+    private Vector3Int WorldToChunkCoord(Vector3 worldPos, Vector3 worldOrigin)
+    {
+        // 指定されたworldOriginを基準にローカル換算
+        Vector3 local = worldPos - worldOrigin;
+        return new Vector3Int(
+            Mathf.FloorToInt(local.x / chunkSize),
+            Mathf.FloorToInt(local.y / chunkSize),
+            Mathf.FloorToInt(local.z / chunkSize)
+        );
     }
 
     /// <summary>

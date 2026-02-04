@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 /// <summary>
 /// 掘削音声を管理するマネージャークラス
@@ -69,8 +72,33 @@ public class DigSoundManager : MonoBehaviour
     
     private void OnDisable()
     {
-        // エディタモードでのシーン終了時にもクリーンアップを確実に実行
-        CleanupResources();
+        // DontDestroyOnLoadで保持されている場合は、インスタンスをクリアしない
+        // シーンリロード後も音声機能が動作するようにする
+        if (!Application.isPlaying)
+        {
+            // エディタモードでのみクリーンアップ
+            CleanupResources();
+        }
+        else
+        {
+            // プレイモードでは、音声を停止するだけでインスタンスは保持
+            if (activeAudioSources != null)
+            {
+                StopAllSounds();
+            }
+            
+            // 追従型のAudioSourceの音声を停止（リストはクリアしない）
+            if (attachedAudioSources != null)
+            {
+                foreach (var audioSource in attachedAudioSources.Values)
+                {
+                    if (audioSource != null && audioSource.isPlaying)
+                    {
+                        audioSource.Stop();
+                    }
+                }
+            }
+        }
     }
     
     private void OnDestroy()
@@ -80,7 +108,7 @@ public class DigSoundManager : MonoBehaviour
     }
     
     /// <summary>
-    /// リソースをクリーンアップ（OnDisableとOnDestroyの両方から呼ばれる）
+    /// リソースをクリーンアップ（OnDestroy時のみ呼ばれる）
     /// </summary>
     private void CleanupResources()
     {
@@ -164,6 +192,7 @@ public class DigSoundManager : MonoBehaviour
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = soundSettings != null && soundSettings.useSpatialBlending ? 1f : 0f;
         audioSource.maxDistance = soundSettings != null ? soundSettings.maxDistance : 50f;
+        audioSource.minDistance = soundSettings != null ? soundSettings.minDistance : 1f;
         audioSource.volume = soundSettings != null ? soundSettings.baseVolume : 0.7f;
         audioSource.pitch = soundSettings != null ? soundSettings.basePitch : 1f;
         audioSource.dopplerLevel = 0f; // ドップラー効果を無効化
@@ -301,6 +330,30 @@ public class DigSoundManager : MonoBehaviour
     }
 
     /// <summary>
+    /// つるはしモード切替音を再生
+    /// </summary>
+    /// <param name="position">再生位置</param>
+    public void PlayPickaxeModeSwitchSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.pickaxeModeSwitchSound == null) return;
+        
+        ReverbSettings reverb = soundSettings != null ? soundSettings.pickaxeModeSwitchReverb : null;
+        PlaySoundAtPosition(soundSettings.pickaxeModeSwitchSound, position, "PickaxeModeSwitch", reverb);
+    }
+
+    /// <summary>
+    /// ドリルモード切替音を再生
+    /// </summary>
+    /// <param name="position">再生位置</param>
+    public void PlayDrillModeSwitchSound(Vector3 position)
+    {
+        if (soundSettings == null || soundSettings.drillModeSwitchSound == null) return;
+        
+        ReverbSettings reverb = soundSettings != null ? soundSettings.drillModeSwitchReverb : null;
+        PlaySoundAtPosition(soundSettings.drillModeSwitchSound, position, "DrillModeSwitch", reverb);
+    }
+
+    /// <summary>
     /// 手掘り音を再生
     /// </summary>
     /// <param name="position">再生位置</param>
@@ -362,6 +415,7 @@ public class DigSoundManager : MonoBehaviour
         
         audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
         audioSource.maxDistance = soundSettings.maxDistance;
+        audioSource.minDistance = soundSettings.minDistance;
         
         // ドップラー効果を無効化
         audioSource.dopplerLevel = 0f;
@@ -417,6 +471,7 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
+            audioSource.minDistance = soundSettings.minDistance;
         }
         
         // ドップラー効果を無効化
@@ -525,11 +580,16 @@ public class DigSoundManager : MonoBehaviour
     /// </summary>
     public void StopAllSounds()
     {
-        foreach (var audioSource in activeAudioSources)
+        // リストのコピーを作成してから列挙（列挙中にリストが変更されるのを防ぐ）
+        if (activeAudioSources == null || activeAudioSources.Count == 0) return;
+        
+        var audioSourcesCopy = new List<AudioSource>(activeAudioSources);
+        foreach (var audioSource in audioSourcesCopy)
         {
             if (audioSource != null)
             {
                 audioSource.Stop();
+                // ReturnAudioSourceはリストから削除するので、コピーに対して実行しても問題ない
                 ReturnAudioSource(audioSource);
             }
         }
@@ -587,6 +647,7 @@ public class DigSoundManager : MonoBehaviour
                 audioSource.pitch = soundSettings.basePitch;
                 audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
                 audioSource.maxDistance = soundSettings.maxDistance;
+                audioSource.minDistance = soundSettings.minDistance;
             }
         }
         
@@ -599,6 +660,7 @@ public class DigSoundManager : MonoBehaviour
                 audioSource.pitch = soundSettings.basePitch;
                 audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
                 audioSource.maxDistance = soundSettings.maxDistance;
+                audioSource.minDistance = soundSettings.minDistance;
             }
         }
         
@@ -655,6 +717,7 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = pitch ?? soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
+            audioSource.minDistance = soundSettings.minDistance;
         }
         else
         {
@@ -734,6 +797,7 @@ public class DigSoundManager : MonoBehaviour
             audioSource.pitch = pitch ?? soundSettings.basePitch;
             audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
             audioSource.maxDistance = soundSettings.maxDistance;
+            audioSource.minDistance = soundSettings.minDistance;
         }
         else
         {
@@ -978,6 +1042,7 @@ public class DigSoundManager : MonoBehaviour
                 audioSource.pitch = soundSettings.basePitch;
                 audioSource.spatialBlend = soundSettings.useSpatialBlending ? 1f : 0f;
                 audioSource.maxDistance = soundSettings.maxDistance;
+                audioSource.minDistance = soundSettings.minDistance;
             }
             
             // ドップラー効果を無効化

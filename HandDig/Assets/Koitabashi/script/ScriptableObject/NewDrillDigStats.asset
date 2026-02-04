@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9864573fdf6770a499e51137c8e4993e, type: 3}
   m_Name: NewDrillDigStats
   m_EditorClassIdentifier: 
-  baseRadius: 1
+  baseRadius: 1.5
   maxRadius: 3
   upgradeSteps: 10
-  baseDigInterval: 0.5
+  baseDigInterval: 0.4
   maxDigInterval: 0.1
   speedUpgradeSteps: 5

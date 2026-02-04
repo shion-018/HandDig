@@ -69,6 +69,10 @@ public class TutorialManager : MonoBehaviour
 
     private int compassButtonPressCount = 0; // Yボタンを押した回数
 
+    [Header("モード切り替えテキスト表示")]
+    private bool showModeSwitchText = false; // モード切り替えテキストを表示するか
+    private string modeSwitchTextMessage = ""; // 表示するメッセージ
+
     [Header("コントローラー設定")]
     [Tooltip("左コントローラーのプレハブ（Inspectorから手動で設定）")]
     public GameObject leftControllerPrefab;
@@ -151,6 +155,12 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.CompassButtonPress:
                 CheckCompassButton();
                 break;
+        }
+
+        // モード切り替えテキスト表示中はXボタンの入力を監視
+        if (showModeSwitchText)
+        {
+            CheckModeSwitchButton();
         }
     }
 
@@ -633,6 +643,72 @@ public class TutorialManager : MonoBehaviour
                 compassButtonPressCount = 0;
             }
         }
+    }
+
+    /// <summary>
+    /// Xボタンが押されたかチェック（モード切り替えテキストを消すため）
+    /// </summary>
+    private void CheckModeSwitchButton()
+    {
+        // Xボタン（Button.ThreeまたはRawButton.X）を検知
+        bool xButtonPressed = OVRInput.GetDown(OVRInput.Button.Three) || 
+                              OVRInput.GetDown(OVRInput.RawButton.X) || 
+                              Input.GetKeyDown(KeyCode.X);
+
+        if (xButtonPressed)
+        {
+            HideModeSwitchText();
+        }
+    }
+
+    /// <summary>
+    /// モード切り替えテキストを表示（ピッケル爆発モードまたはドリル射出モード取得時）
+    /// </summary>
+    public void ShowModeSwitchText(string message)
+    {
+        showModeSwitchText = true;
+        modeSwitchTextMessage = message;
+        
+        // チュートリアルUIを表示（非表示の場合は表示）
+        if (tutorialCanvas != null && !tutorialCanvas.gameObject.activeSelf)
+        {
+            tutorialCanvas.gameObject.SetActive(true);
+        }
+        
+        // テキストを更新
+        if (tutorialText != null)
+        {
+            tutorialText.text = message;
+        }
+        
+        Debug.Log($"[TutorialManager] モード切り替えテキストを表示: {message}");
+    }
+
+    /// <summary>
+    /// モード切り替えテキストを非表示
+    /// </summary>
+    public void HideModeSwitchText()
+    {
+        if (!showModeSwitchText) return;
+        
+        showModeSwitchText = false;
+        modeSwitchTextMessage = "";
+        
+        // チュートリアルが完了していない場合は、現在のステップのテキストに戻す
+        if (currentStep != TutorialStep.Complete)
+        {
+            UpdateText();
+        }
+        else
+        {
+            // チュートリアル完了済みの場合はUIを非表示
+            if (tutorialCanvas != null)
+            {
+                tutorialCanvas.gameObject.SetActive(false);
+            }
+        }
+        
+        Debug.Log("[TutorialManager] モード切り替えテキストを非表示にしました");
     }
 
     /// <summary>

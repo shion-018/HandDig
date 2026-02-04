@@ -9,9 +9,50 @@ public class TreasureCollector : MonoBehaviour
 
     public VRDigToolManager toolManager;
 
+    private void Awake()
+    {
+        // toolManagerが設定されていない場合、自動的に取得
+        if (toolManager == null)
+        {
+            toolManager = VRDigToolManager.Instance;
+            if (toolManager == null)
+            {
+                toolManager = FindObjectOfType<VRDigToolManager>();
+            }
+        }
+    }
+
+    private void Start()
+    {
+        // Startでも確認（シーンリロード後にVRDigToolManagerが作成される場合に備えて）
+        if (toolManager == null)
+        {
+            toolManager = VRDigToolManager.Instance;
+            if (toolManager == null)
+            {
+                toolManager = FindObjectOfType<VRDigToolManager>();
+            }
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(treasureTag)) return;
+
+        // toolManagerがnullの場合、再度取得を試みる（シーンリロード後など）
+        if (toolManager == null)
+        {
+            toolManager = VRDigToolManager.Instance;
+            if (toolManager == null)
+            {
+                toolManager = FindObjectOfType<VRDigToolManager>();
+            }
+            
+            if (toolManager == null)
+            {
+                Debug.LogWarning("[TreasureCollector] VRDigToolManagerが見つかりません。お宝の数が記録されません。");
+            }
+        }
 
         Debug.Log($"お宝 [{other.name}] を取得しました");
         
@@ -206,9 +247,18 @@ public class TreasureCollector : MonoBehaviour
         
         if (toolManager != null)
         {
+            // 初回取得かどうかをチェック（取得前の状態を保存）
+            bool wasUnlockedBefore = toolManager.IsPickaxeExplosionUnlocked();
+            
             // VRDigToolManagerに爆発チャージ追加を依頼
             toolManager.AddPickaxeExplosionCharges(explosiveItem.chargesPerPickup);
             Debug.Log($"[{explosiveItem.treasureName}] つるはし爆発チャージを {explosiveItem.chargesPerPickup} 追加しました！");
+            
+            // 初回取得の場合、モード切り替えテキストを表示
+            if (!wasUnlockedBefore && TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.ShowModeSwitchText("Xボタンを押してモード切り替え");
+            }
         }
         else
         {
@@ -223,9 +273,18 @@ public class TreasureCollector : MonoBehaviour
         
         if (toolManager != null)
         {
+            // 初回取得かどうかをチェック（取得前の状態を保存）
+            bool wasUnlockedBefore = toolManager.IsDrillShootModeUnlocked();
+            
             // VRDigToolManagerに射出モード開放を依頼
             toolManager.UnlockDrillShootMode();
             Debug.Log($"[{drillShootModeItem.treasureName}] ドリル射出モードを開放しました！");
+            
+            // 初回取得の場合、モード切り替えテキストを表示
+            if (!wasUnlockedBefore && TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.ShowModeSwitchText("Xボタンを押してモード切り替え");
+            }
         }
         else
         {
