@@ -72,8 +72,33 @@ public class DigSoundManager : MonoBehaviour
     
     private void OnDisable()
     {
-        // エディタモードでのシーン終了時にもクリーンアップを確実に実行
-        CleanupResources();
+        // DontDestroyOnLoadで保持されている場合は、インスタンスをクリアしない
+        // シーンリロード後も音声機能が動作するようにする
+        if (!Application.isPlaying)
+        {
+            // エディタモードでのみクリーンアップ
+            CleanupResources();
+        }
+        else
+        {
+            // プレイモードでは、音声を停止するだけでインスタンスは保持
+            if (activeAudioSources != null)
+            {
+                StopAllSounds();
+            }
+            
+            // 追従型のAudioSourceの音声を停止（リストはクリアしない）
+            if (attachedAudioSources != null)
+            {
+                foreach (var audioSource in attachedAudioSources.Values)
+                {
+                    if (audioSource != null && audioSource.isPlaying)
+                    {
+                        audioSource.Stop();
+                    }
+                }
+            }
+        }
     }
     
     private void OnDestroy()
@@ -83,7 +108,7 @@ public class DigSoundManager : MonoBehaviour
     }
     
     /// <summary>
-    /// リソースをクリーンアップ（OnDisableとOnDestroyの両方から呼ばれる）
+    /// リソースをクリーンアップ（OnDestroy時のみ呼ばれる）
     /// </summary>
     private void CleanupResources()
     {
